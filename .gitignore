@@ -1,0 +1,31 @@
+# Dependencias
+node_modules/
+.pnp
+.pnp.js
+
+# Variables de entorno — NUNCA subir al repo
+.env
+.env.local
+.env.production
+
+# Builds
+dist/
+build/
+.next/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Railway / deployment
+.railway/
