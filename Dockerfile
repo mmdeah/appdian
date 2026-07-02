@@ -2,16 +2,11 @@ FROM node:22-slim
 
 WORKDIR /app
 
-# Copiar todo el repo
-COPY . .
+COPY backend/package*.json ./
 
-# Build del frontend
-RUN cd frontend && npm install && npm run build
+RUN npm install --omit=dev
 
-# Instalar solo dependencias de producción del backend
-RUN cd backend && npm install --omit=dev
-
-WORKDIR /app/backend
+COPY backend/ .
 
 EXPOSE 3000
 
