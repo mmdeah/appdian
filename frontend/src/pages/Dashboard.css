@@ -1,0 +1,105 @@
+.dashboard { display: flex; flex-direction: column; gap: var(--s-8); }
+
+.dash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dash-greeting {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 2px;
+}
+
+.dash-date { margin-top: 2px; }
+
+.dash-loading, .dash-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 160px;
+  color: var(--text-secondary);
+}
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-4);
+}
+
+.stat-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-4);
+  padding: var(--s-5);
+}
+
+.stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon--accent  { background: var(--accent-soft);  color: var(--accent); }
+.stat-icon--success { background: var(--success-soft); color: var(--success); }
+.stat-icon--info    { background: var(--info-soft);    color: var(--info); }
+.stat-icon--warning { background: var(--warning-soft); color: var(--warning); }
+
+.stat-body { flex: 1; min-width: 0; }
+.stat-label { margin-bottom: var(--s-1); }
+.stat-value { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+.stat-sub { margin-top: 3px; }
+
+/* Section */
+.dash-section {}
+
+/* Quick actions */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-3);
+}
+
+.quick-card {
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast);
+}
+
+.quick-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.quick-card--accent:hover  { border-color: var(--accent); }
+.quick-card--info:hover    { border-color: var(--info); }
+.quick-card--success:hover { border-color: var(--success); }
+.quick-card--warning:hover { border-color: var(--warning); }
+
+.quick-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+}
+
+.quick-desc {}
+
+@media (max-width: 1100px) {
+  .stats-grid, .quick-actions { grid-template-columns: repeat(2, 1fr); }
+}

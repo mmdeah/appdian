@@ -1,0 +1,142 @@
+.login-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+/* Brand side */
+.login-brand {
+  background: var(--sidebar);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: var(--s-12);
+}
+
+.login-brand-inner {
+  position: relative;
+  z-index: 2;
+}
+
+.brand-logo-mark {
+  width: 52px;
+  height: 52px;
+  background: var(--accent);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 800;
+  box-shadow: 0 8px 28px rgba(99,102,241,0.5);
+  margin-bottom: var(--s-5);
+}
+
+.brand-title {
+  font-size: 36px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.03em;
+  margin-bottom: var(--s-3);
+}
+
+.brand-tagline {
+  font-size: 16px;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.6;
+  margin-bottom: var(--s-8);
+}
+
+.brand-features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.brand-feature {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  color: rgba(255,255,255,0.7);
+  font-size: 13.5px;
+}
+
+.brand-feature svg { color: var(--success); flex-shrink: 0; }
+
+/* Geo rings decorativas */
+.brand-geo {
+  position: absolute;
+  right: -80px;
+  bottom: -80px;
+}
+
+.geo-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.05);
+  transform: translate(-50%, -50%);
+  top: 0; left: 0;
+}
+
+.geo-ring-1 { width: 240px; height: 240px; }
+.geo-ring-2 { width: 380px; height: 380px; border-color: rgba(255,255,255,0.03); }
+.geo-ring-3 { width: 520px; height: 520px; border-color: rgba(255,255,255,0.02); }
+
+/* Form side */
+.login-form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: var(--s-8);
+}
+
+.login-form-card {
+  width: 100%;
+  max-width: 380px;
+}
+
+.login-heading {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: var(--s-1);
+}
+
+.login-sub { font-size: 14px; margin-bottom: var(--s-8); }
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  margin-bottom: var(--s-6);
+}
+
+.login-error {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-4);
+  background: var(--danger-soft);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: var(--r-md);
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.login-footer { text-align: center; }
+
+.login-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+.login-link:hover { text-decoration: underline; }
+
+@media (max-width: 768px) {
+  .login-page { grid-template-columns: 1fr; }
+  .login-brand { display: none; }
+}

@@ -1,0 +1,58 @@
+.invoices-page { display: flex; flex-direction: column; gap: var(--s-5); }
+
+/* Filters */
+.inv-filters {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  flex-wrap: wrap;
+}
+
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+
+.filter-label { font-size: 10px; }
+
+.filter-select, .filter-date {
+  height: 34px;
+  padding: 0 var(--s-3);
+  background: var(--bg);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-md);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-primary);
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--dur-fast);
+}
+
+.filter-select:focus, .filter-date:focus { border-color: var(--accent); }
+
+/* Invoice number */
+.inv-num {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+/* Expanded row */
+.row-expanded td { background: rgba(99,102,241,0.03); }
+
+.detail-row td { padding: 0; border-bottom: 1px solid var(--border); }
+
+.inv-detail {
+  padding: var(--s-4) var(--s-5);
+  background: var(--bg);
+  border-top: 1px dashed var(--border-mid);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-4);
+}
+
+.detail-item { display: flex; flex-direction: column; gap: 3px; }
+.detail-key { display: block; }
+.detail-val { color: var(--text-primary); font-weight: 600; word-break: break-all; }
