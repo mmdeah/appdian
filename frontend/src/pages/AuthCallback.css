@@ -1,0 +1,45 @@
+.callback-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+
+.callback-loading,
+.callback-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-4);
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.callback-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border-mid);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.callback-error svg { color: var(--danger); margin-bottom: var(--s-2); }
+.callback-error p { color: var(--danger); font-weight: 500; }
+
+.callback-retry {
+  margin-top: var(--s-2);
+  padding: var(--s-2) var(--s-5);
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-md);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast);
+}
+.callback-retry:hover { background: var(--accent-hover); }

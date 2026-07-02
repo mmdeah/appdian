@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { authApi } from '../api/client'
+import { supabase } from '../api/supabase'
 
 const AuthContext = createContext(null)
 
@@ -22,6 +23,7 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false))
   }, [])
 
+  // Email/password login
   const login = useCallback(async (email, password) => {
     const { data } = await authApi.login(email, password)
     localStorage.setItem('appdian_token', data.token)
@@ -30,14 +32,34 @@ export function AuthProvider({ children }) {
     return data
   }, [])
 
-  const logout = useCallback(() => {
+  // Exchange a Supabase access_token for our app JWT (used after Google OAuth)
+  const loginWithToken = useCallback(async (supabaseAccessToken) => {
+    const { data } = await authApi.googleAuth(supabaseAccessToken)
+    localStorage.setItem('appdian_token', data.token)
+    localStorage.setItem('appdian_empresa', JSON.stringify(data.empresa))
+    setEmpresa(data.empresa)
+    return data
+  }, [])
+
+  // Trigger Google OAuth — redirects the browser to Google
+  const loginWithGoogle = useCallback(async () => {
+    const redirectTo = `${window.location.origin}/auth/callback`
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo },
+    })
+    if (error) throw error
+  }, [])
+
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut().catch(() => {})
     localStorage.removeItem('appdian_token')
     localStorage.removeItem('appdian_empresa')
     setEmpresa(null)
   }, [])
 
   return (
-    <AuthContext.Provider value={{ empresa, login, logout, loading, isAuth: !!empresa }}>
+    <AuthContext.Provider value={{ empresa, login, loginWithToken, loginWithGoogle, logout, loading, isAuth: !!empresa }}>
       {children}
     </AuthContext.Provider>
   )

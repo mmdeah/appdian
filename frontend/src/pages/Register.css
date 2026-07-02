@@ -1,0 +1,40 @@
+/* Register page — same layout as login, wider card */
+.register-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+.register-form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: var(--s-8);
+  overflow-y: auto;
+}
+
+.register-form-card {
+  width: 100%;
+  max-width: 540px;
+  padding: var(--s-4) 0;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  margin-bottom: var(--s-6);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-4);
+}
+
+@media (max-width: 768px) {
+  .register-page { grid-template-columns: 1fr; }
+  .login-brand { display: none; }
+  .form-row { grid-template-columns: 1fr; }
+}
