@@ -1,5 +1,10 @@
 require('dotenv').config()
 const express = require('express')
+
+// Evitar crash por promesas rechazadas sin manejar (ej: supabase realtime)
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason)
+})
 const morgan = require('morgan')
 
 const app = express()
