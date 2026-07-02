@@ -14,7 +14,7 @@
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
     "axios": "^1.6.2",
-    "@supabase/supabase-js": "^2.39.0",
+    "@supabase/supabase-js": "2.45.4",
     "express-validator": "^7.0.1",
     "morgan": "^1.10.0"
   },
@@ -22,6 +22,6 @@
     "nodemon": "^3.0.2"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=18.0.0"
   }
 }
