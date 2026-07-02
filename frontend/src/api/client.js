@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://appdian-production.up.railway.app'
+// Empty string = relative URL → same origin (frontend + backend en un solo servicio)
+const BASE_URL = import.meta.env.VITE_API_URL || ''
 
 const api = axios.create({
   baseURL: `${BASE_URL}/api`,
