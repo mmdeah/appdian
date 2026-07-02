@@ -1,28 +1,31 @@
-### Stage 1: build frontend ###
+### Stage 1: build ###
 FROM node:22-slim AS builder
 
 WORKDIR /build
 
-# Install frontend deps & build
+# ── Frontend ──────────────────────────────────────────────────────────────────
 COPY frontend/package*.json ./frontend/
 RUN cd frontend && npm install --include=dev
 
 COPY frontend/ ./frontend/
 RUN cd frontend && npm run build
 
-# Install backend deps (prod only)
+# ── Backend ───────────────────────────────────────────────────────────────────
 COPY backend/package*.json ./backend/
 RUN cd backend && npm install --omit=dev
+
+# Copiar código fuente del backend (FALTABA ESTO)
+COPY backend/ ./backend/
 
 ### Stage 2: runtime ###
 FROM node:22-slim
 
 WORKDIR /app
 
-# Backend code + node_modules
+# Backend (código + node_modules)
 COPY --from=builder /build/backend ./
 
-# Built React app → served as static files
+# Frontend compilado
 COPY --from=builder /build/frontend/dist ./public
 
 CMD ["node", "src/app.js"]
