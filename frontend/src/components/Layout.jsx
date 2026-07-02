@@ -3,11 +3,12 @@ import Sidebar from './Sidebar'
 import './Layout.css'
 
 const TITLES = {
-  '/dashboard': 'Dashboard',
-  '/pos': 'Punto de Venta',
-  '/facturas': 'Historial de Facturas',
-  '/productos': 'Productos',
-  '/clientes': 'Clientes',
+  '/dashboard':    'Dashboard',
+  '/pos':          'Punto de Venta',
+  '/facturas':     'Historial de Facturas',
+  '/productos':    'Productos',
+  '/clientes':     'Clientes',
+  '/estadisticas': 'Estadísticas & Contabilidad',
 }
 
 export default function Layout() {

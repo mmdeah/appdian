@@ -9,6 +9,7 @@ import POS from './pages/POS'
 import Products from './pages/Products'
 import Customers from './pages/Customers'
 import Invoices from './pages/Invoices'
+import Stats    from './pages/Stats'
 
 function PrivateRoute({ children }) {
   const { isAuth, loading } = useAuth()
@@ -40,7 +41,8 @@ export default function App() {
             <Route path="pos" element={<POS />} />
             <Route path="productos" element={<Products />} />
             <Route path="clientes" element={<Customers />} />
-            <Route path="facturas" element={<Invoices />} />
+            <Route path="facturas"     element={<Invoices />} />
+            <Route path="estadisticas" element={<Stats />} />
           </Route>
         </Routes>
       </BrowserRouter>

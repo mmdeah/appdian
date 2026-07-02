@@ -17,6 +17,7 @@ app.use('/api/auth',      require('./routes/auth'))
 app.use('/api/products',  require('./routes/products'))
 app.use('/api/customers', require('./routes/customers'))
 app.use('/api/invoices',  require('./routes/invoices'))
+app.use('/api/stats',     require('./routes/stats'))
 
 app.get('/health', (_, res) => res.json({ ok: true, v: 6 }))
 

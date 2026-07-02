@@ -54,6 +54,15 @@ export const customersApi = {
   remove: (id) => api.delete(`/customers/${id}`),
 }
 
+// ---- Stats ----
+export const statsApi = {
+  resumen:      (params) => api.get('/stats/resumen',       { params }),
+  tendencia:    (params) => api.get('/stats/tendencia',     { params }),
+  topClientes:  (params) => api.get('/stats/top-clientes',  { params }),
+  topProductos: (params) => api.get('/stats/top-productos', { params }),
+  ai:           (data)   => api.post('/stats/ai', data),
+}
+
 // ---- Invoices ----
 export const invoicesApi = {
   dashboard: () => api.get('/invoices/dashboard'),
