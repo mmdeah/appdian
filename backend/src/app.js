@@ -6,7 +6,16 @@ const morgan = require('morgan')
 const app = express()
 
 // Middlewares
-app.use(cors())
+app.use(cors({
+  origin: [
+    'https://appdian-production-64ed.up.railway.app',
+    /\.railway\.app$/,
+    'http://localhost:5173',
+    'http://localhost:4173',
+  ],
+  credentials: true,
+}))
+app.options('*', cors())
 app.use(express.json())
 app.use(morgan('dev'))
 
