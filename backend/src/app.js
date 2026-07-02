@@ -5,17 +5,15 @@ const morgan = require('morgan')
 
 const app = express()
 
-// Middlewares
-app.use(cors({
-  origin: [
-    'https://appdian-production-64ed.up.railway.app',
-    /\.railway\.app$/,
-    'http://localhost:5173',
-    'http://localhost:4173',
-  ],
-  credentials: true,
-}))
-app.options('*', cors())
+// CORS manual — confiable en Railway
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  if (req.method === 'OPTIONS') return res.sendStatus(200)
+  next()
+})
 app.use(express.json())
 app.use(morgan('dev'))
 
