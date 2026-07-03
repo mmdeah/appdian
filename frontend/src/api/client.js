@@ -88,6 +88,11 @@ export const ticketsApi = {
   },
 }
 
+// ---- Proyecciones tributarias ----
+export const proyeccionesApi = {
+  resumen: () => api.get('/proyecciones'),
+}
+
 // ---- Panel profesional ----
 export const profesionalApi = {
   listarTickets: (params)        => api.get('/profesional/tickets', { params }),

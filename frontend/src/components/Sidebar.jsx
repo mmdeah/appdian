@@ -73,6 +73,16 @@ const NAV = [
       </svg>
     ),
   },
+  {
+    to: '/proyecciones',
+    label: 'Proyecciones',
+    icon: (
+      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+        <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+      </svg>
+    ),
+    badge: 'NUEVO',
+  },
 ]
 
 export default function Sidebar() {

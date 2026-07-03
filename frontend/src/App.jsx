@@ -11,6 +11,7 @@ import Customers from './pages/Customers'
 import Invoices from './pages/Invoices'
 import Stats from './pages/Stats'
 import Consultas from './pages/Consultas'
+import Proyecciones from './pages/Proyecciones'
 import ProfesionalLayout from './components/ProfesionalLayout'
 import ProfesionalPanel from './pages/ProfesionalPanel'
 import ProfesionalTicket from './pages/ProfesionalTicket'
@@ -59,7 +60,8 @@ export default function App() {
             <Route path="clientes"     element={<Customers />} />
             <Route path="facturas"     element={<Invoices />} />
             <Route path="estadisticas" element={<Stats />} />
-            <Route path="consultas"    element={<Consultas />} />
+            <Route path="consultas"     element={<Consultas />} />
+            <Route path="proyecciones" element={<Proyecciones />} />
           </Route>
 
           {/* Rutas de profesionales (contadores/abogados) */}

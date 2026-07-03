@@ -1,0 +1,123 @@
+.proyecciones-page { max-width: 1100px; }
+
+/* Header */
+.proy-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 1.5rem; gap: 1rem;
+}
+.proy-titulo { font-size: 1.4rem; font-weight: 700; margin: 0 0 .25rem; }
+.proy-subtitulo { margin: 0; font-size: .88rem; }
+
+.proy-avance-badge {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: .65rem 1.1rem; flex-shrink: 0;
+}
+.avance-num { font-size: 1.5rem; font-weight: 800; color: var(--accent); line-height: 1; }
+.avance-lab { font-size: .7rem; color: var(--muted); margin-top: .15rem; }
+
+/* Grid */
+.proy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+/* Card */
+.proy-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden;
+}
+.proy-card-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 1.2rem .6rem;
+}
+.proy-card-titulo {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--muted); margin: 0;
+}
+.proy-badge {
+  font-size: .68rem; font-weight: 700; padding: .2rem .6rem;
+  border-radius: 20px; text-transform: uppercase; letter-spacing: .04em;
+}
+.proy-badge--accent  { background: rgba(99,102,241,.12); color: var(--accent); }
+.proy-badge--warning { background: rgba(245,158,11,.12); color: #d97706; }
+.proy-badge--success { background: rgba(34,197,94,.12);  color: #16a34a; }
+.proy-badge--danger  { background: rgba(239,68,68,.12);  color: #dc2626; }
+.proy-badge--neutral { background: var(--bg); color: var(--muted); }
+
+.proy-card-body { padding: .2rem 1.2rem 1.2rem; }
+
+/* Montos grandes */
+.iva-monto {
+  font-size: 1.9rem; font-weight: 800; color: var(--text);
+  line-height: 1.1; margin-bottom: .3rem;
+}
+.iva-desc { font-size: .82rem; color: var(--muted); margin: 0 0 .9rem; }
+.texto-alerta { color: #dc2626; }
+
+/* Barras */
+.barra-wrap { margin-bottom: .75rem; }
+.barra-header { display: flex; justify-content: space-between; margin-bottom: .35rem; }
+.barra-label { font-size: .8rem; color: var(--muted); }
+.barra-pct   { font-size: .8rem; font-weight: 700; }
+.barra-track {
+  height: 7px; background: var(--bg); border-radius: 99px; overflow: hidden;
+}
+.barra-fill  {
+  height: 100%; border-radius: 99px;
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+}
+.barra-sub { font-size: .75rem; color: var(--muted); margin: .3rem 0 0; }
+
+/* Divisor */
+.proy-divider {
+  height: 1px; background: var(--border); margin: .75rem 0;
+}
+
+/* Filas info */
+.info-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: .28rem 0; gap: .5rem;
+}
+.info-key { font-size: .8rem; color: var(--muted); }
+.info-val { font-size: .82rem; font-weight: 600; text-align: right; }
+.info-val--highlight { color: var(--accent); font-size: .88rem; font-weight: 700; }
+
+/* Alerta SIMPLE */
+.alerta-box {
+  display: flex; gap: .6rem; align-items: flex-start;
+  background: rgba(239,68,68,.07); border: 1px solid rgba(239,68,68,.2);
+  border-radius: 9px; padding: .7rem .85rem; margin: .65rem 0;
+  font-size: .82rem; color: #7f1d1d; line-height: 1.5;
+}
+
+/* Períodos */
+.periodos-grid {
+  display: flex; flex-direction: column; gap: .6rem; margin-bottom: .5rem;
+}
+.periodo-item {
+  background: var(--bg); border-radius: 9px; padding: .65rem .85rem;
+}
+.periodo-tipo  { font-size: .7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .05em; color: var(--accent); margin: 0 0 .15rem; }
+.periodo-rango { font-size: .92rem; font-weight: 700; margin: 0 0 .1rem; }
+.periodo-fecha { font-size: .75rem; margin: 0; }
+
+/* Disclaimer */
+.disclaimer {
+  font-size: .78rem; color: var(--muted); line-height: 1.55;
+  background: var(--bg); border-radius: 8px; padding: .65rem .85rem; margin: 0;
+}
+
+/* Loading */
+.proy-loading {
+  display: flex; align-items: center; justify-content: center; height: 50vh;
+}
+.proy-error {
+  text-align: center; padding: 3rem; color: var(--muted);
+}
+
+@media (max-width: 780px) {
+  .proy-grid { grid-template-columns: 1fr; }
+}

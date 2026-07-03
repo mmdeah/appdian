@@ -18,8 +18,9 @@ app.use('/api/products',    require('./routes/products'))
 app.use('/api/customers',   require('./routes/customers'))
 app.use('/api/invoices',    require('./routes/invoices'))
 app.use('/api/stats',       require('./routes/stats'))
-app.use('/api/tickets',     require('./routes/tickets'))
-app.use('/api/profesional', require('./routes/profesional'))
+app.use('/api/tickets',        require('./routes/tickets'))
+app.use('/api/profesional',    require('./routes/profesional'))
+app.use('/api/proyecciones',   require('./routes/proyecciones'))
 
 app.get('/health', (_, res) => res.json({ ok: true, v: 7 }))
 
