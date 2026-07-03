@@ -152,20 +152,31 @@ export default function Stats() {
   const cargar = useCallback(async () => {
     if (!desde || !hasta) return
     setLoading(true); setError(null)
+
+    // Estadísticas de facturas — críticas
     try {
-      const [r,t,c,p,g,fl] = await Promise.all([
+      const [r,t,c,p] = await Promise.all([
         statsApi.resumen({ desde, hasta }),
         statsApi.tendencia({ desde, hasta, agrupacion: agrup }),
         statsApi.topClientes({ desde, hasta }),
         statsApi.topProductos({ desde, hasta }),
-        gastosApi.resumen({ desde, hasta }),
-        gastosApi.flujo({ desde, hasta, agrupacion: agrup }),
       ])
       setResumen(r.data); setTendencia(t.data)
       setClientes(c.data); setProductos(p.data)
+    } catch {
+      setError('No se pudieron cargar las estadísticas de ventas.')
+    } finally {
+      setLoading(false)
+    }
+
+    // Gastos — opcional (tabla puede no existir aún)
+    try {
+      const [g, fl] = await Promise.all([
+        gastosApi.resumen({ desde, hasta }),
+        gastosApi.flujo({ desde, hasta, agrupacion: agrup }),
+      ])
       setGastos(g.data); setFlujo(fl.data)
-    } catch { setError('No se pudieron cargar las estadísticas.') }
-    finally { setLoading(false) }
+    } catch { /* tabla gastos aún no creada, se muestra vacío */ }
   }, [desde, hasta, agrup])
 
   useEffect(() => { cargar() }, [cargar])

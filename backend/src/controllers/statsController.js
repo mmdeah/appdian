@@ -10,7 +10,7 @@ const resumen = async (req, res) => {
       .from('facturas')
       .select('total, iva, subtotal, tipo')
       .eq('empresa_id', empresa_id)
-      .in('estado', ['APROBADA', 'EMITIDA_LOCAL'])
+      .in('estado', ['APROBADA', 'EMITIDA_LOCAL', 'PENDIENTE'])
 
     if (desde) q = q.gte('created_at', `${desde}T00:00:00`)
     if (hasta) q = q.lte('created_at', `${hasta}T23:59:59`)
@@ -37,7 +37,7 @@ const resumen = async (req, res) => {
         .from('facturas')
         .select('total')
         .eq('empresa_id', empresa_id)
-        .in('estado', ['APROBADA', 'EMITIDA_LOCAL'])
+        .in('estado', ['APROBADA', 'EMITIDA_LOCAL', 'PENDIENTE'])
         .gte('created_at', prevDesde.toISOString().split('T')[0] + 'T00:00:00')
         .lte('created_at', prevHasta.toISOString().split('T')[0] + 'T23:59:59')
 
@@ -77,7 +77,7 @@ const tendencia = async (req, res) => {
       .from('facturas')
       .select('created_at, total')
       .eq('empresa_id', empresa_id)
-      .eq('estado', 'APROBADA')
+      .in('estado', ['APROBADA', 'EMITIDA_LOCAL', 'PENDIENTE'])
       .order('created_at', { ascending: true })
 
     if (desde) q = q.gte('created_at', `${desde}T00:00:00`)
@@ -123,7 +123,7 @@ const topClientes = async (req, res) => {
       .from('facturas')
       .select('cliente_nombre, total')
       .eq('empresa_id', empresa_id)
-      .eq('estado', 'APROBADA')
+      .in('estado', ['APROBADA', 'EMITIDA_LOCAL', 'PENDIENTE'])
       .neq('cliente_nombre', 'CONSUMIDOR FINAL')
 
     if (desde) q = q.gte('created_at', `${desde}T00:00:00`)
@@ -159,7 +159,7 @@ const topProductos = async (req, res) => {
       .from('facturas')
       .select('id')
       .eq('empresa_id', empresa_id)
-      .eq('estado', 'APROBADA')
+      .in('estado', ['APROBADA', 'EMITIDA_LOCAL', 'PENDIENTE'])
 
     if (desde) qf = qf.gte('created_at', `${desde}T00:00:00`)
     if (hasta) qf = qf.lte('created_at', `${hasta}T23:59:59`)
