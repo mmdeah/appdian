@@ -1,7 +1,6 @@
 const bcrypt  = require('bcryptjs')
 const jwt     = require('jsonwebtoken')
 const supabase = require('../config/db')
-const { cifrar } = require('../services/cifradoService')
 const audit   = require('../services/auditService')
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -22,7 +21,7 @@ function generarTokenProfesional(prof) {
 }
 
 function sanitizarEmpresa(e) {
-  const { password, matias_password, ...rest } = e
+  const { password, password_cifrada, matias_password, ...rest } = e
   return rest
 }
 
@@ -35,27 +34,101 @@ function sanitizarProfesional(p) {
 const register = async (req, res) => {
   const { nombre_empresa, nit, email, password, direccion, telefono } = req.body
   try {
-    const { data: existe } = await supabase.from('empresas').select('id').eq('nit', nit).single()
-    if (existe) return res.status(400).json({ error: 'Ya existe una empresa con ese NIT' })
+    if (!password || password.length < 8)
+      return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' })
 
-    const hash            = await bcrypt.hash(password, 10)
-    const password_cifrada = cifrar(password)   // copia reversible para soporte profesional
+    const { data: nitExiste } = await supabase.from('empresas').select('id').eq('nit', nit).single()
+    if (nitExiste) return res.status(400).json({ error: 'Ya existe una empresa con ese NIT' })
+
+    const { data: emailExiste } = await supabase.from('empresas').select('id').eq('email', email).single()
+    if (emailExiste) return res.status(400).json({ error: 'Ya existe una cuenta con ese correo' })
+
+    // Crear usuario en Supabase Auth — esto dispara el correo de confirmación
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: false,
+    })
+    if (authError) throw new Error(authError.message)
+
+    const hash = await bcrypt.hash(password, 10)
     const { data: empresa, error } = await supabase
       .from('empresas')
-      .insert({ nombre: nombre_empresa, nit, email, password: hash, password_cifrada, direccion, telefono })
+      .insert({
+        nombre: nombre_empresa,
+        nit,
+        email,
+        password: hash,
+        direccion,
+        telefono,
+        email_confirmado: false,
+        supabase_auth_id: authData.user.id,
+      })
       .select().single()
 
-    if (error) throw error
+    if (error) {
+      await supabase.auth.admin.deleteUser(authData.user.id).catch(() => {})
+      throw error
+    }
+
     audit.log({ tipo: 'REGISTRO_EMPRESA', descripcion: `Nueva empresa registrada: ${nombre_empresa} (NIT ${nit})`, empresa_id: empresa.id })
+    res.status(201).json({ pendiente: true, mensaje: 'Revisa tu correo para confirmar tu cuenta' })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+// ── POST /api/auth/confirmar-email ────────────────────────────────────────────
+// Recibe el access_token de Supabase tras confirmar el email
+const confirmarEmail = async (req, res) => {
+  const { access_token } = req.body
+  if (!access_token) return res.status(400).json({ error: 'access_token requerido' })
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser(access_token)
+    if (error || !user) return res.status(401).json({ error: 'Token inválido o expirado' })
+
+    const { data: empresa, error: updateError } = await supabase
+      .from('empresas')
+      .update({ email_confirmado: true })
+      .eq('email', user.email)
+      .select().single()
+
+    if (updateError || !empresa) return res.status(404).json({ error: 'Empresa no encontrada' })
+    if (!empresa.activo) return res.status(403).json({ error: 'Cuenta desactivada' })
+
     const token = generarTokenEmpresa(empresa)
-    res.status(201).json({ token, empresa: sanitizarEmpresa(empresa), rol: 'EMPRESA' })
+    res.json({ token, empresa: sanitizarEmpresa(empresa), rol: 'EMPRESA' })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+// ── POST /api/auth/actualizar-password ───────────────────────────────────────
+// Actualiza la contraseña tras un reset (recibe token de Supabase + nueva clave)
+const actualizarPassword = async (req, res) => {
+  const { access_token, nueva_password } = req.body
+  if (!access_token || !nueva_password)
+    return res.status(400).json({ error: 'access_token y nueva_password requeridos' })
+  if (nueva_password.length < 8)
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' })
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser(access_token)
+    if (error || !user) return res.status(401).json({ error: 'Token inválido o expirado' })
+
+    // Actualizar contraseña en Supabase Auth
+    await supabase.auth.admin.updateUserById(user.id, { password: nueva_password })
+
+    // Actualizar hash bcrypt en nuestra tabla
+    const hash = await bcrypt.hash(nueva_password, 10)
+    await supabase.from('empresas').update({ password: hash }).eq('email', user.email)
+
+    res.json({ ok: true, mensaje: 'Contraseña actualizada correctamente' })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
 }
 
 // ── POST /api/auth/login ──────────────────────────────────────────────────────
-// Intenta empresas primero, luego profesionales
 const login = async (req, res) => {
   const { email, password } = req.body
   try {
@@ -65,6 +138,9 @@ const login = async (req, res) => {
       const valido = await bcrypt.compare(password, empresa.password)
       if (!valido) return res.status(401).json({ error: 'Credenciales inválidas' })
       if (!empresa.activo) return res.status(403).json({ error: 'Cuenta desactivada' })
+      // email_confirmado puede ser null en cuentas antiguas — solo bloquear si es explícitamente false
+      if (empresa.email_confirmado === false)
+        return res.status(403).json({ error: 'email_no_confirmado' })
       audit.log({ tipo: 'LOGIN_EMPRESA', descripcion: `Inicio de sesión: ${empresa.nombre} (${empresa.email})`, empresa_id: empresa.id })
       const token = generarTokenEmpresa(empresa)
       return res.json({ token, empresa: sanitizarEmpresa(empresa), rol: 'EMPRESA' })
@@ -86,35 +162,6 @@ const login = async (req, res) => {
   }
 }
 
-// ── POST /api/auth/google ─────────────────────────────────────────────────────
-const googleAuth = async (req, res) => {
-  const { access_token } = req.body
-  if (!access_token) return res.status(400).json({ error: 'access_token requerido' })
-  try {
-    const { data: { user }, error: authError } = await supabase.auth.getUser(access_token)
-    if (authError || !user) return res.status(401).json({ error: 'Token de Google inválido' })
-
-    const email = user.email
-    const nombre = user.user_metadata?.full_name || user.user_metadata?.name || email.split('@')[0]
-
-    let { data: empresa } = await supabase.from('empresas').select('*').eq('email', email).single()
-    if (!empresa) {
-      const hash = await bcrypt.hash(Math.random().toString(36) + Date.now(), 10)
-      const { data: nueva, error: createError } = await supabase
-        .from('empresas')
-        .insert({ nombre, email, nit: `G-${Date.now()}`, password: hash })
-        .select().single()
-      if (createError) return res.status(500).json({ error: 'Error al crear cuenta' })
-      empresa = nueva
-    }
-    if (!empresa.activo) return res.status(403).json({ error: 'Cuenta desactivada' })
-    const token = generarTokenEmpresa(empresa)
-    res.json({ token, empresa: sanitizarEmpresa(empresa), rol: 'EMPRESA' })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
-}
-
 // ── GET /api/auth/me ──────────────────────────────────────────────────────────
 const me = async (req, res) => {
   try {
@@ -131,4 +178,4 @@ const me = async (req, res) => {
   }
 }
 
-module.exports = { register, login, googleAuth, me }
+module.exports = { register, login, confirmarEmail, actualizarPassword, me }

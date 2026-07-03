@@ -44,24 +44,12 @@ export function AuthProvider({ children }) {
     return data
   }, [])
 
-  // Exchange a Supabase access_token for our app JWT (used after Google OAuth)
-  const loginWithToken = useCallback(async (supabaseAccessToken) => {
-    const { data } = await authApi.googleAuth(supabaseAccessToken)
-    localStorage.setItem('appdian_token', data.token)
+  // Called by AuthCallback after email confirmation — stores token + user
+  const setUserFromData = useCallback((data) => {
     const userData = { ...data.empresa, rol: 'EMPRESA' }
+    localStorage.setItem('appdian_token', data.token)
     localStorage.setItem('appdian_user', JSON.stringify(userData))
     setUser(userData)
-    return data
-  }, [])
-
-// Trigger Google OAuth — redirects the browser to Google
-  const loginWithGoogle = useCallback(async () => {
-    const redirectTo = `${window.location.origin}/auth/callback`
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo },
-    })
-    if (error) throw error
   }, [])
 
   const logout = useCallback(async () => {
@@ -80,7 +68,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, empresa, profesional, rol, isAuth, loading,
-      login, loginWithToken, loginWithGoogle, logout,
+      login, setUserFromData, logout,
     }}>
       {children}
     </AuthContext.Provider>

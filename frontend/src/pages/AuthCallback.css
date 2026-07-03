@@ -43,3 +43,13 @@
   transition: background var(--dur-fast);
 }
 .callback-retry:hover { background: var(--accent-hover); }
+
+.callback-form-card {
+  background: var(--surface);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-lg);
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.06);
+}
