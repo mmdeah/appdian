@@ -3,13 +3,15 @@
 -- Ejecutar en Supabase → SQL Editor → Run
 -- ============================================================
 
--- 1. Tabla de profesionales (contadores y abogados del equipo)
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- 1. Tabla de profesionales
 CREATE TABLE IF NOT EXISTS profesionales (
   id            uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
   nombre        text        NOT NULL,
   email         text        UNIQUE NOT NULL,
   password      text        NOT NULL,
-  especialidad  text        DEFAULT 'CONTADOR'
+  especialidad  text        DEFAULT 'ADMIN'
                             CHECK (especialidad IN ('CONTADOR', 'ABOGADO', 'ADMIN')),
   activo        boolean     DEFAULT true,
   created_at    timestamptz DEFAULT now()
@@ -33,31 +35,31 @@ CREATE TABLE IF NOT EXISTS tickets (
   completado_at timestamptz
 );
 
--- 3. Mensajes del ticket (hilo de conversación)
+-- 3. Mensajes del ticket
 CREATE TABLE IF NOT EXISTS ticket_mensajes (
-  id          uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
-  ticket_id   uuid        REFERENCES tickets(id) ON DELETE CASCADE NOT NULL,
-  autor_nombre text       NOT NULL,
-  autor_tipo  text        NOT NULL CHECK (autor_tipo IN ('EMPRESA','PROFESIONAL')),
-  contenido   text        NOT NULL,
-  es_interno  boolean     DEFAULT false,  -- nota interna, no visible para el cliente
-  created_at  timestamptz DEFAULT now()
+  id           uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
+  ticket_id    uuid        REFERENCES tickets(id) ON DELETE CASCADE NOT NULL,
+  autor_nombre text        NOT NULL,
+  autor_tipo   text        NOT NULL CHECK (autor_tipo IN ('EMPRESA','PROFESIONAL')),
+  contenido    text        NOT NULL,
+  es_interno   boolean     DEFAULT false,
+  created_at   timestamptz DEFAULT now()
 );
 
 -- ============================================================
--- CREAR PRIMER PROFESIONAL (ajusta nombre, email y contraseña)
--- La contraseña aquí es: appdian2024
--- Para cambiarla genera un hash en: https://bcrypt.online/
+-- USUARIO ÚNICO DEL PANEL PROFESIONAL
+-- Email: profesional@appdian.com  |  Contraseña: appdian2024
 -- ============================================================
 INSERT INTO profesionales (nombre, email, password, especialidad)
-VALUES
-  ('Contador Principal', 'contador@appdian.com',
-   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LPVImN.TUwi',
-   'CONTADOR'),
-  ('Abogado Principal', 'abogado@appdian.com',
-   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LPVImN.TUwi',
-   'ABOGADO')
-ON CONFLICT (email) DO NOTHING;
+VALUES (
+  'Panel AppDian',
+  'profesional@appdian.com',
+  crypt('appdian2024', gen_salt('bf', 10)),
+  'ADMIN'
+)
+ON CONFLICT (email) DO UPDATE SET
+  password    = crypt('appdian2024', gen_salt('bf', 10)),
+  especialidad = 'ADMIN';
 
 -- ============================================================
 -- PARA BORRAR TODO (si necesitas empezar de nuevo):
