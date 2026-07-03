@@ -5,6 +5,21 @@ import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import './Login.css'
 
+const DEMO_ACCOUNTS = [
+  {
+    label: 'Empresa (cliente)',
+    icon: '🏢',
+    email: 'automotrizonlinesdclientes@gmail.com',
+    password: 'admin123',
+  },
+  {
+    label: 'Panel profesional',
+    icon: '⚖️',
+    email: 'profesional@appdian.com',
+    password: 'admin123',
+  },
+]
+
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -13,6 +28,11 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
+
+  function usarDemo(account) {
+    setForm({ email: account.email, password: account.password })
+    setError('')
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -94,6 +114,20 @@ export default function Login() {
               Iniciar sesión
             </Button>
           </form>
+
+          {/* Cuentas de prueba */}
+          <div className="demo-accounts">
+            <p className="demo-label">Cuentas de prueba</p>
+            <div className="demo-grid">
+              {DEMO_ACCOUNTS.map((a) => (
+                <button key={a.email} className="demo-card" onClick={() => usarDemo(a)}>
+                  <span className="demo-icon">{a.icon}</span>
+                  <span className="demo-card-label">{a.label}</span>
+                  <span className="demo-email">{a.email}</span>
+                </button>
+              ))}
+            </div>
+          </div>
 
           <p className="login-footer muted t-xs">
             ¿No tienes cuenta?&nbsp;

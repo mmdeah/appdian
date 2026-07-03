@@ -37,3 +37,61 @@
   0%, 100% { box-shadow: 0 0 0 3px var(--success-soft); }
   50%       { box-shadow: 0 0 0 6px rgba(16,185,129,0.05); }
 }
+
+/* ── Banner modo visor profesional ────────────────────────────────────────── */
+.visor-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 24px;
+  background: #312e81;
+  color: #e0e7ff;
+  font-size: 13px;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.visor-banner-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.visor-eye {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.visor-banner strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.visor-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.15);
+  color: #c7d2fe;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.visor-close {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #e0e7ff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+}
+.visor-close:hover {
+  background: rgba(255,255,255,0.22);
+}

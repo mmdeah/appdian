@@ -13,21 +13,25 @@ export function AuthProvider({ children }) {
   })
   const [loading, setLoading] = useState(true)
 
-  // Verify token on mount
+  // Verify token on mount — visor token (sessionStorage) takes priority
   useEffect(() => {
-    const token = localStorage.getItem('appdian_token')
-    if (!token) { setLoading(false); return }
+    const visorToken = sessionStorage.getItem('visor_token')
+    const localToken = localStorage.getItem('appdian_token')
+    if (!visorToken && !localToken) { setLoading(false); return }
     authApi.me()
       .then(({ data }) => {
         const userData = data.rol === 'PROFESIONAL'
           ? { ...data.profesional, rol: 'PROFESIONAL' }
           : { ...data.empresa, rol: 'EMPRESA' }
         setUser(userData)
-        localStorage.setItem('appdian_user', JSON.stringify(userData))
+        // Only persist to localStorage when NOT in visor mode
+        if (!visorToken) localStorage.setItem('appdian_user', JSON.stringify(userData))
       })
       .catch(() => {
-        localStorage.removeItem('appdian_token')
-        localStorage.removeItem('appdian_user')
+        if (!visorToken) {
+          localStorage.removeItem('appdian_token')
+          localStorage.removeItem('appdian_user')
+        }
       })
       .finally(() => setLoading(false))
   }, [])

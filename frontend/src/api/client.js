@@ -8,18 +8,18 @@ const api = axios.create({
   timeout: 15000,
 })
 
-// Attach JWT on every request
+// Attach JWT — visor token (tab-specific) takes priority over localStorage
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('appdian_token')
+  const token = sessionStorage.getItem('visor_token') || localStorage.getItem('appdian_token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 
-// Global error handling
+// Global error handling — don't auto-logout in visor mode
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    if (err.response?.status === 401 && !sessionStorage.getItem('visor_token')) {
       localStorage.removeItem('appdian_token')
       localStorage.removeItem('appdian_user')
       window.location.href = '/login'
@@ -127,6 +127,7 @@ export const vencimientosApi = {
 
 // ---- Panel profesional ----
 export const profesionalApi = {
+  accesoEmpresa: (id)            => api.get(`/profesional/empresa/${id}/acceso`),
   listarTickets: (params)        => api.get('/profesional/tickets', { params }),
   obtenerTicket: (id)            => api.get(`/profesional/tickets/${id}`),
   actualizarTicket: (id, data)   => api.patch(`/profesional/tickets/${id}`, data),

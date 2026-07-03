@@ -1,5 +1,6 @@
 const supabase = require('../config/db')
 const bcrypt   = require('bcryptjs')
+const jwt      = require('jsonwebtoken')
 const { descifrar } = require('../services/cifradoService')
 const audit    = require('../services/auditService')
 
@@ -215,4 +216,37 @@ const listarAudit = async (req, res) => {
   }
 }
 
-module.exports = { listarTickets, obtenerTicket, actualizarTicket, enviarMensaje, resumenEmpresa, listarProfesionales, verPasswordEmpresa, listarAudit, listarEmpresas }
+// ── GET /api/profesional/empresa/:id/acceso — Token temporal de visor ────────
+// Genera un JWT de 2h que permite al profesional ver la app como esa empresa.
+const accesoEmpresa = async (req, res) => {
+  const empresa_id     = req.params.id
+  const profesional_id = req.user.profesional_id
+  try {
+    const { data: empresa, error } = await supabase
+      .from('empresas')
+      .select('id, nombre, nit, email')
+      .eq('id', empresa_id)
+      .single()
+
+    if (error || !empresa) return res.status(404).json({ error: 'Empresa no encontrada' })
+
+    const token = jwt.sign(
+      { empresa_id: empresa.id, email: empresa.email, nit: empresa.nit, rol: 'EMPRESA', modo_visor: true, profesional_id },
+      process.env.JWT_SECRET,
+      { expiresIn: '2h' }
+    )
+
+    audit.log({
+      tipo: 'ACCESO_VISOR',
+      descripcion: `Profesional accedió en modo visor a empresa: ${empresa.nombre} (${empresa.email})`,
+      empresa_id,
+      profesional_id,
+    })
+
+    res.json({ token, empresa })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+module.exports = { listarTickets, obtenerTicket, actualizarTicket, enviarMensaje, resumenEmpresa, listarProfesionales, verPasswordEmpresa, listarAudit, listarEmpresas, accesoEmpresa }

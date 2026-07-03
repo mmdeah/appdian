@@ -3,6 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import { profesionalApi } from '../api/client'
 import './ProfesionalPanel.css'
 
+async function abrirVistaEmpresa(empresaId, e) {
+  e.stopPropagation()
+  try {
+    const { data } = await profesionalApi.accesoEmpresa(empresaId)
+    window.open(`/vista-empresa#${data.token}`, '_blank')
+  } catch {
+    alert('No se pudo abrir la vista de empresa')
+  }
+}
+
 const COLUMNAS = [
   { id: 'NUEVO',       label: 'Nuevos',       color: '#3b82f6' },
   { id: 'EN_PROCESO',  label: 'En proceso',   color: '#f59e0b' },
@@ -90,7 +100,16 @@ export default function ProfesionalPanel() {
                       <span className={`urg-dot ${URGENCIA_CLASS[t.urgencia]}`}>{t.urgencia}</span>
                     </div>
                     <h4 className="kcard-asunto">{t.asunto}</h4>
-                    <p className="kcard-empresa t-sm muted">{t.empresas?.nombre}</p>
+                    <div className="kcard-empresa-row">
+                      <p className="kcard-empresa t-sm muted">{t.empresas?.nombre}</p>
+                      <button
+                        className="kcard-visor-btn"
+                        title="Ver como cliente"
+                        onClick={(e) => abrirVistaEmpresa(t.empresa_id, e)}
+                      >
+                        👁 Ver empresa
+                      </button>
+                    </div>
                     {t.profesionales && (
                       <p className="kcard-asignado t-xs">{t.profesionales.nombre}</p>
                     )}

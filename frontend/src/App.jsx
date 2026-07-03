@@ -21,6 +21,7 @@ import NominaLiquidacion from './pages/NominaLiquidacion'
 import NominaColilla from './pages/NominaColilla'
 import Gastos from './pages/Gastos'
 import StatsReporte from './pages/StatsReporte'
+import VistaEmpresaPro from './pages/VistaEmpresaPro'
 
 function Spinner() {
   return (
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="/login"         element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/registro"      element={<PublicRoute><Register /></PublicRoute>} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/vista-empresa" element={<VistaEmpresaPro />} />
 
           {/* Rutas de empresa */}
           <Route path="/" element={<PrivateRoute onlyRol="EMPRESA"><Layout /></PrivateRoute>}>

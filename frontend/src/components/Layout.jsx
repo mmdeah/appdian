@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import Sidebar from './Sidebar'
 import './Layout.css'
 
@@ -14,12 +15,27 @@ const TITLES = {
 
 export default function Layout() {
   const { pathname } = useLocation()
+  const { user } = useAuth()
   const title = TITLES[pathname] || 'AppDian'
+  const esVisor = !!sessionStorage.getItem('visor_token')
 
   return (
     <div className="app-shell">
       <Sidebar />
       <div className="main-content">
+        {esVisor && (
+          <div className="visor-banner">
+            <div className="visor-banner-info">
+              <span className="visor-eye">👁</span>
+              <span>Vista profesional —</span>
+              <strong>{user?.nombre || user?.email || 'Empresa'}</strong>
+              <span className="visor-badge">Solo lectura</span>
+            </div>
+            <button className="visor-close" onClick={() => window.close()}>
+              ✕ Cerrar pestaña
+            </button>
+          </div>
+        )}
         <header className="topbar">
           <h1 className="topbar-title">{title}</h1>
           <div className="topbar-right">
