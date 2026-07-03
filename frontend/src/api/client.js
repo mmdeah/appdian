@@ -109,7 +109,8 @@ export const profesionalApi = {
   resumenEmpresa: (empresa_id)   => api.get(`/profesional/empresa/${empresa_id}/resumen`),
   verPassword:    (empresa_id)   => api.get(`/profesional/empresa/${empresa_id}/ver-password`),
   listarProfesionales: ()        => api.get('/profesional/profesionales'),
-  listarAudit: (params) => api.get('/profesional/audit', { params }),
+  listarEmpresas: ()        => api.get('/profesional/empresas'),
+  listarAudit:    (params)  => api.get('/profesional/audit', { params }),
   subirArchivo: (ticket_id, file) => {
     const form = new FormData()
     form.append('archivo', file)

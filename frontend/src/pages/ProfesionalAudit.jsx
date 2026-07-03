@@ -44,12 +44,17 @@ function hace30() {
 }
 
 export default function ProfesionalAudit() {
-  const [eventos, setEventos]   = useState([])
-  const [total, setTotal]       = useState(0)
-  const [loading, setLoading]   = useState(true)
-  const [filtros, setFiltros]   = useState({ tipo: '', empresa: '', desde: hace30(), hasta: hoy() })
-  const [offset, setOffset]     = useState(0)
+  const [eventos, setEventos]     = useState([])
+  const [total, setTotal]         = useState(0)
+  const [loading, setLoading]     = useState(true)
+  const [empresas, setEmpresas]   = useState([])
+  const [filtros, setFiltros]     = useState({ tipo: '', empresa_id: '', desde: hace30(), hasta: hoy() })
+  const [offset, setOffset]       = useState(0)
   const LIMITE = 50
+
+  useEffect(() => {
+    profesionalApi.listarEmpresas().then(({ data }) => setEmpresas(data || []))
+  }, [])
 
   const cargar = useCallback(async (reset = false) => {
     setLoading(true)
@@ -58,9 +63,10 @@ export default function ProfesionalAudit() {
       const params = {
         limite: LIMITE,
         offset: nuevoOffset,
-        ...(filtros.tipo   && { tipo: filtros.tipo }),
-        ...(filtros.desde  && { desde: filtros.desde }),
-        ...(filtros.hasta  && { hasta: filtros.hasta }),
+        ...(filtros.tipo       && { tipo: filtros.tipo }),
+        ...(filtros.empresa_id && { empresa_id: filtros.empresa_id }),
+        ...(filtros.desde      && { desde: filtros.desde }),
+        ...(filtros.hasta      && { hasta: filtros.hasta }),
       }
       const { data } = await profesionalApi.listarAudit(params)
       if (reset) {
@@ -81,6 +87,8 @@ export default function ProfesionalAudit() {
     setOffset(0)
   }
 
+  const empresaSeleccionada = empresas.find(e => e.id === filtros.empresa_id)
+
   const hayMas = eventos.length < total
 
   return (
@@ -94,6 +102,17 @@ export default function ProfesionalAudit() {
 
       {/* Filtros */}
       <div className="audit-filtros">
+        <select
+          className="audit-select"
+          value={filtros.empresa_id}
+          onChange={e => aplicarFiltro('empresa_id', e.target.value)}
+        >
+          <option value="">Todos los clientes</option>
+          {empresas.map(e => (
+            <option key={e.id} value={e.id}>{e.nombre} · {e.nit}</option>
+          ))}
+        </select>
+
         <select
           className="audit-select"
           value={filtros.tipo}
@@ -111,10 +130,19 @@ export default function ProfesionalAudit() {
             onChange={e => aplicarFiltro('hasta', e.target.value)} />
         </div>
 
-        <button className="audit-btn-reset" onClick={() => setFiltros({ tipo: '', empresa: '', desde: hace30(), hasta: hoy() })}>
+        <button className="audit-btn-reset" onClick={() => setFiltros({ tipo: '', empresa_id: '', desde: hace30(), hasta: hoy() })}>
           Resetear
         </button>
       </div>
+
+      {/* Resumen del filtro activo */}
+      {empresaSeleccionada && (
+        <div className="audit-cliente-activo">
+          Mostrando eventos de <strong>{empresaSeleccionada.nombre}</strong>
+          <span className="audit-nit"> · NIT {empresaSeleccionada.nit}</span>
+          <button className="audit-clear-cliente" onClick={() => aplicarFiltro('empresa_id', '')}>✕</button>
+        </div>
+      )}
 
       {/* Lista */}
       {loading && eventos.length === 0 ? (

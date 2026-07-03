@@ -176,6 +176,21 @@ const verPasswordEmpresa = async (req, res) => {
   }
 }
 
+// ── GET /api/profesional/empresas — Lista todas las empresas ─────────────────
+const listarEmpresas = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('empresas')
+      .select('id, nombre, nit, email')
+      .eq('activo', true)
+      .order('nombre')
+    if (error) throw error
+    res.json(data)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
 // ── GET /api/profesional/audit — Log de auditoría ────────────────────────────
 const listarAudit = async (req, res) => {
   const { tipo, empresa_id, desde, hasta, limite = 100, offset = 0 } = req.query
@@ -200,4 +215,4 @@ const listarAudit = async (req, res) => {
   }
 }
 
-module.exports = { listarTickets, obtenerTicket, actualizarTicket, enviarMensaje, resumenEmpresa, listarProfesionales, verPasswordEmpresa, listarAudit }
+module.exports = { listarTickets, obtenerTicket, actualizarTicket, enviarMensaje, resumenEmpresa, listarProfesionales, verPasswordEmpresa, listarAudit, listarEmpresas }
