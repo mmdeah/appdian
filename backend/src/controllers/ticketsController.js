@@ -97,21 +97,33 @@ const enviarMensaje = async (req, res) => {
   }
 }
 
+// Sanitiza nombres de archivo: quita tildes y caracteres especiales
+function sanitizarNombreArchivo(nombre) {
+  return nombre
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')   // quitar tildes/acentos
+    .replace(/[^a-zA-Z0-9._-]/g, '_') // reemplazar todo lo demás con _
+    .replace(/_+/g, '_')               // colapsar underscores múltiples
+    .replace(/^_|_$/g, '')             // quitar _ al inicio/fin
+}
+
 // ── POST /api/tickets/:id/archivos — Subir archivo adjunto ───────────────────
 const subirArchivo = async (req, res) => {
-  const empresa_id = req.user.empresa_id
   const ticket_id  = req.params.id
+  // Funciona para EMPRESA (verifica dueño) y PROFESIONAL (acceso libre al ticket)
+  const empresa_id = req.user.empresa_id || null
 
   if (!req.file) return res.status(400).json({ error: 'No se recibió ningún archivo' })
 
   try {
-    // Verificar que el ticket pertenece a la empresa
-    const { data: ticket } = await supabase
-      .from('tickets').select('id').eq('id', ticket_id).eq('empresa_id', empresa_id).single()
+    // Verificar acceso al ticket
+    let q = supabase.from('tickets').select('id, empresa_id').eq('id', ticket_id)
+    if (empresa_id) q = q.eq('empresa_id', empresa_id)
+    const { data: ticket } = await q.single()
     if (!ticket) return res.status(404).json({ error: 'Ticket no encontrado' })
 
-    const ext      = req.file.originalname.split('.').pop()
-    const fileName = `${ticket_id}/${Date.now()}-${req.file.originalname}`
+    const nombreSanitizado = sanitizarNombreArchivo(req.file.originalname)
+    const fileName = `${ticket_id}/${Date.now()}-${nombreSanitizado}`
 
     // Subir a Supabase Storage
     const { error: storageError } = await supabase.storage

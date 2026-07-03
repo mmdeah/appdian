@@ -1,14 +1,25 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { profesionalApi } from '../api/client'
 import './ProfesionalTicket.css'
 
-const ESTADOS = ['NUEVO', 'EN_PROCESO', 'EN_REVISION', 'COMPLETADO']
+const ESTADOS    = ['NUEVO', 'EN_PROCESO', 'EN_REVISION', 'COMPLETADO']
 const ESTADO_LABEL = { NUEVO: 'Nuevo', EN_PROCESO: 'En proceso', EN_REVISION: 'En revisión', COMPLETADO: 'Completado' }
-const URGENCIAS = ['BAJA', 'MEDIA', 'ALTA']
 
 function kCOP(n) {
-  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n)
+  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0)
+}
+function formatBytes(b) {
+  if (!b) return ''
+  if (b < 1048576) return `${(b / 1024).toFixed(1)} KB`
+  return `${(b / 1048576).toFixed(1)} MB`
+}
+function FileIcon({ mime }) {
+  if (mime?.startsWith('image/')) return '🖼️'
+  if (mime === 'application/pdf') return '📄'
+  if (mime?.includes('word')) return '📝'
+  if (mime?.includes('excel') || mime?.includes('sheet')) return '📊'
+  return '📎'
 }
 
 export default function ProfesionalTicket() {
@@ -17,10 +28,15 @@ export default function ProfesionalTicket() {
   const [ticket, setTicket] = useState(null)
   const [empresa, setEmpresa] = useState(null)
   const [profesionales, setProfesionales] = useState([])
+  const [archivos, setArchivos] = useState([])
   const [loading, setLoading] = useState(true)
   const [mensaje, setMensaje] = useState('')
   const [esInterno, setEsInterno] = useState(false)
   const [sending, setSending] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [accesoTemporal, setAccesoTemporal] = useState(null)
+  const [generandoAcceso, setGenerandoAcceso] = useState(false)
+  const fileRef = useRef()
 
   useEffect(() => {
     Promise.all([
@@ -28,6 +44,7 @@ export default function ProfesionalTicket() {
       profesionalApi.listarProfesionales(),
     ]).then(([{ data: t }, { data: profs }]) => {
       setTicket(t)
+      setArchivos(t.archivos || [])
       setProfesionales(profs)
       return t.empresa_id ? profesionalApi.resumenEmpresa(t.empresa_id) : null
     }).then(res => {
@@ -57,75 +74,133 @@ export default function ProfesionalTicket() {
     } finally { setSending(false) }
   }
 
+  async function handleFile(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const { data } = await profesionalApi.subirArchivo(id, file)
+      setArchivos(a => [...a, data])
+    } catch (err) {
+      alert(err.response?.data?.error || 'Error al subir archivo')
+    } finally { setUploading(false); fileRef.current.value = '' }
+  }
+
+  async function generarAccesoTemporal() {
+    if (!empresa?.empresa?.id) return
+    setGenerandoAcceso(true)
+    try {
+      const { data } = await profesionalApi.accesoTemporal(empresa.empresa.id)
+      setAccesoTemporal(data)
+    } finally { setGenerandoAcceso(false) }
+  }
+
   if (loading) return <div className="page-loading"><div className="spinner" /></div>
   if (!ticket) return <div className="page-loading">Ticket no encontrado</div>
 
   const mensajes = ticket.mensajes || []
+  const completado = ticket.estado === 'COMPLETADO'
 
   return (
     <div className="pro-ticket-page">
       <button className="btn-back" onClick={() => navigate('/panel')}>← Volver al panel</button>
 
       <div className="pro-ticket-layout">
-        {/* Columna principal */}
+
+        {/* ── Columna principal ── */}
         <div className="pro-ticket-main">
+
+          {/* Hero */}
           <div className="ticket-hero">
-            <div>
-              <span className="ticket-tipo-tag">{ticket.tipo}</span>
-              <h1>{ticket.asunto}</h1>
-              <p className="ticket-meta-line">
-                <strong>{ticket.empresas?.nombre}</strong>
-                <span className="muted">·</span>
-                <span className="muted">{new Date(ticket.created_at).toLocaleString('es-CO')}</span>
-              </p>
-            </div>
+            <span className="ticket-tipo-tag">{ticket.tipo}</span>
+            <h1>{ticket.asunto}</h1>
+            <p className="ticket-meta-line">
+              <strong>{ticket.empresas?.nombre}</strong>
+              <span className="muted">·</span>
+              <span className="muted">{new Date(ticket.created_at).toLocaleString('es-CO')}</span>
+            </p>
           </div>
 
+          {/* Descripción */}
           <div className="ticket-descripcion">
             <p className="section-label">Descripción</p>
             <p>{ticket.descripcion}</p>
           </div>
 
-          {/* Hilo de mensajes */}
-          <div className="mensajes-section">
+          {/* Archivos */}
+          <div className="archivos-section">
+            <p className="section-label">Archivos adjuntos ({archivos.length})</p>
+            {archivos.length > 0 && (
+              <div className="archivos-grid">
+                {archivos.map(a => (
+                  <a key={a.id} href={a.url} target="_blank" rel="noreferrer" className="archivo-chip">
+                    <FileIcon mime={a.tipo_mime} />
+                    <span className="archivo-chip-nombre">{a.nombre_original}</span>
+                    <span className="t-xs muted">{formatBytes(a.tamanio)}</span>
+                  </a>
+                ))}
+              </div>
+            )}
+            {!completado && (
+              <>
+                <input ref={fileRef} type="file" id="pro-file" className="file-input-hidden"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.txt"
+                  onChange={handleFile} />
+                <label htmlFor="pro-file" className={`btn-upload-sm ${uploading ? 'loading' : ''}`}>
+                  {uploading
+                    ? <><span className="btn-spinner-sm" /> Subiendo...</>
+                    : <>
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 8l-4-4-4 4M12 4v12" />
+                        </svg>
+                        Adjuntar archivo
+                      </>}
+                </label>
+              </>
+            )}
+          </div>
+
+          {/* Conversación */}
+          <div className="conv-card">
             <p className="section-label">Conversación ({mensajes.length})</p>
             <div className="mensajes-hilo">
-              {mensajes.length === 0 && <p className="muted t-sm">Sin mensajes aún.</p>}
+              {mensajes.length === 0 && <p className="conv-empty">Sin mensajes aún.</p>}
               {mensajes.map(m => (
-                <div
-                  key={m.id}
-                  className={`hilo-msg ${m.autor_tipo === 'PROFESIONAL' ? 'msg-pro' : 'msg-emp'} ${m.es_interno ? 'msg-interno' : ''}`}
-                >
+                <div key={m.id} className={`hilo-msg ${m.autor_tipo === 'PROFESIONAL' ? 'msg-pro' : 'msg-emp'} ${m.es_interno ? 'msg-interno' : ''}`}>
                   {m.es_interno && <span className="interno-tag">Nota interna</span>}
                   <div className="hilo-header">
                     <span className="hilo-autor">{m.autor_nombre}</span>
-                    <span className="hilo-fecha">{new Date(m.created_at).toLocaleString('es-CO')}</span>
+                    <span className="hilo-fecha">{new Date(m.created_at).toLocaleString('es-CO', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span>
                   </div>
                   <p className="hilo-body">{m.contenido}</p>
                 </div>
               ))}
             </div>
-
-            <form className="reply-form" onSubmit={enviar}>
-              <textarea
-                rows={3} placeholder={esInterno ? 'Nota interna (no visible para el cliente)...' : 'Responder al cliente...'}
-                value={mensaje} onChange={e => setMensaje(e.target.value)}
-                className={esInterno ? 'internal-input' : ''}
-              />
-              <div className="reply-footer">
-                <label className="interno-toggle">
-                  <input type="checkbox" checked={esInterno} onChange={e => setEsInterno(e.target.checked)} />
-                  Nota interna
-                </label>
-                <button type="submit" className="btn-primary" disabled={sending || !mensaje.trim()}>
-                  {sending ? 'Enviando...' : esInterno ? 'Guardar nota' : 'Responder'}
-                </button>
-              </div>
-            </form>
+            {!completado && (
+              <form className="reply-bar" onSubmit={enviar}>
+                <textarea rows={2}
+                  placeholder={esInterno ? 'Nota interna (invisible para el cliente)...' : 'Responder al cliente...'}
+                  value={mensaje} onChange={e => setMensaje(e.target.value)}
+                  className={esInterno ? 'internal-input' : ''}
+                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar(e) } }}
+                />
+                <div className="reply-bar-foot">
+                  <label className="interno-toggle">
+                    <input type="checkbox" checked={esInterno} onChange={e => setEsInterno(e.target.checked)} />
+                    Nota interna
+                  </label>
+                  <button type="submit" className="btn-send" disabled={sending || !mensaje.trim()}>
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
 
-        {/* Columna lateral */}
+        {/* ── Columna lateral ── */}
         <aside className="pro-ticket-sidebar">
 
           {/* Estado */}
@@ -133,11 +208,9 @@ export default function ProfesionalTicket() {
             <p className="section-label">Estado</p>
             <div className="estado-btns">
               {ESTADOS.map(s => (
-                <button
-                  key={s}
+                <button key={s}
                   className={`estado-btn ${ticket.estado === s ? 'estado-active' : ''}`}
-                  onClick={() => cambiarEstado(s)}
-                >
+                  onClick={() => cambiarEstado(s)}>
                   {ESTADO_LABEL[s]}
                 </button>
               ))}
@@ -147,11 +220,7 @@ export default function ProfesionalTicket() {
           {/* Asignar */}
           <div className="sidebar-card">
             <p className="section-label">Asignado a</p>
-            <select
-              value={ticket.asignado_a || ''}
-              onChange={e => asignar(e.target.value || null)}
-              className="asignar-select"
-            >
+            <select value={ticket.asignado_a || ''} onChange={e => asignar(e.target.value || null)} className="asignar-select">
               <option value="">Sin asignar</option>
               {profesionales.map(p => (
                 <option key={p.id} value={p.id}>{p.nombre} ({p.especialidad})</option>
@@ -159,18 +228,18 @@ export default function ProfesionalTicket() {
             </select>
           </div>
 
-          {/* Acceso a la cuenta del cliente */}
+          {/* Empresa — datos de acceso */}
           {empresa && (
             <div className="sidebar-card empresa-card">
               <p className="section-label">Cliente</p>
               <p className="empresa-nombre-big">{empresa.empresa?.nombre}</p>
 
-              {/* Datos de acceso */}
+              {/* Acceso a la cuenta */}
               <div className="acceso-box">
-                <p className="acceso-label">Datos de acceso a la cuenta</p>
+                <p className="acceso-label">Acceso a la cuenta</p>
                 <div className="acceso-row">
                   <span className="acceso-key">Email</span>
-                  <span className="acceso-val">{empresa.empresa?.email}</span>
+                  <span className="acceso-val" title={empresa.empresa?.email}>{empresa.empresa?.email}</span>
                 </div>
                 <div className="acceso-row">
                   <span className="acceso-key">NIT</span>
@@ -178,15 +247,25 @@ export default function ProfesionalTicket() {
                 </div>
                 {empresa.empresa?.telefono && (
                   <div className="acceso-row">
-                    <span className="acceso-key">Teléfono</span>
+                    <span className="acceso-key">Tel.</span>
                     <span className="acceso-val">{empresa.empresa.telefono}</span>
                   </div>
                 )}
-                {empresa.empresa?.direccion && (
-                  <div className="acceso-row">
-                    <span className="acceso-key">Dirección</span>
-                    <span className="acceso-val">{empresa.empresa.direccion}</span>
+
+                {/* Contraseña temporal */}
+                {accesoTemporal ? (
+                  <div className="temp-pass-result">
+                    <p className="acceso-label" style={{ color: '#16a34a' }}>Contraseña temporal generada</p>
+                    <div className="acceso-row">
+                      <span className="acceso-key">Contraseña</span>
+                      <span className="temp-pass-val">{accesoTemporal.password}</span>
+                    </div>
+                    <p className="t-xs muted" style={{ marginTop: '.4rem' }}>Válida hasta que el cliente la cambie</p>
                   </div>
+                ) : (
+                  <button className="btn-acceso-temp" onClick={generarAccesoTemporal} disabled={generandoAcceso}>
+                    {generandoAcceso ? 'Generando...' : '🔑 Generar contraseña temporal'}
+                  </button>
                 )}
               </div>
 
@@ -208,7 +287,7 @@ export default function ProfesionalTicket() {
 
               {empresa.facturas_recientes?.length > 0 && (
                 <div className="facturas-recientes">
-                  <p className="section-label" style={{ marginTop: '.75rem' }}>Facturas recientes</p>
+                  <p className="section-label" style={{ marginTop: '.85rem' }}>Facturas recientes</p>
                   {empresa.facturas_recientes.slice(0, 5).map((f, i) => (
                     <div key={i} className="fac-row">
                       <span className="t-sm truncate">{f.cliente_nombre}</span>

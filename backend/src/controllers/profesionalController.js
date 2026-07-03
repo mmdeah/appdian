@@ -1,4 +1,5 @@
 const supabase = require('../config/db')
+const bcrypt   = require('bcryptjs')
 
 // ── GET /api/profesional/tickets — Todos los tickets del panel ────────────────
 const listarTickets = async (req, res) => {
@@ -131,4 +132,33 @@ const listarProfesionales = async (req, res) => {
   }
 }
 
-module.exports = { listarTickets, obtenerTicket, actualizarTicket, enviarMensaje, resumenEmpresa, listarProfesionales }
+// ── POST /api/profesional/empresa/:id/acceso-temporal ────────────────────────
+// Genera una contraseña temporal para que el profesional pueda ingresar como el cliente
+const accesoTemporal = async (req, res) => {
+  const empresa_id = req.params.id
+  try {
+    // Generar contraseña temporal legible: Appdian + 4 dígitos aleatorios
+    const tempPass = 'Appdian' + Math.floor(1000 + Math.random() * 9000)
+    const hash     = await bcrypt.hash(tempPass, 10)
+
+    const { data: empresa, error } = await supabase
+      .from('empresas')
+      .update({ password: hash })
+      .eq('id', empresa_id)
+      .select('id, nombre, email')
+      .single()
+
+    if (error) throw error
+
+    res.json({
+      mensaje: 'Contraseña temporal generada. El cliente deberá cambiarla al ingresar.',
+      email:    empresa.email,
+      password: tempPass,
+      empresa:  empresa.nombre,
+    })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+module.exports = { listarTickets, obtenerTicket, actualizarTicket, enviarMensaje, resumenEmpresa, listarProfesionales, accesoTemporal }

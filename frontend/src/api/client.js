@@ -96,5 +96,13 @@ export const profesionalApi = {
   responder: (id, contenido, es_interno = false) =>
     api.post(`/profesional/tickets/${id}/mensajes`, { contenido, es_interno }),
   resumenEmpresa: (empresa_id)   => api.get(`/profesional/empresa/${empresa_id}/resumen`),
+  accesoTemporal: (empresa_id)   => api.post(`/profesional/empresa/${empresa_id}/acceso-temporal`),
   listarProfesionales: ()        => api.get('/profesional/profesionales'),
+  subirArchivo: (ticket_id, file) => {
+    const form = new FormData()
+    form.append('archivo', file)
+    return api.post(`/profesional/tickets/${ticket_id}/archivos`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
 }
