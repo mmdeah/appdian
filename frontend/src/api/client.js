@@ -32,10 +32,10 @@ export default api
 
 // ---- Auth ----
 export const authApi = {
-  login: (email, password) => api.post('/auth/login', { email, password }),
-  register: (data) => api.post('/auth/register', data),
-  googleAuth: (access_token) => api.post('/auth/google', { access_token }),
-  me: () => api.get('/auth/me'),
+  login:      (email, password) => api.post('/auth/login', { email, password }),
+  register:   (data)            => api.post('/auth/register', data),
+  googleAuth: (access_token)    => api.post('/auth/google', { access_token }),
+  me:         ()                => api.get('/auth/me'),
 }
 
 // ---- Products ----

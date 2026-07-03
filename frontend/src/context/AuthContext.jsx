@@ -54,7 +54,7 @@ export function AuthProvider({ children }) {
     return data
   }, [])
 
-  // Trigger Google OAuth — redirects the browser to Google
+// Trigger Google OAuth — redirects the browser to Google
   const loginWithGoogle = useCallback(async () => {
     const redirectTo = `${window.location.origin}/auth/callback`
     const { error } = await supabase.auth.signInWithOAuth({

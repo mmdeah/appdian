@@ -56,8 +56,9 @@ const crear = async (req, res) => {
         subcategoria,
         proveedor,
         descripcion,
-        monto: parseFloat(monto),
-        iva:   parseFloat(iva),
+        monto:  parseFloat(monto),
+        iva:    parseFloat(iva),
+        total:  parseFloat(monto) + parseFloat(iva),
         tipo_comprobante,
         numero_comprobante,
         fecha: fecha || new Date().toISOString().split('T')[0],
@@ -88,6 +89,10 @@ const actualizar = async (req, res) => {
     const campos = { ...req.body }
     if (campos.monto !== undefined) campos.monto = parseFloat(campos.monto)
     if (campos.iva   !== undefined) campos.iva   = parseFloat(campos.iva)
+    // Recalcular total si cambia monto o iva
+    if (campos.monto !== undefined || campos.iva !== undefined) {
+      campos.total = (campos.monto || 0) + (campos.iva || 0)
+    }
 
     const { data, error } = await supabase
       .from('gastos')
