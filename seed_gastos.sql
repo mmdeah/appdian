@@ -5,7 +5,7 @@
 
 DO $$
 DECLARE
-  eid UUID := (SELECT id FROM empresas LIMIT 1);
+  eid UUID := (SELECT id FROM empresas WHERE nit = '1105365197' LIMIT 1);
 BEGIN
 
 INSERT INTO gastos (empresa_id, categoria, subcategoria, proveedor, descripcion, monto, iva, total, tipo_comprobante, numero_comprobante, fecha, medio_pago, pagado) VALUES

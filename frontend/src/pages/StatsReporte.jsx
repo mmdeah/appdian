@@ -138,26 +138,9 @@ export default function StatsReporte() {
       {/* ── Acciones (solo pantalla) ── */}
       <div className="rep-acciones no-print">
         <button className="rep-btn-back" onClick={() => navigate('/estadisticas')}>← Volver a estadísticas</button>
-        <div className="rep-modo-btns">
-          <button
-            className={`rep-modo-btn ${modo === 'simple' ? 'rep-modo-btn--active' : ''}`}
-            onClick={() => setModo('simple')}
-          >
-            📋 Reporte sencillo
-          </button>
-          <button
-            className={`rep-modo-btn ${modo === 'ia' ? 'rep-modo-btn--active' : ''}`}
-            onClick={generarReporteIA}
-            disabled={cargandoIA}
-          >
-            {cargandoIA ? '⏳ Generando análisis IA…' : '🤖 Análisis con IA'}
-          </button>
-          {modo && (
-            <button className="rep-btn-print" onClick={imprimir}>
-              🖨️ Imprimir / PDF
-            </button>
-          )}
-        </div>
+        {modo && (
+          <button className="rep-btn-print" onClick={imprimir}>🖨️ Imprimir / PDF</button>
+        )}
       </div>
 
       {errorIA && (
@@ -167,15 +150,18 @@ export default function StatsReporte() {
       {!modo && (
         <div className="rep-placeholder no-print">
           <div className="rep-placeholder-inner">
-            <p style={{ fontSize: '2rem' }}>📄</p>
+            <p style={{ fontSize: '2.5rem', marginBottom: '.5rem' }}>📄</p>
             <h3>Genera tu reporte financiero</h3>
             <p>Selecciona el tipo de reporte que deseas generar.</p>
-            <div style={{ display: 'flex', gap: '.75rem', justifyContent: 'center', marginTop: '1rem', flexWrap: 'wrap' }}>
-              <button className="rep-modo-btn rep-modo-btn--lg" onClick={() => setModo('simple')}>
-                📋 Reporte sencillo<br /><small>Tablas con los datos actuales</small>
+            <div className="rep-selector-btns">
+              <button className="rep-selector-btn" onClick={() => setModo('simple')}>
+                <span className="rep-selector-icon">📋</span>
+                <span className="rep-selector-label">Reporte sencillo</span>
+                <small>Tablas con los datos actuales</small>
               </button>
-              <button className="rep-modo-btn rep-modo-btn--lg rep-modo-btn--ia" onClick={generarReporteIA} disabled={cargandoIA}>
-                {cargandoIA ? '⏳ Generando…' : '🤖 Análisis con IA'}<br />
+              <button className="rep-selector-btn rep-selector-btn--ia" onClick={generarReporteIA} disabled={cargandoIA}>
+                <span className="rep-selector-icon">{cargandoIA ? '⏳' : '🤖'}</span>
+                <span className="rep-selector-label">{cargandoIA ? 'Generando…' : 'Análisis con IA'}</span>
                 <small>Reporte narrativo generado por IA</small>
               </button>
             </div>

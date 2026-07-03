@@ -175,6 +175,7 @@ export default function Gastos() {
   const [gastos, setGastos]         = useState([])
   const [resumen, setResumen]       = useState(null)
   const [loading, setLoading]       = useState(true)
+  const [error, setError]           = useState(null)
   const [modal, setModal]           = useState(null)    // null | 'nuevo' | {gasto}
   const [filtros, setFiltros]       = useState({ desde: isoDesde(30), hasta: isoHoy(), categoria: '' })
   const [pagina, setPagina]         = useState(0)
@@ -182,7 +183,7 @@ export default function Gastos() {
   const LIMIT = 50
 
   const cargar = useCallback(async () => {
-    setLoading(true)
+    setLoading(true); setError(null)
     try {
       const params = {
         desde:     filtros.desde,
@@ -198,6 +199,11 @@ export default function Gastos() {
       setGastos(rGastos.data.gastos || [])
       setTotal(rGastos.data.total || 0)
       setResumen(rRes.data)
+    } catch (err) {
+      const msg = err.response?.data?.error || err.message || 'Error desconocido'
+      setError(msg.includes('does not exist')
+        ? 'La tabla de gastos no existe aún. Ejecuta gastos_migration.sql en Supabase.'
+        : `Error al cargar gastos: ${msg}`)
     } finally { setLoading(false) }
   }, [filtros, pagina])
 
@@ -224,6 +230,12 @@ export default function Gastos() {
         </div>
         <button className="g-btn-pri" onClick={() => setModal('nuevo')}>+ Registrar gasto</button>
       </div>
+
+      {error && (
+        <div style={{ background:'#fee2e2', border:'1px solid #fca5a5', borderRadius:8, padding:'12px 16px', color:'#991b1b', fontSize:14, marginBottom:16 }}>
+          ⚠️ {error}
+        </div>
+      )}
 
       {/* ── Resumen cards ── */}
       {resumen && (
