@@ -2,6 +2,19 @@ import { useState, useEffect, useRef } from 'react'
 import { ticketsApi } from '../api/client'
 import './Consultas.css'
 
+function FileIcon({ mime }) {
+  if (mime?.startsWith('image/')) return '🖼️'
+  if (mime === 'application/pdf') return '📄'
+  if (mime?.includes('word')) return '📝'
+  if (mime?.includes('excel') || mime?.includes('sheet')) return '📊'
+  return '📎'
+}
+function formatBytes(b) {
+  if (b < 1024) return `${b} B`
+  if (b < 1048576) return `${(b/1024).toFixed(1)} KB`
+  return `${(b/1048576).toFixed(1)} MB`
+}
+
 const TIPOS    = ['CONTABILIDAD', 'LEGAL', 'TRIBUTARIO', 'NOMINA', 'OTRO']
 const URGENCIAS = ['BAJA', 'MEDIA', 'ALTA']
 
@@ -10,34 +23,39 @@ const ESTADO_CLASS = { NUEVO: 'badge-nuevo', EN_PROCESO: 'badge-proceso', EN_REV
 const URGENCIA_CLASS = { BAJA: 'urg-baja', MEDIA: 'urg-media', ALTA: 'urg-alta' }
 const TIPO_ICON = { CONTABILIDAD: '📊', LEGAL: '⚖️', TRIBUTARIO: '🏛️', NOMINA: '👥', OTRO: '📋' }
 
-function FileIcon({ mime }) {
-  if (mime?.startsWith('image/')) return '🖼️'
-  if (mime === 'application/pdf') return '📄'
-  if (mime?.includes('word')) return '📝'
-  if (mime?.includes('excel') || mime?.includes('sheet')) return '📊'
-  return '📎'
-}
-
-function formatBytes(b) {
-  if (b < 1024) return `${b} B`
-  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`
-  return `${(b / (1024 * 1024)).toFixed(1)} MB`
-}
-
 // ── Formulario nueva consulta ─────────────────────────────────────────────────
 function TicketForm({ onCreado, onCancelar }) {
   const [form, setForm] = useState({ tipo: 'CONTABILIDAD', asunto: '', descripcion: '', urgencia: 'MEDIA' })
+  const [archivosLocales, setArchivosLocales] = useState([]) // archivos antes de crear ticket
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
+  const fileRef = useRef()
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
+
+  function agregarArchivo(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 10 * 1024 * 1024) { setErr('El archivo supera 10 MB'); return }
+    setArchivosLocales(prev => [...prev, file])
+    setErr('')
+    fileRef.current.value = ''
+  }
+
+  function quitarArchivo(i) {
+    setArchivosLocales(prev => prev.filter((_, idx) => idx !== i))
+  }
 
   async function submit(e) {
     e.preventDefault()
     if (!form.asunto.trim() || !form.descripcion.trim()) return setErr('Completa todos los campos')
     setLoading(true); setErr('')
     try {
-      const { data } = await ticketsApi.crear(form)
-      onCreado(data)
+      const { data: ticket } = await ticketsApi.crear(form)
+      // Subir archivos adjuntos al ticket recién creado
+      for (const file of archivosLocales) {
+        try { await ticketsApi.subirArchivo(ticket.id, file) } catch {}
+      }
+      onCreado(ticket)
     } catch (e) {
       setErr(e.response?.data?.error || 'Error al crear consulta')
     } finally { setLoading(false) }
@@ -84,6 +102,32 @@ function TicketForm({ onCreado, onCancelar }) {
           <label>Descripción</label>
           <textarea rows={5} placeholder="Describe tu consulta con el mayor detalle posible. Incluye fechas, montos o documentos relevantes..."
             value={form.descripcion} onChange={e => set('descripcion', e.target.value)} />
+        </div>
+
+        {/* Adjuntar archivos antes de enviar */}
+        <div className="form-group">
+          <label>Archivos adjuntos (opcional)</label>
+          <input ref={fileRef} type="file" id="file-form" className="file-input-hidden"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.txt"
+            onChange={agregarArchivo} />
+          {archivosLocales.length > 0 && (
+            <div className="archivos-preview">
+              {archivosLocales.map((f, i) => (
+                <div key={i} className="archivo-preview-item">
+                  <span><FileIcon mime={f.type} /> {f.name}</span>
+                  <span className="t-xs muted">{formatBytes(f.size)}</span>
+                  <button type="button" className="btn-quitar" onClick={() => quitarArchivo(i)}>✕</button>
+                </div>
+              ))}
+            </div>
+          )}
+          <label htmlFor="file-form" className="btn-upload" style={{ marginTop: archivosLocales.length ? '.5rem' : 0 }}>
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Adjuntar archivo
+          </label>
+          <p className="t-xs muted" style={{ marginTop: '.3rem' }}>PDF, Word, Excel, imágenes · máx. 10 MB</p>
         </div>
 
         {err && <div className="alert-error">{err}</div>}

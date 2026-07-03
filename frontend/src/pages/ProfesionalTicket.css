@@ -111,7 +111,25 @@
   font-size: .88rem; background: var(--bg); color: var(--text);
 }
 
-.empresa-card .empresa-nombre-big { font-size: 1rem; font-weight: 700; margin: 0 0 .3rem; }
+.empresa-card .empresa-nombre-big { font-size: 1rem; font-weight: 700; margin: 0 0 .65rem; }
+
+/* Bloque acceso cuenta */
+.acceso-box {
+  background: rgba(99,102,241,.07);
+  border: 1px solid rgba(99,102,241,.2);
+  border-radius: 9px;
+  padding: .75rem;
+  margin-bottom: .85rem;
+}
+.acceso-label {
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--accent); margin: 0 0 .5rem;
+}
+.acceso-row { display: flex; justify-content: space-between; gap: .5rem; padding: .2rem 0; border-bottom: 1px solid rgba(99,102,241,.1); }
+.acceso-row:last-child { border-bottom: none; }
+.acceso-key { font-size: .75rem; color: var(--muted); font-weight: 600; flex-shrink: 0; }
+.acceso-val { font-size: .75rem; font-weight: 500; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
 .empresa-stats {
   display: grid; grid-template-columns: repeat(3, 1fr);
   gap: .5rem; margin-top: .85rem;

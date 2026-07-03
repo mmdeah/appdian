@@ -32,8 +32,8 @@
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.logo-text { font-size: .95rem; font-weight: 800; display: block; line-height: 1.1; }
-.pro-tag { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.logo-text { font-size: .95rem; font-weight: 800; display: block; line-height: 1.1; color: var(--text, #111); }
+.pro-tag { font-size: .65rem; color: var(--muted, #888); text-transform: uppercase; letter-spacing: .06em; }
 
 .pro-perfil {
   display: flex;

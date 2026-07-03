@@ -159,16 +159,38 @@ export default function ProfesionalTicket() {
             </select>
           </div>
 
-          {/* Info empresa */}
+          {/* Acceso a la cuenta del cliente */}
           {empresa && (
             <div className="sidebar-card empresa-card">
-              <p className="section-label">Empresa</p>
+              <p className="section-label">Cliente</p>
               <p className="empresa-nombre-big">{empresa.empresa?.nombre}</p>
-              <p className="t-sm muted">NIT: {empresa.empresa?.nit}</p>
-              <p className="t-sm muted">{empresa.empresa?.email}</p>
-              {empresa.empresa?.telefono && <p className="t-sm muted">{empresa.empresa.telefono}</p>}
-              {empresa.empresa?.direccion && <p className="t-sm muted">{empresa.empresa.direccion}</p>}
 
+              {/* Datos de acceso */}
+              <div className="acceso-box">
+                <p className="acceso-label">Datos de acceso a la cuenta</p>
+                <div className="acceso-row">
+                  <span className="acceso-key">Email</span>
+                  <span className="acceso-val">{empresa.empresa?.email}</span>
+                </div>
+                <div className="acceso-row">
+                  <span className="acceso-key">NIT</span>
+                  <span className="acceso-val">{empresa.empresa?.nit}</span>
+                </div>
+                {empresa.empresa?.telefono && (
+                  <div className="acceso-row">
+                    <span className="acceso-key">Teléfono</span>
+                    <span className="acceso-val">{empresa.empresa.telefono}</span>
+                  </div>
+                )}
+                {empresa.empresa?.direccion && (
+                  <div className="acceso-row">
+                    <span className="acceso-key">Dirección</span>
+                    <span className="acceso-val">{empresa.empresa.direccion}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Resumen financiero */}
               <div className="empresa-stats">
                 <div className="estad-item">
                   <span className="estad-val">{empresa.resumen?.num_facturas || 0}</span>
@@ -176,11 +198,11 @@ export default function ProfesionalTicket() {
                 </div>
                 <div className="estad-item">
                   <span className="estad-val">{kCOP(empresa.resumen?.total_ventas || 0)}</span>
-                  <span className="estad-lab">Total ventas</span>
+                  <span className="estad-lab">Ventas</span>
                 </div>
                 <div className="estad-item">
                   <span className="estad-val">{kCOP(empresa.resumen?.total_iva || 0)}</span>
-                  <span className="estad-lab">IVA acumulado</span>
+                  <span className="estad-lab">IVA</span>
                 </div>
               </div>
 
