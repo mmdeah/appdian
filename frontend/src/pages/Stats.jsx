@@ -121,7 +121,14 @@ export default function Stats() {
       const { data } = await statsApi.ai({ pregunta, contexto: ctx })
       setRespIA(data.respuesta)
     } catch (e) {
-      setErrIA('Error al consultar el agente. Verifica que OPENROUTER_API_KEY esté en Railway.')
+      const msg = e.response?.data?.error || e.message || ''
+      if (msg.includes('saturación') || msg.includes('503')) {
+        setErrIA('El modelo está saturado. Espera unos segundos e intenta de nuevo.')
+      } else if (e.code === 'ECONNABORTED' || msg.includes('timeout')) {
+        setErrIA('El modelo tardó demasiado (es muy grande). Intenta de nuevo — suele mejorar en el segundo intento.')
+      } else {
+        setErrIA('Error al consultar el agente. Verifica que OPENROUTER_API_KEY esté configurada en Railway.')
+      }
     } finally {
       setAnalizando(false)
     }
@@ -322,7 +329,7 @@ export default function Stats() {
                 disabled={analizando || !pregunta.trim()}
               >
                 {analizando
-                  ? <><span className="google-spinner" style={{ marginRight: 6 }} /> Analizando…</>
+                  ? <><span className="google-spinner" style={{ marginRight: 6 }} /> Analizando (puede tardar ~30s)…</>
                   : 'Analizar'}
               </button>
             </div>

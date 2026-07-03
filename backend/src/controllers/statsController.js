@@ -239,7 +239,16 @@ ${JSON.stringify(contexto, null, 2)}`
     }
 
     const json = await response.json()
-    const respuesta = json.choices?.[0]?.message?.content || 'Sin respuesta del modelo.'
+
+    // El tier free de algunos modelos devuelve 200 con content vacío cuando está saturado
+    const respuesta = json.choices?.[0]?.message?.content
+    if (!respuesta) {
+      console.error('OpenRouter respuesta vacía:', JSON.stringify(json).slice(0, 500))
+      return res.status(503).json({
+        error: 'El modelo no generó respuesta (posible saturación del tier free). Intenta de nuevo en unos segundos.',
+      })
+    }
+
     res.json({ respuesta })
   } catch (err) {
     res.status(500).json({ error: err.message })
