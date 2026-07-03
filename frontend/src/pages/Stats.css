@@ -11,25 +11,89 @@
 .stats-toolbar {
   display: flex;
   align-items: center;
-  gap: var(--s-4);
-  flex-wrap: wrap;
-}
-.preset-group { display: flex; gap: var(--s-1); }
-.preset-btn {
-  padding: 6px 14px;
-  border-radius: var(--r-full);
-  border: 1px solid var(--border-mid);
+  gap: 0;
   background: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--border-low);
+  border-radius: var(--r-lg);
+  padding: 6px 10px;
+  flex-wrap: wrap;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+
+/* Presets */
+.toolbar-presets { display: flex; gap: 2px; }
+.preset-btn {
+  padding: 5px 13px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
   cursor: pointer;
   font-size: 13px;
+  font-weight: 500;
   font-family: inherit;
   transition: all .15s;
+  white-space: nowrap;
 }
-.preset-btn:hover       { border-color: var(--accent); color: var(--accent); }
-.preset-btn--active     { background: var(--accent); color: #fff; border-color: var(--accent); }
-.date-range             { display: flex; align-items: center; gap: var(--s-2); }
-.date-range .form-input { padding: 6px 10px; font-size: 13px; width: auto; }
+.preset-btn:hover    { background: var(--bg); color: var(--text); }
+.preset-btn--active  {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 1px 6px rgba(99,102,241,.3);
+}
+
+/* Divider */
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-low);
+  margin: 0 10px;
+  flex-shrink: 0;
+}
+
+/* Date inputs */
+.toolbar-dates {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.toolbar-cal-icon { color: var(--muted); flex-shrink: 0; }
+.toolbar-date-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 4px 2px;
+  width: 108px;
+}
+.toolbar-date-input::-webkit-calendar-picker-indicator {
+  opacity: .4;
+  cursor: pointer;
+  width: 14px;
+}
+.toolbar-arrow { color: var(--muted); font-size: 12px; }
+
+/* Agrupación */
+.toolbar-agrup {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+}
+.toolbar-select {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 4px 2px;
+  appearance: auto;
+}
 
 /* ── Loading / Error ─────────────────────────────────────────── */
 .stats-loading { display: flex; justify-content: center; padding: 80px 0; }
@@ -66,9 +130,7 @@
   border-radius: 3px 0 0 3px;
 }
 .kpi-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); }
-.kpi-top    { display: flex; align-items: center; gap: var(--s-2); margin-bottom: var(--s-2); }
-.kpi-icon   { font-size: 16px; }
-.kpi-label  { font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.kpi-label  { font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: var(--s-2); }
 .kpi-value  { font-size: 1.65rem; font-weight: 700; margin: 0 0 var(--s-1); }
 .kpi-var    { display: inline-block; font-size: 12px; font-weight: 500; }
 .kpi-var--up   { color: #16a34a; }

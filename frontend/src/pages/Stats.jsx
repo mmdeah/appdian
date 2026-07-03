@@ -118,21 +118,11 @@ function MarkdownRenderer({ text }) {
 }
 
 // ── KPI Card ──────────────────────────────────────────────────────────────────
-const KPI_ICONS = {
-  'Total Ventas':  '💰',
-  'IVA Cobrado':   '🧾',
-  'Ticket Promedio':'📊',
-  'Base Gravable': '📋',
-}
-
 function KpiCard({ label, value, sub, variacion }) {
   const sube = variacion > 0
   return (
     <div className="kpi-card">
-      <div className="kpi-top">
-        <span className="kpi-icon">{KPI_ICONS[label]}</span>
-        <p className="kpi-label">{label}</p>
-      </div>
+      <p className="kpi-label">{label}</p>
       <p className="kpi-value">{value}</p>
       {variacion != null && (
         <span className={`kpi-var ${sube ? 'kpi-var--up' : 'kpi-var--down'}`}>
@@ -212,7 +202,8 @@ export default function Stats() {
 
       {/* ── Toolbar ── */}
       <div className="stats-toolbar">
-        <div className="preset-group">
+        {/* Presets */}
+        <div className="toolbar-presets">
           {PRESETS.map((p,i) => (
             <button key={p.label}
               className={`preset-btn ${presetIdx===i ? 'preset-btn--active':''}`}
@@ -220,13 +211,29 @@ export default function Stats() {
             >{p.label}</button>
           ))}
         </div>
-        <div className="date-range">
-          <input type="date" className="form-input" value={desde}
+
+        <div className="toolbar-divider" />
+
+        {/* Fechas */}
+        <div className="toolbar-dates">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" className="toolbar-cal-icon">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+          </svg>
+          <input type="date" className="toolbar-date-input" value={desde}
             onChange={e => { setDesde(e.target.value); setPresetIdx(-1) }} />
-          <span className="muted">→</span>
-          <input type="date" className="form-input" value={hasta}
+          <span className="toolbar-arrow">→</span>
+          <input type="date" className="toolbar-date-input" value={hasta}
             onChange={e => { setHasta(e.target.value); setPresetIdx(-1) }} />
-          <select className="form-input" value={agrup} onChange={e => setAgrup(e.target.value)}>
+        </div>
+
+        <div className="toolbar-divider" />
+
+        {/* Agrupación */}
+        <div className="toolbar-agrup">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+            <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+          </svg>
+          <select className="toolbar-select" value={agrup} onChange={e => setAgrup(e.target.value)}>
             <option value="dia">Por día</option>
             <option value="semana">Por semana</option>
             <option value="mes">Por mes</option>
