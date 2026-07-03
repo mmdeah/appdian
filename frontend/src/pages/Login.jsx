@@ -9,7 +9,7 @@ const DEMO_ACCOUNTS = [
   {
     label: 'Empresa (cliente)',
     icon: '🏢',
-    email: 'automotrizonlinesdclientes@gmail.com',
+    email: 'autoonlinesdclientes@gmail.com',
     password: 'admin123',
   },
   {
