@@ -228,7 +228,7 @@ const listar = async (req, res) => {
 
   const { data, error } = await query
   if (error) return res.status(500).json({ error: error.message })
-  res.json(data)
+  res.json({ facturas: data })
 }
 
 // GET /api/invoices/:id
