@@ -88,6 +88,22 @@ export const ticketsApi = {
   },
 }
 
+// ---- Nómina ----
+export const nominaApi = {
+  // Empleados
+  listarEmpleados:  ()        => api.get('/nomina/empleados'),
+  crearEmpleado:    (data)    => api.post('/nomina/empleados', data),
+  actualizarEmpleado:(id,data)=> api.put(`/nomina/empleados/${id}`, data),
+  desactivarEmpleado:(id)     => api.delete(`/nomina/empleados/${id}`),
+  // Liquidaciones
+  listarLiquidaciones: ()          => api.get('/nomina/liquidaciones'),
+  liquidar:            (data)      => api.post('/nomina/liquidar', data),
+  obtenerLiquidacion:  (id)        => api.get(`/nomina/liquidaciones/${id}`),
+  cambiarEstado:       (id, estado)=> api.patch(`/nomina/liquidaciones/${id}/estado`, { estado }),
+  // Colilla
+  colilla: (detalleId) => api.get(`/nomina/colilla/${detalleId}`),
+}
+
 // ---- Proyecciones tributarias ----
 export const proyeccionesApi = {
   resumen:         ()     => api.get('/proyecciones'),

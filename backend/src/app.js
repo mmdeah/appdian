@@ -22,6 +22,7 @@ app.use('/api/tickets',        require('./routes/tickets'))
 app.use('/api/profesional',    require('./routes/profesional'))
 app.use('/api/proyecciones',   require('./routes/proyecciones'))
 app.use('/api/vencimientos',   require('./routes/vencimientos'))
+app.use('/api/nomina',         require('./routes/nomina'))
 
 app.get('/health', (_, res) => res.json({ ok: true, v: 7 }))
 

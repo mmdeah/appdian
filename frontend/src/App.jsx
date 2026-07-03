@@ -16,6 +16,9 @@ import ProfesionalLayout from './components/ProfesionalLayout'
 import ProfesionalPanel from './pages/ProfesionalPanel'
 import ProfesionalTicket from './pages/ProfesionalTicket'
 import ProfesionalAudit from './pages/ProfesionalAudit'
+import Nomina from './pages/Nomina'
+import NominaLiquidacion from './pages/NominaLiquidacion'
+import NominaColilla from './pages/NominaColilla'
 
 function Spinner() {
   return (
@@ -63,6 +66,9 @@ export default function App() {
             <Route path="estadisticas" element={<Stats />} />
             <Route path="consultas"     element={<Consultas />} />
             <Route path="proyecciones" element={<Proyecciones />} />
+            <Route path="nomina"                     element={<Nomina />} />
+            <Route path="nomina/liquidacion/:id"     element={<NominaLiquidacion />} />
+            <Route path="nomina/colilla/:id"         element={<NominaColilla />} />
           </Route>
 
           {/* Rutas de profesionales (contadores/abogados) */}
