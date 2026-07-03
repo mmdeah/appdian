@@ -90,7 +90,13 @@ export const ticketsApi = {
 
 // ---- Proyecciones tributarias ----
 export const proyeccionesApi = {
-  resumen: () => api.get('/proyecciones'),
+  resumen:         ()     => api.get('/proyecciones'),
+  actualizarConfig: (data) => api.patch('/proyecciones/config', data),
+}
+
+// ---- Vencimientos tributarios ----
+export const vencimientosApi = {
+  listar: () => api.get('/vencimientos'),
 }
 
 // ---- Panel profesional ----

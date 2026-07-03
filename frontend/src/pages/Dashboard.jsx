@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { invoicesApi } from '../api/client'
+import { invoicesApi, vencimientosApi } from '../api/client'
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
 import './Dashboard.css'
@@ -22,21 +22,57 @@ function StatCard({ label, value, sub, icon, color = 'accent' }) {
 const COP = (n) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0)
 
+function VencimientoChip({ v }) {
+  const urgClass =
+    v.urgencia === 'VENCIDA'  ? 'venc-chip--vencida' :
+    v.urgencia === 'CRITICA'  ? 'venc-chip--critica' :
+    v.urgencia === 'ALTA'     ? 'venc-chip--alta'    :
+    v.urgencia === 'MEDIA'    ? 'venc-chip--media'   : 'venc-chip--baja'
+
+  const diasLabel =
+    v.dias_restantes < 0  ? `Venció hace ${Math.abs(v.dias_restantes)} día${Math.abs(v.dias_restantes) !== 1 ? 's' : ''}` :
+    v.dias_restantes === 0 ? 'Vence hoy' :
+    v.dias_restantes === 1 ? 'Vence mañana' :
+    `${v.dias_restantes} días`
+
+  return (
+    <div className={`venc-chip ${urgClass}`}>
+      <span className="venc-emoji">{v.emoji}</span>
+      <div className="venc-info">
+        <p className="venc-label">{v.label}</p>
+        <p className="venc-fecha">{new Date(v.fecha + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+      </div>
+      <span className="venc-dias">{diasLabel}</span>
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const { empresa } = useAuth()
   const navigate = useNavigate()
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [data, setData]           = useState(null)
+  const [loading, setLoading]     = useState(true)
+  const [error, setError]         = useState('')
+  const [vencimientos, setVenc]   = useState([])
+  const [loadingVenc, setLoadingVenc] = useState(true)
 
   useEffect(() => {
     invoicesApi.dashboard()
       .then(({ data }) => setData(data))
       .catch(() => setError('No se pudo cargar el dashboard'))
       .finally(() => setLoading(false))
+
+    vencimientosApi.listar()
+      .then(({ data }) => setVenc(data.vencimientos || []))
+      .catch(() => {})
+      .finally(() => setLoadingVenc(false))
   }, [])
 
   const today = new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })
+
+  // Solo muestra los próximos 30 días en el widget del dashboard
+  const vencProximos = vencimientos.filter(v => v.dias_restantes <= 30)
+  const hayAlertas = vencProximos.some(v => ['VENCIDA','CRITICA','ALTA'].includes(v.urgencia))
 
   return (
     <div className="dashboard">
@@ -74,10 +110,8 @@ export default function Dashboard() {
               color="accent"
               icon={
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-                  <path d="M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10zM11 7v6h2V7h-2zm0 8v2h2v-2h-2z" fill="none"/>
-                  <line x1="12" y1="8" x2="12.01" y2="8" strokeWidth="3" strokeLinecap="round"/>
                   <path strokeLinecap="round" d="M12 12v5M7 12h10"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8" strokeWidth="3" strokeLinecap="round"/>
                 </svg>
               }
             />
@@ -122,10 +156,10 @@ export default function Dashboard() {
             <p className="caps muted" style={{ marginBottom: 'var(--s-4)' }}>Acciones rápidas</p>
             <div className="quick-actions">
               {[
-                { label: 'Venta POS', desc: 'Emite un documento POS', to: '/pos', color: 'accent' },
-                { label: 'Ver facturas', desc: 'Historial completo', to: '/facturas', color: 'info' },
-                { label: 'Productos', desc: 'Gestionar catálogo', to: '/productos', color: 'success' },
-                { label: 'Clientes', desc: 'Terceros registrados', to: '/clientes', color: 'warning' },
+                { label: 'Venta POS',    desc: 'Emite un documento POS', to: '/pos',          color: 'accent' },
+                { label: 'Ver facturas', desc: 'Historial completo',      to: '/facturas',     color: 'info' },
+                { label: 'Proyecciones', desc: 'Estimaciones tributarias', to: '/proyecciones', color: 'success' },
+                { label: 'Mis Consultas',desc: 'Soporte con expertos',    to: '/consultas',    color: 'warning' },
               ].map((a) => (
                 <button key={a.to} className={`quick-card quick-card--${a.color}`} onClick={() => navigate(a.to)}>
                   <p className="quick-label">{a.label}</p>
@@ -133,6 +167,26 @@ export default function Dashboard() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Vencimientos */}
+          <div className="dash-section">
+            <div className="venc-header">
+              <p className="caps muted">Próximos vencimientos tributarios</p>
+              {hayAlertas && <span className="venc-alerta-dot" />}
+              <button className="venc-ver-mas" onClick={() => navigate('/proyecciones')}>
+                Ver proyecciones →
+              </button>
+            </div>
+            {loadingVenc ? (
+              <div className="venc-loading"><div className="spinner" /></div>
+            ) : vencProximos.length === 0 ? (
+              <div className="venc-empty">✅ Sin vencimientos en los próximos 30 días</div>
+            ) : (
+              <div className="venc-lista">
+                {vencProximos.map((v, i) => <VencimientoChip key={i} v={v} />)}
+              </div>
+            )}
           </div>
         </>
       )}

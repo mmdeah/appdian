@@ -118,6 +118,40 @@
   text-align: center; padding: 3rem; color: var(--muted);
 }
 
+/* Config régimen */
+.regimen-config {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .75rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: .85rem 1.1rem; margin-bottom: 1.25rem;
+}
+.regimen-label { font-size: .78rem; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+.regimen-toggles { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.regimen-btn {
+  padding: .38rem .85rem; border-radius: 8px;
+  border: 1.5px solid var(--border); background: var(--bg);
+  font-size: .82rem; font-weight: 600; color: var(--muted);
+  cursor: pointer; transition: all .15s;
+}
+.regimen-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.regimen-btn--active { background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
+.regimen-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+.actividad-select-wrap { display: flex; align-items: center; gap: .5rem; }
+.actividad-select {
+  padding: .38rem .7rem; border-radius: 8px;
+  border: 1.5px solid var(--border); background: var(--bg);
+  font-size: .82rem; color: var(--text); cursor: pointer;
+}
+.regimen-saving { font-size: .78rem; color: var(--muted); font-style: italic; }
+
+/* Info box */
+.info-box {
+  background: rgba(99,102,241,.06); border: 1px solid rgba(99,102,241,.2);
+  border-radius: 9px; padding: .6rem .85rem; margin: .65rem 0;
+  font-size: .8rem; color: var(--muted); line-height: 1.5;
+}
+
 @media (max-width: 780px) {
   .proy-grid { grid-template-columns: 1fr; }
+  .regimen-config { flex-direction: column; align-items: flex-start; }
 }
