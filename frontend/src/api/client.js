@@ -77,8 +77,15 @@ export const invoicesApi = {
 export const ticketsApi = {
   crear: (data)             => api.post('/tickets', data),
   listar: ()                => api.get('/tickets'),
-  obtener: (id)             => api.get(`/tickets/${id}`),
+  obtener: (id)              => api.get(`/tickets/${id}`),
   responder: (id, contenido) => api.post(`/tickets/${id}/mensajes`, { contenido }),
+  subirArchivo: (id, file) => {
+    const form = new FormData()
+    form.append('archivo', file)
+    return api.post(`/tickets/${id}/archivos`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
 }
 
 // ---- Panel profesional ----
