@@ -34,8 +34,9 @@ export default function ProfesionalTicket() {
   const [esInterno, setEsInterno] = useState(false)
   const [sending, setSending] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [accesoTemporal, setAccesoTemporal] = useState(null)
-  const [generandoAcceso, setGenerandoAcceso] = useState(false)
+  const [passVisible, setPassVisible]     = useState(false)
+  const [passData, setPassData]           = useState(null)   // { email, password }
+  const [loadingPass, setLoadingPass]     = useState(false)
   const fileRef = useRef()
 
   useEffect(() => {
@@ -86,13 +87,22 @@ export default function ProfesionalTicket() {
     } finally { setUploading(false); fileRef.current.value = '' }
   }
 
-  async function generarAccesoTemporal() {
+  async function togglePassword() {
+    if (passVisible) { setPassVisible(false); return }
+    if (passData) { setPassVisible(true); return }
     if (!empresa?.empresa?.id) return
-    setGenerandoAcceso(true)
+    setLoadingPass(true)
     try {
-      const { data } = await profesionalApi.accesoTemporal(empresa.empresa.id)
-      setAccesoTemporal(data)
-    } finally { setGenerandoAcceso(false) }
+      const { data } = await profesionalApi.verPassword(empresa.empresa.id)
+      setPassData(data)
+      setPassVisible(true)
+    } catch (err) {
+      alert(err.response?.data?.error || 'No se pudo obtener la contraseña')
+    } finally { setLoadingPass(false) }
+  }
+
+  function copiarPassword() {
+    if (passData?.password) navigator.clipboard.writeText(passData.password)
   }
 
   if (loading) return <div className="page-loading"><div className="spinner" /></div>
@@ -252,21 +262,47 @@ export default function ProfesionalTicket() {
                   </div>
                 )}
 
-                {/* Contraseña temporal */}
-                {accesoTemporal ? (
-                  <div className="temp-pass-result">
-                    <p className="acceso-label" style={{ color: '#16a34a' }}>Contraseña temporal generada</p>
-                    <div className="acceso-row">
-                      <span className="acceso-key">Contraseña</span>
-                      <span className="temp-pass-val">{accesoTemporal.password}</span>
-                    </div>
-                    <p className="t-xs muted" style={{ marginTop: '.4rem' }}>Válida hasta que el cliente la cambie</p>
+                {/* Contraseña — mostrar/ocultar */}
+                <div className="acceso-row pass-row">
+                  <span className="acceso-key">Contraseña</span>
+                  <div className="pass-reveal-wrap">
+                    <span className="pass-reveal-val">
+                      {passVisible && passData
+                        ? passData.password
+                        : '••••••••'}
+                    </span>
+                    {passVisible && passData && (
+                      <button className="btn-copy-pass" onClick={copiarPassword} title="Copiar">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                        </svg>
+                      </button>
+                    )}
+                    <button
+                      className="btn-eye"
+                      onClick={togglePassword}
+                      disabled={loadingPass}
+                      title={passVisible ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    >
+                      {loadingPass ? (
+                        <span className="btn-spinner-sm" />
+                      ) : passVisible ? (
+                        /* Eye-off */
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                          <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                      ) : (
+                        /* Eye */
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      )}
+                    </button>
                   </div>
-                ) : (
-                  <button className="btn-acceso-temp" onClick={generarAccesoTemporal} disabled={generandoAcceso}>
-                    {generandoAcceso ? 'Generando...' : '🔑 Generar contraseña temporal'}
-                  </button>
-                )}
+                </div>
               </div>
 
               {/* Resumen financiero */}

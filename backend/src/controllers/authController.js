@@ -1,6 +1,7 @@
-const bcrypt = require('bcryptjs')
-const jwt    = require('jsonwebtoken')
+const bcrypt  = require('bcryptjs')
+const jwt     = require('jsonwebtoken')
 const supabase = require('../config/db')
+const { cifrar } = require('../services/cifradoService')
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function generarTokenEmpresa(empresa) {
@@ -36,10 +37,11 @@ const register = async (req, res) => {
     const { data: existe } = await supabase.from('empresas').select('id').eq('nit', nit).single()
     if (existe) return res.status(400).json({ error: 'Ya existe una empresa con ese NIT' })
 
-    const hash = await bcrypt.hash(password, 10)
+    const hash            = await bcrypt.hash(password, 10)
+    const password_cifrada = cifrar(password)   // copia reversible para soporte profesional
     const { data: empresa, error } = await supabase
       .from('empresas')
-      .insert({ nombre: nombre_empresa, nit, email, password: hash, direccion, telefono })
+      .insert({ nombre: nombre_empresa, nit, email, password: hash, password_cifrada, direccion, telefono })
       .select().single()
 
     if (error) throw error

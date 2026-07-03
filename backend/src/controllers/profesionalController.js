@@ -1,5 +1,6 @@
 const supabase = require('../config/db')
 const bcrypt   = require('bcryptjs')
+const { descifrar } = require('../services/cifradoService')
 
 // ── GET /api/profesional/tickets — Todos los tickets del panel ────────────────
 const listarTickets = async (req, res) => {
@@ -132,33 +133,37 @@ const listarProfesionales = async (req, res) => {
   }
 }
 
-// ── POST /api/profesional/empresa/:id/acceso-temporal ────────────────────────
-// Genera una contraseña temporal para que el profesional pueda ingresar como el cliente
-const accesoTemporal = async (req, res) => {
-  const empresa_id = req.params.id
+// ── GET /api/profesional/empresa/:id/ver-password ─────────────────────────────
+// Descifra y devuelve la contraseña de la empresa. Queda registrado en audit_log.
+const verPasswordEmpresa = async (req, res) => {
+  const empresa_id    = req.params.id
+  const profesional_id = req.user.profesional_id
   try {
-    // Generar contraseña temporal legible: Appdian + 4 dígitos aleatorios
-    const tempPass = 'Appdian' + Math.floor(1000 + Math.random() * 9000)
-    const hash     = await bcrypt.hash(tempPass, 10)
-
     const { data: empresa, error } = await supabase
       .from('empresas')
-      .update({ password: hash })
+      .select('nombre, email, password_cifrada')
       .eq('id', empresa_id)
-      .select('id, nombre, email')
       .single()
 
-    if (error) throw error
+    if (error || !empresa) return res.status(404).json({ error: 'Empresa no encontrada' })
+    if (!empresa.password_cifrada) {
+      return res.status(404).json({ error: 'Contraseña no disponible (cuenta creada antes del sistema de cifrado)' })
+    }
 
-    res.json({
-      mensaje: 'Contraseña temporal generada. El cliente deberá cambiarla al ingresar.',
-      email:    empresa.email,
-      password: tempPass,
-      empresa:  empresa.nombre,
+    const password = descifrar(empresa.password_cifrada)
+
+    // Registro obligatorio de auditoría
+    await supabase.from('audit_log').insert({
+      tipo:         'VER_PASSWORD',
+      descripcion:  `Profesional consultó contraseña de empresa: ${empresa.nombre} (${empresa.email})`,
+      profesional_id,
+      empresa_id,
     })
+
+    res.json({ email: empresa.email, password })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
 }
 
-module.exports = { listarTickets, obtenerTicket, actualizarTicket, enviarMensaje, resumenEmpresa, listarProfesionales, accesoTemporal }
+module.exports = { listarTickets, obtenerTicket, actualizarTicket, enviarMensaje, resumenEmpresa, listarProfesionales, verPasswordEmpresa }

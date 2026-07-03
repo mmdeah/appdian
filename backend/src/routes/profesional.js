@@ -30,7 +30,7 @@ router.patch('/tickets/:id',                    ctrl.actualizarTicket)
 router.post('/tickets/:id/mensajes',            ctrl.enviarMensaje)
 router.post('/tickets/:id/archivos', upload.single('archivo'), subirArchivo)
 router.get('/empresa/:id/resumen',              ctrl.resumenEmpresa)
-router.post('/empresa/:id/acceso-temporal',     ctrl.accesoTemporal)
+router.get('/empresa/:id/ver-password',         ctrl.verPasswordEmpresa)
 router.get('/profesionales',                    ctrl.listarProfesionales)
 
 module.exports = router
