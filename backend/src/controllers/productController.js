@@ -1,4 +1,5 @@
 const supabase = require('../config/db')
+const audit   = require('../services/auditService')
 
 // GET /api/products
 const listar = async (req, res) => {
@@ -52,6 +53,7 @@ const crear = async (req, res) => {
     .single()
 
   if (error) return res.status(400).json({ error: error.message })
+  audit.log({ tipo: 'PRODUCTO_CREADO', descripcion: `Producto creado: "${data.nombre}" (cód. ${data.codigo || 'N/A'}) a $${data.precio}`, empresa_id: req.user.empresa_id })
   res.status(201).json(data)
 }
 
@@ -68,6 +70,7 @@ const actualizar = async (req, res) => {
     .single()
 
   if (error) return res.status(400).json({ error: error.message })
+  audit.log({ tipo: 'PRODUCTO_EDITADO', descripcion: `Producto editado: "${data.nombre}" (id: ${data.id})`, empresa_id: req.user.empresa_id })
   res.json(data)
 }
 
@@ -80,6 +83,7 @@ const eliminar = async (req, res) => {
     .eq('empresa_id', req.user.empresa_id)
 
   if (error) return res.status(400).json({ error: error.message })
+  audit.log({ tipo: 'PRODUCTO_ELIMINADO', descripcion: `Producto eliminado (id: ${req.params.id})`, empresa_id: req.user.empresa_id })
   res.json({ ok: true })
 }
 

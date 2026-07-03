@@ -2,6 +2,7 @@ const bcrypt  = require('bcryptjs')
 const jwt     = require('jsonwebtoken')
 const supabase = require('../config/db')
 const { cifrar } = require('../services/cifradoService')
+const audit   = require('../services/auditService')
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function generarTokenEmpresa(empresa) {
@@ -45,6 +46,7 @@ const register = async (req, res) => {
       .select().single()
 
     if (error) throw error
+    audit.log({ tipo: 'REGISTRO_EMPRESA', descripcion: `Nueva empresa registrada: ${nombre_empresa} (NIT ${nit})`, empresa_id: empresa.id })
     const token = generarTokenEmpresa(empresa)
     res.status(201).json({ token, empresa: sanitizarEmpresa(empresa), rol: 'EMPRESA' })
   } catch (err) {
@@ -63,6 +65,7 @@ const login = async (req, res) => {
       const valido = await bcrypt.compare(password, empresa.password)
       if (!valido) return res.status(401).json({ error: 'Credenciales inválidas' })
       if (!empresa.activo) return res.status(403).json({ error: 'Cuenta desactivada' })
+      audit.log({ tipo: 'LOGIN_EMPRESA', descripcion: `Inicio de sesión: ${empresa.nombre} (${empresa.email})`, empresa_id: empresa.id })
       const token = generarTokenEmpresa(empresa)
       return res.json({ token, empresa: sanitizarEmpresa(empresa), rol: 'EMPRESA' })
     }

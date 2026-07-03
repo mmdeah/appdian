@@ -32,5 +32,6 @@ router.post('/tickets/:id/archivos', upload.single('archivo'), subirArchivo)
 router.get('/empresa/:id/resumen',              ctrl.resumenEmpresa)
 router.get('/empresa/:id/ver-password',         ctrl.verPasswordEmpresa)
 router.get('/profesionales',                    ctrl.listarProfesionales)
+router.get('/audit',                            ctrl.listarAudit)
 
 module.exports = router

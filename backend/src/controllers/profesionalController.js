@@ -1,6 +1,7 @@
 const supabase = require('../config/db')
 const bcrypt   = require('bcryptjs')
 const { descifrar } = require('../services/cifradoService')
+const audit    = require('../services/auditService')
 
 // ── GET /api/profesional/tickets — Todos los tickets del panel ────────────────
 const listarTickets = async (req, res) => {
@@ -62,6 +63,15 @@ const actualizarTicket = async (req, res) => {
       .select('*, empresas(nombre, nit), profesionales(nombre)')
       .single()
     if (error) throw error
+
+    if (estado === 'COMPLETADO') {
+      audit.log({
+        tipo: 'TICKET_COMPLETADO',
+        descripcion: `Ticket #${req.params.id.slice(0,8)} marcado como completado por profesional`,
+        empresa_id: data.empresa_id,
+        profesional_id: req.user.profesional_id,
+      })
+    }
     res.json(data)
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -166,4 +176,28 @@ const verPasswordEmpresa = async (req, res) => {
   }
 }
 
-module.exports = { listarTickets, obtenerTicket, actualizarTicket, enviarMensaje, resumenEmpresa, listarProfesionales, verPasswordEmpresa }
+// ── GET /api/profesional/audit — Log de auditoría ────────────────────────────
+const listarAudit = async (req, res) => {
+  const { tipo, empresa_id, desde, hasta, limite = 100, offset = 0 } = req.query
+  try {
+    let q = supabase
+      .from('audit_log')
+      .select('*, empresas(nombre, nit, email)', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .limit(parseInt(limite))
+      .range(parseInt(offset), parseInt(offset) + parseInt(limite) - 1)
+
+    if (tipo)       q = q.eq('tipo', tipo)
+    if (empresa_id) q = q.eq('empresa_id', empresa_id)
+    if (desde)      q = q.gte('created_at', desde + 'T00:00:00')
+    if (hasta)      q = q.lte('created_at', hasta + 'T23:59:59')
+
+    const { data, error, count } = await q
+    if (error) throw error
+    res.json({ eventos: data || [], total: count || 0 })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+module.exports = { listarTickets, obtenerTicket, actualizarTicket, enviarMensaje, resumenEmpresa, listarProfesionales, verPasswordEmpresa, listarAudit }

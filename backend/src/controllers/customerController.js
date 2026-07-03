@@ -1,4 +1,5 @@
 const supabase = require('../config/db')
+const audit   = require('../services/auditService')
 
 // GET /api/customers
 const listar = async (req, res) => {
@@ -40,6 +41,7 @@ const crear = async (req, res) => {
     .single()
 
   if (error) return res.status(400).json({ error: error.message })
+  audit.log({ tipo: 'CLIENTE_CREADO', descripcion: `Cliente creado: "${data.nombre}" (NIT/CC: ${data.nit})`, empresa_id: req.user.empresa_id })
   res.status(201).json(data)
 }
 
@@ -56,6 +58,7 @@ const actualizar = async (req, res) => {
     .single()
 
   if (error) return res.status(400).json({ error: error.message })
+  audit.log({ tipo: 'CLIENTE_EDITADO', descripcion: `Cliente editado: "${data.nombre}" (id: ${data.id})`, empresa_id: req.user.empresa_id })
   res.json(data)
 }
 
@@ -68,6 +71,7 @@ const eliminar = async (req, res) => {
     .eq('empresa_id', req.user.empresa_id)
 
   if (error) return res.status(400).json({ error: error.message })
+  audit.log({ tipo: 'CLIENTE_ELIMINADO', descripcion: `Cliente eliminado (id: ${req.params.id})`, empresa_id: req.user.empresa_id })
   res.json({ ok: true })
 }
 

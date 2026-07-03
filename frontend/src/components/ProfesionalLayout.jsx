@@ -46,6 +46,14 @@ export default function ProfesionalLayout() {
             </svg>
             Tickets
           </NavLink>
+          <NavLink to="/panel/auditoria" className={({ isActive }) => `pro-nav-item ${isActive ? 'pro-nav-active' : ''}`}>
+            <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              <path d="M9 12h6M9 16h4" />
+              <circle cx="19" cy="19" r="3" fill="currentColor" stroke="none" />
+            </svg>
+            Auditoría
+          </NavLink>
         </nav>
 
         <div className="pro-footer">

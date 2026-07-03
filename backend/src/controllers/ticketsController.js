@@ -1,4 +1,5 @@
 const supabase = require('../config/db')
+const audit   = require('../services/auditService')
 
 // ── POST /api/tickets — Empresa crea un ticket ────────────────────────────────
 const crear = async (req, res) => {
@@ -11,6 +12,7 @@ const crear = async (req, res) => {
       .select('*, profesionales(nombre, especialidad)')
       .single()
     if (error) throw error
+    audit.log({ tipo: 'TICKET_CREADO', descripcion: `Ticket creado: "${asunto}" (tipo: ${tipo}, urgencia: ${urgencia || 'MEDIA'})`, empresa_id })
     res.status(201).json(data)
   } catch (err) {
     res.status(500).json({ error: err.message })

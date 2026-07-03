@@ -1,4 +1,5 @@
 const supabase = require('../config/db')
+const audit   = require('../services/auditService')
 
 // ── Tarifas SIMPLE (Colombia, por rangos en UVT) ──────────────────────────────
 const TARIFAS_SIMPLE = {
@@ -210,6 +211,7 @@ const actualizarConfig = async (req, res) => {
       .single()
 
     if (error) throw error
+    audit.log({ tipo: 'CONFIG_REGIMEN', descripcion: `Régimen actualizado a ${data.regimen}${data.actividad_simple ? ` (actividad: ${data.actividad_simple})` : ''}`, empresa_id })
     res.json(data)
   } catch (err) {
     res.status(500).json({ error: err.message })

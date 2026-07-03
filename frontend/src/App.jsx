@@ -15,6 +15,7 @@ import Proyecciones from './pages/Proyecciones'
 import ProfesionalLayout from './components/ProfesionalLayout'
 import ProfesionalPanel from './pages/ProfesionalPanel'
 import ProfesionalTicket from './pages/ProfesionalTicket'
+import ProfesionalAudit from './pages/ProfesionalAudit'
 
 function Spinner() {
   return (
@@ -67,7 +68,8 @@ export default function App() {
           {/* Rutas de profesionales (contadores/abogados) */}
           <Route path="/panel" element={<PrivateRoute onlyRol="PROFESIONAL"><ProfesionalLayout /></PrivateRoute>}>
             <Route index element={<ProfesionalPanel />} />
-            <Route path="ticket/:id" element={<ProfesionalTicket />} />
+            <Route path="ticket/:id"  element={<ProfesionalTicket />} />
+            <Route path="auditoria"   element={<ProfesionalAudit />} />
           </Route>
         </Routes>
       </BrowserRouter>
