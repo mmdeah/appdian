@@ -44,14 +44,6 @@ export function AuthProvider({ children }) {
     return data
   }, [])
 
-  // Called by AuthCallback after email confirmation — stores token + user
-  const setUserFromData = useCallback((data) => {
-    const userData = { ...data.empresa, rol: 'EMPRESA' }
-    localStorage.setItem('appdian_token', data.token)
-    localStorage.setItem('appdian_user', JSON.stringify(userData))
-    setUser(userData)
-  }, [])
-
   const logout = useCallback(async () => {
     await supabase.auth.signOut().catch(() => {})
     localStorage.removeItem('appdian_token')
@@ -68,7 +60,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, empresa, profesional, rol, isAuth, loading,
-      login, setUserFromData, logout,
+      login, logout,
     }}>
       {children}
     </AuthContext.Provider>

@@ -20,7 +20,6 @@ export default function Register() {
   const [form, setForm] = useState(EMPTY)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [confirmado, setConfirmado] = useState(false)
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
 
@@ -33,7 +32,7 @@ export default function Register() {
 
     setLoading(true)
     try {
-      await authApi.register({
+      const { data } = await authApi.register({
         nombre_empresa: form.nombre_empresa,
         nit:       form.nit,
         email:     form.email,
@@ -41,48 +40,14 @@ export default function Register() {
         telefono:  form.telefono,
         direccion: form.direccion,
       })
-      setConfirmado(true)
+      localStorage.setItem('appdian_token', data.token)
+      localStorage.setItem('appdian_user', JSON.stringify({ ...data.empresa, rol: 'EMPRESA' }))
+      navigate('/dashboard')
     } catch (err) {
       setError(err.response?.data?.error || 'Error al crear la cuenta')
     } finally {
       setLoading(false)
     }
-  }
-
-  // ── Pantalla de éxito ──────────────────────────────────────────────────────
-  if (confirmado) {
-    return (
-      <div className="login-page">
-        <div className="login-brand">
-          <div className="login-brand-inner">
-            <div className="brand-logo-mark">A</div>
-            <h2 className="brand-title">AppDian</h2>
-            <p className="brand-tagline">Facturación electrónica<br />para Colombia — DIAN</p>
-          </div>
-          <div className="brand-geo" aria-hidden="true">
-            <div className="geo-ring geo-ring-1" />
-            <div className="geo-ring geo-ring-2" />
-            <div className="geo-ring geo-ring-3" />
-          </div>
-        </div>
-        <div className="login-form-panel">
-          <div className="login-form-card fade-up" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📧</div>
-            <h1 className="login-heading">Revisa tu correo</h1>
-            <p className="muted" style={{ marginBottom: '24px', lineHeight: 1.6 }}>
-              Enviamos un enlace de confirmación a <strong>{form.email}</strong>.
-              <br />Haz clic en el enlace para activar tu cuenta.
-            </p>
-            <p className="muted t-xs" style={{ marginBottom: '16px' }}>
-              Si no lo ves, revisa la carpeta de spam.
-            </p>
-            <Button variant="secondary" fullWidth onClick={() => navigate('/login')}>
-              Volver al login
-            </Button>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   // ── Formulario de registro ─────────────────────────────────────────────────

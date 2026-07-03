@@ -32,11 +32,9 @@ export default api
 
 // ---- Auth ----
 export const authApi = {
-  login:             (email, password)              => api.post('/auth/login', { email, password }),
-  register:          (data)                         => api.post('/auth/register', data),
-  confirmarEmail:    (access_token)                 => api.post('/auth/confirmar-email', { access_token }),
-  actualizarPassword:(access_token, nueva_password) => api.post('/auth/actualizar-password', { access_token, nueva_password }),
-  me:                ()                             => api.get('/auth/me'),
+  login:    (email, password) => api.post('/auth/login', { email, password }),
+  register: (data)            => api.post('/auth/register', data),
+  me:       ()                => api.get('/auth/me'),
 }
 
 // ---- Products ----

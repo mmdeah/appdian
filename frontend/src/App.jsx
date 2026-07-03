@@ -21,7 +21,6 @@ import NominaLiquidacion from './pages/NominaLiquidacion'
 import NominaColilla from './pages/NominaColilla'
 import Gastos from './pages/Gastos'
 import StatsReporte from './pages/StatsReporte'
-import RecuperarPassword from './pages/RecuperarPassword'
 
 function Spinner() {
   return (
@@ -54,10 +53,9 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           {/* Rutas públicas */}
-          <Route path="/login"              element={<PublicRoute><Login /></PublicRoute>} />
-          <Route path="/registro"         element={<PublicRoute><Register /></PublicRoute>} />
-          <Route path="/recuperar-password" element={<PublicRoute><RecuperarPassword /></PublicRoute>} />
-          <Route path="/auth/callback"    element={<AuthCallback />} />
+          <Route path="/login"         element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/registro"      element={<PublicRoute><Register /></PublicRoute>} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
           {/* Rutas de empresa */}
           <Route path="/" element={<PrivateRoute onlyRol="EMPRESA"><Layout /></PrivateRoute>}>

@@ -22,12 +22,7 @@ export default function Login() {
       await login(form.email, form.password)
       navigate('/dashboard')
     } catch (err) {
-      const msg = err.response?.data?.error
-      if (msg === 'email_no_confirmado') {
-        setError('Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.')
-      } else {
-        setError(msg || 'Error al iniciar sesión')
-      }
+      setError(err.response?.data?.error || 'Error al iniciar sesión')
     } finally {
       setLoading(false)
     }
@@ -99,12 +94,6 @@ export default function Login() {
               Iniciar sesión
             </Button>
           </form>
-
-          <div style={{ textAlign: 'center', marginTop: '12px' }}>
-            <Link to="/recuperar-password" className="login-link" style={{ fontSize: '13px' }}>
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </div>
 
           <p className="login-footer muted t-xs">
             ¿No tienes cuenta?&nbsp;
