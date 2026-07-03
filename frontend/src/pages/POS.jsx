@@ -447,13 +447,17 @@ export default function POS() {
             className={`tipodoc-btn ${tipoDoc === 'POS' ? 'tipodoc-btn--active' : ''}`}
             onClick={() => setTipoDoc('POS')}
           >
-            Documento POS
+            <span className="tipodoc-icon">🧾</span>
+            <span className="tipodoc-label">Documento POS</span>
+            <span className="tipodoc-sub">Ticket de caja</span>
           </button>
           <button
             className={`tipodoc-btn ${tipoDoc === 'FE' ? 'tipodoc-btn--active' : ''}`}
             onClick={() => setTipoDoc('FE')}
           >
-            Factura Electrónica
+            <span className="tipodoc-icon">📄</span>
+            <span className="tipodoc-label">Factura Electrónica</span>
+            <span className="tipodoc-sub">Requiere datos cliente</span>
           </button>
         </div>
 
