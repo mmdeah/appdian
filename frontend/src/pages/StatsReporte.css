@@ -1,0 +1,259 @@
+/* ── Reporte page (pantalla) ────────────────────────────── */
+.reporte-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.rep-loading {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 4rem; gap: 1rem;
+  color: var(--text-muted, #6b7280);
+}
+
+/* Acciones */
+.rep-acciones {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+
+.rep-btn-back {
+  padding: .45rem 1rem;
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: .875rem;
+  color: var(--text-primary, #374151);
+  transition: background .12s;
+}
+.rep-btn-back:hover { background: var(--bg-muted, #f9fafb); }
+
+.rep-modo-btns {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+.rep-modo-btn {
+  padding: .45rem 1rem;
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: .85rem;
+  font-weight: 500;
+  transition: background .12s, border-color .12s;
+}
+.rep-modo-btn:hover { border-color: var(--primary, #2563eb); }
+.rep-modo-btn--active {
+  border-color: var(--primary, #2563eb);
+  background: #eff6ff;
+  color: var(--primary, #2563eb);
+  font-weight: 700;
+}
+.rep-modo-btn--ia { border-color: #7c3aed; }
+.rep-modo-btn--ia:hover, .rep-modo-btn--ia.rep-modo-btn--active {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+.rep-modo-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.rep-modo-btn--lg {
+  padding: 1rem 1.5rem;
+  text-align: center;
+  line-height: 1.5;
+  min-width: 180px;
+}
+.rep-modo-btn--lg small {
+  display: block;
+  font-weight: 400;
+  font-size: .75rem;
+  color: #6b7280;
+  margin-top: .25rem;
+}
+
+.rep-btn-print {
+  padding: .45rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary, #2563eb);
+  color: #fff;
+  cursor: pointer;
+  font-size: .85rem;
+  font-weight: 600;
+  transition: opacity .15s;
+}
+.rep-btn-print:hover { opacity: .88; }
+
+.rep-error {
+  padding: .75rem 1rem;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: .875rem;
+  margin-bottom: 1rem;
+}
+
+.rep-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+.rep-placeholder-inner {
+  text-align: center;
+  max-width: 420px;
+}
+.rep-placeholder-inner h3 { font-size: 1.25rem; margin: .5rem 0; }
+.rep-placeholder-inner p  { color: #6b7280; }
+
+/* ══════════════════════════════════════════
+   REPORTE IMPRIMIBLE
+══════════════════════════════════════════ */
+.reporte-doc {
+  background: #fff;
+  padding: 2.5rem;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  font-size: .9rem;
+  color: #1a1a1a;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* Encabezado */
+.rep-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.rep-empresa {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin: 0 0 .2rem;
+}
+
+.rep-nit { margin: 0; font-size: .8rem; color: #555; }
+
+.rep-titulo-box { text-align: right; }
+
+.rep-titulo-main {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin: 0 0 .25rem;
+  color: #2563eb;
+}
+
+.rep-periodo   { margin: 0; font-size: .82rem; color: #555; }
+.rep-generado  { margin: .2rem 0 0; font-size: .72rem; color: #999; }
+
+.rep-hr {
+  border: none;
+  border-top: 2px solid #2563eb;
+  margin: 1rem 0;
+}
+
+/* Títulos */
+.rep-h1 { font-size: 1.2rem; font-weight: 800; margin: 1.25rem 0 .5rem; color: #111; }
+.rep-h2 { font-size: 1rem; font-weight: 700; margin: 1rem 0 .4rem; color: #1d4ed8; border-bottom: 1px solid #e5e7eb; padding-bottom: .3rem; }
+.rep-h3 { font-size: .9rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #374151; margin: 1.25rem 0 .5rem; }
+
+/* Tablas */
+.rep-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  font-size: .85rem;
+}
+.rep-table--full { width: 100%; }
+.rep-table th {
+  padding: .5rem .75rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  font-weight: 700;
+  text-align: left;
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.rep-table td {
+  padding: .45rem .75rem;
+  border: 1px solid #e5e7eb;
+}
+.rep-table tr:nth-child(even) td { background: #f9fafb; }
+
+.rep-row-ingreso td { background: #f0fdf4 !important; }
+.rep-row-gasto   td { background: #fef2f2 !important; }
+.rep-row-util    td { background: #eff6ff !important; font-weight: 700; }
+.rep-row-negativo td { background: #fef2f2 !important; color: #dc2626; }
+
+/* Texto del reporte IA */
+.rep-ia-body { line-height: 1.7; }
+.rep-p  { margin: .5rem 0; }
+.rep-ol, .rep-ul { margin: .4rem 0 .4rem 1.2rem; }
+.rep-ol li, .rep-ul li { margin-bottom: .2rem; }
+.rep-quote {
+  border-left: 3px solid #2563eb;
+  padding: .5rem 1rem;
+  background: #eff6ff;
+  margin: 1rem 0;
+  font-size: .85rem;
+  color: #374151;
+  border-radius: 0 6px 6px 0;
+}
+.rep-disclaimer {
+  border-left: 3px solid #6b7280;
+  padding: .5rem 1rem;
+  background: #f9fafb;
+  margin: 1.5rem 0 0;
+  font-size: .78rem;
+  color: #6b7280;
+  border-radius: 0 6px 6px 0;
+}
+
+/* Spinner */
+.spinner {
+  width: 30px; height: 30px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── PRINT ─────────────────────────────────────────────── */
+@media print {
+  body > * { visibility: hidden; }
+  .reporte-doc, .reporte-doc * { visibility: visible; }
+  .no-print { display: none !important; }
+
+  .reporte-doc {
+    position: absolute;
+    inset: 0;
+    padding: 1.5cm 2cm;
+    border: none;
+    border-radius: 0;
+    max-width: 100%;
+    box-shadow: none;
+  }
+
+  .rep-titulo-main { color: #000 !important; }
+  .rep-hr { border-top-color: #000; }
+  .rep-h2 { color: #000; border-color: #ccc; }
+
+  @page {
+    size: A4 portrait;
+    margin: 1.5cm 2cm;
+  }
+}

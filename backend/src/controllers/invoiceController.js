@@ -64,7 +64,23 @@ const emitirPOS = async (req, res) => {
       }))
     )
 
-    // 6. Llamar MATIAS API
+    // 6. Llamar MATIAS API (sólo si la empresa tiene credenciales configuradas)
+    const tieneMatias = !!(empresa.matias_email && empresa.matias_password && process.env.MATIAS_URL)
+
+    if (!tieneMatias) {
+      // Modo prueba / sandbox — guardamos como EMITIDA_LOCAL sin llamar a DIAN
+      await supabase
+        .from('facturas')
+        .update({ estado: 'EMITIDA_LOCAL', modo_prueba: true })
+        .eq('id', factura.id)
+
+      return res.status(201).json({
+        ok: true,
+        factura: { ...factura, estado: 'EMITIDA_LOCAL', modo_prueba: true, numero_documento },
+        mensaje: '⚠️ Factura guardada en modo prueba. No fue enviada a la DIAN (credenciales MATIAS no configuradas).',
+      })
+    }
+
     const respuestaDIAN = await emitirDocumentoPOS(empresa, {
       numero_documento,
       cajero_nombre: cajero_nombre || 'Cajero',
@@ -164,6 +180,21 @@ const emitirFacturaElectronica = async (req, res) => {
       }))
     )
 
+    const tieneMatiasFE = !!(empresa.matias_email && empresa.matias_password && process.env.MATIAS_URL)
+
+    if (!tieneMatiasFE) {
+      await supabase
+        .from('facturas')
+        .update({ estado: 'EMITIDA_LOCAL', modo_prueba: true })
+        .eq('id', factura.id)
+
+      return res.status(201).json({
+        ok: true,
+        factura: { ...factura, estado: 'EMITIDA_LOCAL', modo_prueba: true, numero_documento },
+        mensaje: '⚠️ Factura guardada en modo prueba. No fue enviada a la DIAN (credenciales MATIAS no configuradas).',
+      })
+    }
+
     const respuestaDIAN = await emitirFactura(empresa, {
       numero_documento,
       cliente_nombre: cliente.nombre,
@@ -259,7 +290,7 @@ const dashboard = async (req, res) => {
   const resumen = {
     total_ventas: data.reduce((acc, f) => acc + (f.total || 0), 0),
     num_facturas: data.length,
-    aprobadas: data.filter(f => f.estado === 'APROBADA').length,
+    aprobadas: data.filter(f => f.estado === 'APROBADA' || f.estado === 'EMITIDA_LOCAL').length,
     pendientes: data.filter(f => f.estado === 'PENDIENTE').length,
     por_tipo: {
       POS: data.filter(f => f.tipo === 'POS').length,

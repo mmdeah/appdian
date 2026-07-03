@@ -55,7 +55,8 @@ export default function Invoices() {
           <label className="filter-label caps muted">Estado</label>
           <select className="filter-select" value={filters.estado} onChange={setFilter('estado')}>
             <option value="">Todos</option>
-            <option value="APROBADA">Aprobada</option>
+            <option value="APROBADA">Aprobada (DIAN)</option>
+            <option value="EMITIDA_LOCAL">Emitida local (prueba)</option>
             <option value="PENDIENTE">Pendiente</option>
             <option value="RECHAZADA">Rechazada</option>
             <option value="ERROR">Error</option>

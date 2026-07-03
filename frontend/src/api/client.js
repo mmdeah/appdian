@@ -61,7 +61,8 @@ export const statsApi = {
   topClientes:  (params) => api.get('/stats/top-clientes',  { params }),
   topProductos: (params) => api.get('/stats/top-productos', { params }),
   // Timeout de 90s — el modelo Nemotron 550B es lento en el tier free
-  ai: (data) => api.post('/stats/ai', data, { timeout: 90_000 }),
+  ai:        (data) => api.post('/stats/ai',        data, { timeout: 90_000 }),
+  reporteIA: (data) => api.post('/stats/reporte-ia', data, { timeout: 90_000 }),
 }
 
 // ---- Invoices ----
@@ -70,7 +71,17 @@ export const invoicesApi = {
   list: (params) => api.get('/invoices', { params }),
   get: (id) => api.get(`/invoices/${id}`),
   emitirPOS: (data) => api.post('/invoices/pos', data),
-  emitirFE: (data) => api.post('/invoices', data),
+  emitirFE:  (data) => api.post('/invoices', data),
+}
+
+// ---- Gastos ----
+export const gastosApi = {
+  listar:     (params)   => api.get('/gastos', { params }),
+  crear:      (data)     => api.post('/gastos', data),
+  actualizar: (id, data) => api.put(`/gastos/${id}`, data),
+  eliminar:   (id)       => api.delete(`/gastos/${id}`),
+  resumen:    (params)   => api.get('/gastos/resumen', { params }),
+  flujo:      (params)   => api.get('/gastos/flujo', { params }),
 }
 
 // ---- Tickets (empresa) ----

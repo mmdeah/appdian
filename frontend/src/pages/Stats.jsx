@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
-import { statsApi } from '../api/client'
+import { useNavigate } from 'react-router-dom'
+import { statsApi, gastosApi } from '../api/client'
 import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer,
+  ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts'
 import './Stats.css'
 
@@ -24,6 +25,9 @@ const SUGERENCIAS = [
   { emoji: '📊', texto: 'Dame un resumen ejecutivo de mi contabilidad' },
   { emoji: '⚠️', texto: '¿Hay alguna alerta o riesgo en mis finanzas?' },
 ]
+
+// Colores para categorías de gastos
+const CAT_COLORS = ['#6366f1','#0ea5e9','#f59e0b','#10b981','#3b82f6','#8b5cf6','#f43f5e','#64748b','#06b6d4','#dc2626','#84cc16','#a855f7','#0891b2','#94a3b8']
 
 function isoHoy() { return new Date().toISOString().split('T')[0] }
 function isoDesde(days) {
@@ -56,31 +60,17 @@ function MarkdownRenderer({ text }) {
   const lines = text.split('\n')
   const out = []
   let i = 0
-
   while (i < lines.length) {
     const raw  = lines[i]
     const line = raw.trim()
-
     if (!line) { i++; continue }
-
-    if (line.startsWith('### ')) {
-      out.push(<h3 key={i} className="md-h3">{renderInline(line.slice(4))}</h3>)
-      i++
-    } else if (line.startsWith('## ')) {
-      out.push(<h2 key={i} className="md-h2">{renderInline(line.slice(3))}</h2>)
-      i++
-    } else if (line.startsWith('# ')) {
-      out.push(<h1 key={i} className="md-h1">{renderInline(line.slice(2))}</h1>)
-      i++
-    } else if (/^[-*_]{3,}$/.test(line)) {
-      out.push(<hr key={i} className="md-hr" />)
-      i++
-    } else if (line.startsWith('|')) {
-      // Tabla
+    if (line.startsWith('### ')) { out.push(<h3 key={i} className="md-h3">{renderInline(line.slice(4))}</h3>); i++ }
+    else if (line.startsWith('## '))  { out.push(<h2 key={i} className="md-h2">{renderInline(line.slice(3))}</h2>); i++ }
+    else if (line.startsWith('# '))   { out.push(<h1 key={i} className="md-h1">{renderInline(line.slice(2))}</h1>); i++ }
+    else if (/^[-*_]{3,}$/.test(line)) { out.push(<hr key={i} className="md-hr" />); i++ }
+    else if (line.startsWith('|')) {
       const rows = []
-      while (i < lines.length && lines[i].trim().startsWith('|')) {
-        rows.push(lines[i].trim()); i++
-      }
+      while (i < lines.length && lines[i].trim().startsWith('|')) { rows.push(lines[i].trim()); i++ }
       const data = rows.filter(r => !/^\|[\s|:-]+\|$/.test(r))
       if (data.length > 0) {
         const parse = r => r.split('|').slice(1,-1).map(c => c.trim())
@@ -96,34 +86,28 @@ function MarkdownRenderer({ text }) {
       }
     } else if (/^\d+\.\s/.test(line)) {
       const items = []
-      while (i < lines.length && /^\d+\.\s/.test(lines[i].trim())) {
-        items.push(lines[i].trim().replace(/^\d+\.\s/, '')); i++
-      }
+      while (i < lines.length && /^\d+\.\s/.test(lines[i].trim())) { items.push(lines[i].trim().replace(/^\d+\.\s/, '')); i++ }
       out.push(<ol key={`ol${i}`} className="md-ol">{items.map((it,j) => <li key={j}>{renderInline(it)}</li>)}</ol>)
     } else if (line.startsWith('- ') || line.startsWith('* ')) {
       const items = []
-      while (i < lines.length && (lines[i].trim().startsWith('- ') || lines[i].trim().startsWith('* '))) {
-        items.push(lines[i].trim().slice(2)); i++
-      }
+      while (i < lines.length && (lines[i].trim().startsWith('- ') || lines[i].trim().startsWith('* '))) { items.push(lines[i].trim().slice(2)); i++ }
       out.push(<ul key={`ul${i}`} className="md-ul">{items.map((it,j) => <li key={j}>{renderInline(it)}</li>)}</ul>)
     } else if (line.startsWith('> ')) {
-      out.push(<blockquote key={i} className="md-blockquote">{renderInline(line.slice(2))}</blockquote>)
-      i++
+      out.push(<blockquote key={i} className="md-blockquote">{renderInline(line.slice(2))}</blockquote>); i++
     } else {
-      out.push(<p key={i} className="md-p">{renderInline(line)}</p>)
-      i++
+      out.push(<p key={i} className="md-p">{renderInline(line)}</p>); i++
     }
   }
   return <>{out}</>
 }
 
 // ── KPI Card ──────────────────────────────────────────────────────────────────
-function KpiCard({ label, value, sub, variacion }) {
+function KpiCard({ label, value, sub, variacion, color }) {
   const sube = variacion > 0
   return (
-    <div className="kpi-card">
+    <div className="kpi-card" style={color ? { borderTopColor: color, borderTopWidth: 3 } : {}}>
       <p className="kpi-label">{label}</p>
-      <p className="kpi-value">{value}</p>
+      <p className="kpi-value" style={color ? { color } : {}}>{value}</p>
       {variacion != null && (
         <span className={`kpi-var ${sube ? 'kpi-var--up' : 'kpi-var--down'}`}>
           {sube ? '↑' : '↓'} {Math.abs(variacion)}% vs período anterior
@@ -136,15 +120,19 @@ function KpiCard({ label, value, sub, variacion }) {
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function Stats() {
+  const navigate = useNavigate()
+
   const [presetIdx, setPresetIdx] = useState(2)
   const [desde,  setDesde]  = useState(() => isoDesde(30))
   const [hasta,  setHasta]  = useState(() => isoHoy())
-  const [agrup,  setAgrup]  = useState('dia')
+  const [agrup,  setAgrup]  = useState('mes')
 
   const [resumen,   setResumen]   = useState(null)
   const [tendencia, setTendencia] = useState([])
   const [clientes,  setClientes]  = useState([])
   const [productos, setProductos] = useState([])
+  const [gastos,    setGastos]    = useState(null)
+  const [flujo,     setFlujo]     = useState([])
   const [loading,   setLoading]   = useState(true)
   const [error,     setError]     = useState(null)
 
@@ -165,14 +153,17 @@ export default function Stats() {
     if (!desde || !hasta) return
     setLoading(true); setError(null)
     try {
-      const [r,t,c,p] = await Promise.all([
+      const [r,t,c,p,g,fl] = await Promise.all([
         statsApi.resumen({ desde, hasta }),
         statsApi.tendencia({ desde, hasta, agrupacion: agrup }),
         statsApi.topClientes({ desde, hasta }),
         statsApi.topProductos({ desde, hasta }),
+        gastosApi.resumen({ desde, hasta }),
+        gastosApi.flujo({ desde, hasta, agrupacion: agrup }),
       ])
       setResumen(r.data); setTendencia(t.data)
       setClientes(c.data); setProductos(p.data)
+      setGastos(g.data); setFlujo(fl.data)
     } catch { setError('No se pudieron cargar las estadísticas.') }
     finally { setLoading(false) }
   }, [desde, hasta, agrup])
@@ -183,17 +174,28 @@ export default function Stats() {
     if (!pregunta.trim() || analizando) return
     setAnalizando(true); setRespIA(null); setErrIA(null); setTsIA(null)
     try {
-      const ctx = { periodo: { desde, hasta }, resumen, tendencia_ventas: tendencia, top_clientes: clientes, top_productos: productos }
+      const ctx = { periodo: { desde, hasta }, resumen, tendencia_ventas: tendencia, top_clientes: clientes, top_productos: productos, gastos }
       const { data } = await statsApi.ai({ pregunta, contexto: ctx })
       setRespIA(data.respuesta)
       setTsIA(new Date().toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' }))
     } catch (e) {
       const msg = e.response?.data?.error || e.message || ''
-      if (msg.includes('saturación'))           setErrIA('El modelo está saturado. Espera unos segundos e intenta de nuevo.')
-      else if (e.code === 'ECONNABORTED')        setErrIA('El modelo tardó demasiado. Intenta de nuevo — mejora en el segundo intento.')
+      if (msg.includes('saturación'))       setErrIA('El modelo está saturado. Espera unos segundos e intenta de nuevo.')
+      else if (e.code === 'ECONNABORTED')   setErrIA('El modelo tardó demasiado. Intenta de nuevo.')
       else setErrIA('Error al consultar el agente. Verifica OPENROUTER_API_KEY en Railway.')
     } finally { setAnalizando(false) }
   }
+
+  function irAReporte() {
+    navigate('/estadisticas/reporte', {
+      state: { periodo: { desde, hasta }, resumen, tendencia, clientes, productos, gastos, flujo }
+    })
+  }
+
+  const utilidad_bruta = (resumen?.total_ventas || 0) - (gastos?.total_gastos || 0)
+  const margen_pct = resumen?.total_ventas > 0
+    ? ((utilidad_bruta / resumen.total_ventas) * 100).toFixed(1)
+    : 0
 
   const ttStyle = { background:'var(--surface)', border:'1px solid var(--border-mid)', borderRadius:8, fontSize:12 }
 
@@ -202,7 +204,6 @@ export default function Stats() {
 
       {/* ── Toolbar ── */}
       <div className="stats-toolbar">
-        {/* Presets */}
         <div className="toolbar-presets">
           {PRESETS.map((p,i) => (
             <button key={p.label}
@@ -211,10 +212,7 @@ export default function Stats() {
             >{p.label}</button>
           ))}
         </div>
-
         <div className="toolbar-divider" />
-
-        {/* Fechas */}
         <div className="toolbar-dates">
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" className="toolbar-cal-icon">
             <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
@@ -225,20 +223,19 @@ export default function Stats() {
           <input type="date" className="toolbar-date-input" value={hasta}
             onChange={e => { setHasta(e.target.value); setPresetIdx(-1) }} />
         </div>
-
         <div className="toolbar-divider" />
-
-        {/* Agrupación */}
         <div className="toolbar-agrup">
-          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-            <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
-          </svg>
           <select className="toolbar-select" value={agrup} onChange={e => setAgrup(e.target.value)}>
             <option value="dia">Por día</option>
             <option value="semana">Por semana</option>
             <option value="mes">Por mes</option>
           </select>
         </div>
+        <div className="toolbar-divider" />
+        {/* Botón reporte */}
+        <button className="btn-reporte" onClick={irAReporte}>
+          📄 Generar reporte
+        </button>
       </div>
 
       {error && <div className="stats-error">{error}</div>}
@@ -247,15 +244,30 @@ export default function Stats() {
         <div className="stats-loading"><div className="spinner" /></div>
       ) : (
         <>
-          {/* ── KPIs ── */}
+          {/* ── KPIs Ingresos ── */}
+          <p className="stats-section-label">📈 Ingresos</p>
           <div className="kpi-grid">
-            <KpiCard label="Total Ventas"   value={fmt(resumen?.total_ventas)}   variacion={resumen?.comparacion?.variacion_pct} />
-            <KpiCard label="IVA Cobrado"    value={fmt(resumen?.total_iva)}       sub={`${resumen?.num_facturas||0} facturas aprobadas`} />
-            <KpiCard label="Ticket Promedio"value={fmt(resumen?.promedio)}        sub={`POS: ${resumen?.por_tipo?.POS||0}  ·  FE: ${resumen?.por_tipo?.FE||0}`} />
-            <KpiCard label="Base Gravable"  value={fmt(resumen?.total_subtotal)}  sub="Sin IVA" />
+            <KpiCard label="Total Ventas"    value={fmt(resumen?.total_ventas)}  variacion={resumen?.comparacion?.variacion_pct} />
+            <KpiCard label="IVA Cobrado"     value={fmt(resumen?.total_iva)}     sub={`${resumen?.num_facturas||0} facturas`} />
+            <KpiCard label="Ticket Promedio" value={fmt(resumen?.promedio)}      sub={`POS: ${resumen?.por_tipo?.POS||0}  ·  FE: ${resumen?.por_tipo?.FE||0}`} />
+            <KpiCard label="Base Gravable"   value={fmt(resumen?.total_subtotal)} sub="Sin IVA" />
           </div>
 
-          {/* ── Tendencia ── */}
+          {/* ── KPIs Gastos + Resultado ── */}
+          <p className="stats-section-label">💸 Gastos y resultado</p>
+          <div className="kpi-grid">
+            <KpiCard label="Total Gastos"    value={fmt(gastos?.total_gastos)}  sub={`${gastos?.num_gastos||0} registros`} color="#dc2626" />
+            <KpiCard label="IVA Pagado"      value={fmt(gastos?.total_iva)}     sub="Descontable en declaración" />
+            <KpiCard
+              label="Utilidad Bruta"
+              value={fmt(utilidad_bruta)}
+              sub={`Margen: ${margen_pct}%`}
+              color={utilidad_bruta >= 0 ? '#16a34a' : '#dc2626'}
+            />
+            <KpiCard label="Gastos / Ventas" value={resumen?.total_ventas > 0 ? `${((gastos?.total_gastos||0)/resumen.total_ventas*100).toFixed(1)}%` : '—'} sub="Porcentaje de egresos" />
+          </div>
+
+          {/* ── Tendencia de Ventas ── */}
           <div className="chart-card">
             <h3 className="chart-title">Tendencia de Ventas</h3>
             {tendencia.length > 0 ? (
@@ -270,6 +282,29 @@ export default function Stats() {
               </ResponsiveContainer>
             ) : <div className="chart-empty">Sin datos en este período</div>}
           </div>
+
+          {/* ── Flujo de caja: Ingresos vs Gastos ── */}
+          {flujo.length > 0 && (
+            <div className="chart-card">
+              <h3 className="chart-title">Flujo de Caja — Ingresos vs Gastos</h3>
+              <ResponsiveContainer width="100%" height={240}>
+                <LineChart data={flujo}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-low)" />
+                  <XAxis dataKey="fecha" tick={{ fontSize:11, fill:'var(--muted)' }} stroke="var(--border-mid)" />
+                  <YAxis tick={{ fontSize:11, fill:'var(--muted)' }} stroke="var(--border-mid)" tickFormatter={fmtK} />
+                  <Tooltip
+                    formatter={(v, name) => [fmt(v), name === 'ingresos' ? 'Ingresos' : name === 'gastos' ? 'Gastos' : 'Utilidad']}
+                    contentStyle={ttStyle}
+                    labelStyle={{ color:'var(--text)', fontWeight:600 }}
+                  />
+                  <Legend formatter={n => n === 'ingresos' ? 'Ingresos' : n === 'gastos' ? 'Gastos' : 'Utilidad'} />
+                  <Line type="monotone" dataKey="ingresos"  stroke="#2563eb" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="gastos"    stroke="#dc2626" strokeWidth={2} dot={false} strokeDasharray="4 2" />
+                  <Line type="monotone" dataKey="utilidad"  stroke="#16a34a" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
 
           {/* ── Tops ── */}
           <div className="top-grid">
@@ -303,12 +338,44 @@ export default function Stats() {
             </div>
           </div>
 
-          {/* ══════════════════════════════════════════════════════════════════
-               AGENTE CONTABLE IA — sección premium
-          ══════════════════════════════════════════════════════════════════ */}
-          <div className="ai-shell">
+          {/* ── Gastos por categoría (pie) ── */}
+          {gastos?.categorias?.length > 0 && (
+            <div className="chart-card">
+              <h3 className="chart-title">Gastos por Categoría</h3>
+              <div className="gastos-cat-layout">
+                <ResponsiveContainer width="45%" height={240}>
+                  <PieChart>
+                    <Pie
+                      data={gastos.categorias}
+                      dataKey="total"
+                      nameKey="nombre"
+                      cx="50%" cy="50%"
+                      outerRadius={90}
+                      innerRadius={50}
+                      paddingAngle={2}
+                    >
+                      {gastos.categorias.map((_, idx) => (
+                        <Cell key={idx} fill={CAT_COLORS[idx % CAT_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={v=>[fmt(v),'Gasto']} contentStyle={ttStyle} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="cat-legend">
+                  {gastos.categorias.slice(0,8).map((c, idx) => (
+                    <div key={c.nombre} className="cat-legend-item">
+                      <span className="cat-dot" style={{ background: CAT_COLORS[idx % CAT_COLORS.length] }} />
+                      <span className="cat-legend-nombre">{c.nombre.replace('_', ' ')}</span>
+                      <span className="cat-legend-val">{fmt(c.total)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
-            {/* Header gradient */}
+          {/* ── Agente IA ── */}
+          <div className="ai-shell">
             <div className="ai-hero">
               <div className="ai-hero-glow" />
               <div className="ai-hero-content">
@@ -330,9 +397,7 @@ export default function Stats() {
               </div>
             </div>
 
-            {/* Body */}
             <div className="ai-body">
-              {/* Sugerencias */}
               <p className="ai-section-label">Preguntas frecuentes</p>
               <div className="ai-chips">
                 {SUGERENCIAS.map(s => (
@@ -343,7 +408,6 @@ export default function Stats() {
                 ))}
               </div>
 
-              {/* Input */}
               <div className="ai-input-wrap">
                 <textarea
                   className="ai-input"
@@ -354,7 +418,7 @@ export default function Stats() {
                   onKeyDown={e => { if (e.key==='Enter' && (e.ctrlKey||e.metaKey)) handleAnalizar() }}
                 />
                 <div className="ai-input-footer">
-                  <span className="ai-hint">Ctrl+Enter para enviar · El análisis incluye los datos del período seleccionado</span>
+                  <span className="ai-hint">Ctrl+Enter para enviar</span>
                   <button className="ai-send-btn" onClick={handleAnalizar} disabled={analizando || !pregunta.trim()}>
                     {analizando ? (
                       <><span className="ai-spinner" /> Analizando…</>
@@ -369,7 +433,6 @@ export default function Stats() {
                 </div>
               </div>
 
-              {/* Error */}
               {errIA && (
                 <div className="ai-error-banner">
                   <span>⚠️</span> {errIA}
@@ -377,13 +440,11 @@ export default function Stats() {
                 </div>
               )}
 
-              {/* Respuesta */}
               {respIA && (
                 <div className="ai-response-card">
                   <div className="ai-response-header">
                     <div className="ai-response-badge">
-                      <span className="ai-response-dot" />
-                      Respuesta del agente
+                      <span className="ai-response-dot" />Respuesta del agente
                     </div>
                     {tsIA && <span className="ai-response-ts">{tsIA}</span>}
                   </div>

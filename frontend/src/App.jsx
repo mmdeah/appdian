@@ -19,6 +19,8 @@ import ProfesionalAudit from './pages/ProfesionalAudit'
 import Nomina from './pages/Nomina'
 import NominaLiquidacion from './pages/NominaLiquidacion'
 import NominaColilla from './pages/NominaColilla'
+import Gastos from './pages/Gastos'
+import StatsReporte from './pages/StatsReporte'
 
 function Spinner() {
   return (
@@ -69,6 +71,8 @@ export default function App() {
             <Route path="nomina"                     element={<Nomina />} />
             <Route path="nomina/liquidacion/:id"     element={<NominaLiquidacion />} />
             <Route path="nomina/colilla/:id"         element={<NominaColilla />} />
+            <Route path="gastos"                     element={<Gastos />} />
+            <Route path="estadisticas/reporte"       element={<StatsReporte />} />
           </Route>
 
           {/* Rutas de profesionales (contadores/abogados) */}

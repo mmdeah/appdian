@@ -1,12 +1,27 @@
-import { useState, useEffect, useRef } from 'react'
-import { productsApi, invoicesApi } from '../api/client'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { productsApi, invoicesApi, customersApi } from '../api/client'
 import Button from '../components/ui/Button'
-import Badge from '../components/ui/Badge'
 import './POS.css'
 
 const COP = (n) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0)
 
+const MEDIOS_PAGO = [
+  { id: 10, label: 'Efectivo' },
+  { id: 42, label: 'Transferencia' },
+  { id: 49, label: 'Tarjeta débito' },
+  { id: 48, label: 'Tarjeta crédito' },
+  { id: 71, label: 'Bono/Vale' },
+]
+
+const TIPOS_DOC = [
+  { id: 3, label: 'CC — Cédula ciudadanía' },
+  { id: 2, label: 'NIT' },
+  { id: 4, label: 'CE — Cédula extranjería' },
+  { id: 5, label: 'PA — Pasaporte' },
+]
+
+/* ── ProductCard ──────────────────────────────────────────── */
 function ProductCard({ p, onAdd }) {
   return (
     <button className="product-card" onClick={() => onAdd(p)}>
@@ -20,6 +35,7 @@ function ProductCard({ p, onAdd }) {
   )
 }
 
+/* ── CartItem ─────────────────────────────────────────────── */
 function CartItem({ item, onQty, onRemove }) {
   return (
     <div className="cart-item">
@@ -42,14 +58,157 @@ function CartItem({ item, onQty, onRemove }) {
   )
 }
 
+/* ── ClientePanel ─────────────────────────────────────────── */
+function ClientePanel({ cliente, onChange }) {
+  const [modo, setModo] = useState('final')       // 'final' | 'identificado'
+  const [busqueda, setBusqueda] = useState('')
+  const [sugerencias, setSugerencias] = useState([])
+  const [buscando, setBuscando] = useState(false)
+  const timerRef = useRef(null)
+
+  function setModoFinal() {
+    setModo('final')
+    setBusqueda('')
+    setSugerencias([])
+    onChange(null)
+  }
+
+  function setModoIdentificado() {
+    setModo('identificado')
+    onChange({ nombre: '', nit: '', email: '', tipo_doc_id: 3, direccion: '' })
+  }
+
+  const buscar = useCallback(async (q) => {
+    if (!q || q.length < 2) { setSugerencias([]); return }
+    setBuscando(true)
+    try {
+      const { data } = await customersApi.list(q)
+      setSugerencias(data.clientes?.slice(0, 5) || [])
+    } catch { setSugerencias([]) }
+    finally { setBuscando(false) }
+  }, [])
+
+  function onBusquedaChange(e) {
+    const q = e.target.value
+    setBusqueda(q)
+    clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => buscar(q), 300)
+  }
+
+  function seleccionarCliente(c) {
+    setBusqueda(`${c.nombre} — ${c.nit}`)
+    setSugerencias([])
+    onChange({
+      nombre: c.nombre,
+      nit:    c.nit,
+      email:  c.email || '',
+      tipo_doc_id: c.tipo_doc_id || 3,
+      direccion:   c.direccion || '',
+    })
+  }
+
+  function updateField(key, val) {
+    onChange({ ...(cliente || {}), [key]: val })
+  }
+
+  return (
+    <div className="cliente-panel">
+      {/* Toggle */}
+      <div className="cliente-toggle">
+        <button
+          className={`toggle-btn ${modo === 'final' ? 'toggle-btn--active' : ''}`}
+          onClick={setModoFinal}
+        >
+          Consumidor Final
+        </button>
+        <button
+          className={`toggle-btn ${modo === 'identificado' ? 'toggle-btn--active' : ''}`}
+          onClick={setModoIdentificado}
+        >
+          Identificar cliente
+        </button>
+      </div>
+
+      {modo === 'identificado' && (
+        <div className="cliente-form">
+          {/* Búsqueda */}
+          <div className="cliente-search-wrap">
+            <input
+              className="cliente-search-input"
+              placeholder="Buscar cliente por nombre o NIT…"
+              value={busqueda}
+              onChange={onBusquedaChange}
+            />
+            {buscando && <span className="cliente-search-spin" />}
+            {sugerencias.length > 0 && (
+              <div className="cliente-dropdown">
+                {sugerencias.map(c => (
+                  <button key={c.id} className="cliente-dropdown-item" onClick={() => seleccionarCliente(c)}>
+                    <span className="cdi-nombre">{c.nombre}</span>
+                    <span className="cdi-nit muted">{c.nit}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Campos manuales */}
+          <div className="cliente-fields">
+            <div className="cf-row">
+              <label>Tipo doc.
+                <select value={cliente?.tipo_doc_id || 3} onChange={e => updateField('tipo_doc_id', parseInt(e.target.value))}>
+                  {TIPOS_DOC.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+                </select>
+              </label>
+              <label>NIT / Identificación *
+                <input
+                  placeholder="123456789"
+                  value={cliente?.nit || ''}
+                  onChange={e => updateField('nit', e.target.value)}
+                />
+              </label>
+            </div>
+            <label>Nombre / Razón social *
+              <input
+                placeholder="Empresa S.A.S."
+                value={cliente?.nombre || ''}
+                onChange={e => updateField('nombre', e.target.value)}
+              />
+            </label>
+            <label>Email (para envío PDF)
+              <input
+                type="email"
+                placeholder="correo@empresa.com"
+                value={cliente?.email || ''}
+                onChange={e => updateField('email', e.target.value)}
+              />
+            </label>
+            <label>Dirección
+              <input
+                placeholder="Calle 123 # 45-67"
+                value={cliente?.direccion || ''}
+                onChange={e => updateField('direccion', e.target.value)}
+              />
+            </label>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── Página principal POS ─────────────────────────────────── */
 export default function POS() {
   const [products, setProducts] = useState([])
   const [search, setSearch] = useState('')
   const [cart, setCart] = useState([])
   const [loading, setLoading] = useState(true)
   const [emitting, setEmitting] = useState(false)
-  const [result, setResult] = useState(null)  // { ok, data, error }
+  const [result, setResult] = useState(null)
   const [cajero, setCajero] = useState('Cajero 1')
+  const [medioPago, setMedioPago] = useState(10)
+  const [cliente, setCliente] = useState(null)   // null = Consumidor Final
+  const [tipoDoc, setTipoDoc] = useState('POS')  // 'POS' | 'FE'
   const searchRef = useRef()
 
   useEffect(() => {
@@ -93,23 +252,53 @@ export default function POS() {
 
   const subtotal = cart.reduce((s, i) => s + i.precio * i.qty, 0)
   const iva = cart.reduce((s, i) => {
-    const ivaRate = (i.iva_porcentaje || 0) / 100
-    return s + i.precio * i.qty * ivaRate
+    return s + i.precio * i.qty * ((i.iva_porcentaje || 0) / 100)
   }, 0)
   const total = subtotal + iva
 
-  async function emitirPOS() {
+  const items = cart.map(i => ({
+    product_id:    i.id,
+    codigo:        i.codigo,
+    descripcion:   i.nombre,
+    cantidad:      i.qty,
+    precio:        i.precio,
+    iva_porcentaje: i.iva_porcentaje || 0,
+  }))
+
+  async function emitir() {
     if (cart.length === 0) return
     setEmitting(true)
     setResult(null)
     try {
-      const items = cart.map(i => ({
-        product_id: i.id,
-        quantity: i.qty,
-        price: i.precio,
-      }))
-      const { data } = await invoicesApi.emitirPOS({ items, cajero })
-      setResult({ ok: true, data })
+      let resp
+      if (tipoDoc === 'FE') {
+        if (!cliente?.nit || !cliente?.nombre) {
+          setResult({ ok: false, error: 'Para Factura FE debes identificar al cliente (NIT y nombre requeridos).' })
+          setEmitting(false)
+          return
+        }
+        const { data } = await invoicesApi.emitirFE({
+          items,
+          cliente,
+          medio_pago_id: medioPago,
+        })
+        resp = data
+      } else {
+        const { data } = await invoicesApi.emitirPOS({
+          items,
+          cajero_nombre: cajero,
+          terminal_numero: 'CJ001',
+          medio_pago_id:   medioPago,
+          cliente: cliente ? {
+            nombre:      cliente.nombre,
+            nit:         cliente.nit,
+            email:       cliente.email,
+            tipo_doc_id: cliente.tipo_doc_id,
+          } : null,
+        })
+        resp = data
+      }
+      setResult({ ok: true, data: resp })
       setCart([])
     } catch (err) {
       setResult({ ok: false, error: err.response?.data?.error || 'Error al emitir documento' })
@@ -120,7 +309,7 @@ export default function POS() {
 
   return (
     <div className="pos-layout">
-      {/* Products panel */}
+      {/* ── Panel de productos ── */}
       <div className="pos-products">
         <div className="pos-search-bar">
           <div className="search-wrap">
@@ -149,9 +338,6 @@ export default function POS() {
           <div className="products-empty"><div className="spinner" /></div>
         ) : filtered.length === 0 ? (
           <div className="products-empty">
-            <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.2" style={{ color: 'var(--text-tertiary)' }}>
-              <path d="M20 7l-8-4-8 4m16 0v10l-8 4m-8-4V7m16 0L12 11M4 7l8 4" />
-            </svg>
             <p className="muted t-sm">Sin productos {search ? 'con ese criterio' : 'registrados'}</p>
           </div>
         ) : (
@@ -161,7 +347,7 @@ export default function POS() {
         )}
       </div>
 
-      {/* Cart panel */}
+      {/* ── Panel de carrito ── */}
       <div className="pos-cart">
         <div className="cart-header">
           <h3 className="cart-title">Carrito</h3>
@@ -170,24 +356,56 @@ export default function POS() {
           )}
         </div>
 
-        {/* Cajero */}
-        <div className="cajero-wrap">
-          <label className="cajero-label caps muted">Cajero</label>
-          <input
-            className="cajero-input"
-            value={cajero}
-            onChange={e => setCajero(e.target.value)}
-            placeholder="Nombre cajero"
-          />
+        {/* Tipo de documento */}
+        <div className="tipodoc-toggle">
+          <button
+            className={`tipodoc-btn ${tipoDoc === 'POS' ? 'tipodoc-btn--active' : ''}`}
+            onClick={() => setTipoDoc('POS')}
+          >
+            Documento POS
+          </button>
+          <button
+            className={`tipodoc-btn ${tipoDoc === 'FE' ? 'tipodoc-btn--active' : ''}`}
+            onClick={() => setTipoDoc('FE')}
+          >
+            Factura Electrónica
+          </button>
         </div>
+
+        {/* Cajero (solo POS) */}
+        {tipoDoc === 'POS' && (
+          <div className="cajero-wrap">
+            <label className="cajero-label caps muted">Cajero</label>
+            <input
+              className="cajero-input"
+              value={cajero}
+              onChange={e => setCajero(e.target.value)}
+              placeholder="Nombre cajero"
+            />
+          </div>
+        )}
+
+        {/* Medio de pago */}
+        <div className="cajero-wrap">
+          <label className="cajero-label caps muted">Medio de pago</label>
+          <select
+            className="cajero-input"
+            value={medioPago}
+            onChange={e => setMedioPago(parseInt(e.target.value))}
+          >
+            {MEDIOS_PAGO.map(m => (
+              <option key={m.id} value={m.id}>{m.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Panel de cliente */}
+        <ClientePanel cliente={cliente} onChange={setCliente} />
 
         {/* Items */}
         <div className="cart-items">
           {cart.length === 0 ? (
             <div className="cart-empty">
-              <svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.2" style={{ color: 'var(--text-tertiary)' }}>
-                <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
               <p className="muted t-sm">Agrega productos al carrito</p>
             </div>
           ) : (
@@ -197,7 +415,7 @@ export default function POS() {
           )}
         </div>
 
-        {/* Totals */}
+        {/* Totales */}
         <div className="cart-totals">
           <div className="total-row">
             <span className="muted t-sm">Subtotal</span>
@@ -214,7 +432,7 @@ export default function POS() {
           </div>
         </div>
 
-        {/* Result feedback */}
+        {/* Resultado */}
         {result && (
           <div className={`pos-result ${result.ok ? 'pos-result--ok' : 'pos-result--err'}`}>
             {result.ok ? (
@@ -224,9 +442,16 @@ export default function POS() {
                 </svg>
                 <div>
                   <p className="result-title">¡Documento emitido!</p>
-                  <p className="t-xs" style={{ opacity: 0.8 }}>N° {result.data?.factura?.numero_documento} — {result.data?.factura?.estado}</p>
-                  {result.data?.factura?.pdf_url && (
-                    <a href={result.data.factura.pdf_url} target="_blank" rel="noreferrer" className="result-link">
+                  <p className="t-xs" style={{ opacity: 0.8 }}>
+                    N° {result.data?.factura?.numero_documento ?? result.data?.numero_documento}
+                    {' — '}
+                    {result.data?.factura?.estado ?? result.data?.estado ?? 'OK'}
+                  </p>
+                  {result.data?.mensaje && (
+                    <p className="t-xs result-warning">{result.data.mensaje}</p>
+                  )}
+                  {result.data?.pdf_url && (
+                    <a href={result.data.pdf_url} target="_blank" rel="noreferrer" className="result-link">
                       Ver PDF
                     </a>
                   )}
@@ -252,9 +477,9 @@ export default function POS() {
           fullWidth
           loading={emitting}
           disabled={cart.length === 0}
-          onClick={emitirPOS}
+          onClick={emitir}
         >
-          Emitir documento POS
+          {tipoDoc === 'FE' ? '📄 Emitir Factura FE' : '🧾 Emitir Documento POS'}
         </Button>
       </div>
     </div>

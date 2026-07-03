@@ -10,7 +10,7 @@ const resumen = async (req, res) => {
       .from('facturas')
       .select('total, iva, subtotal, tipo')
       .eq('empresa_id', empresa_id)
-      .eq('estado', 'APROBADA')
+      .in('estado', ['APROBADA', 'EMITIDA_LOCAL'])
 
     if (desde) q = q.gte('created_at', `${desde}T00:00:00`)
     if (hasta) q = q.lte('created_at', `${hasta}T23:59:59`)
@@ -37,7 +37,7 @@ const resumen = async (req, res) => {
         .from('facturas')
         .select('total')
         .eq('empresa_id', empresa_id)
-        .eq('estado', 'APROBADA')
+        .in('estado', ['APROBADA', 'EMITIDA_LOCAL'])
         .gte('created_at', prevDesde.toISOString().split('T')[0] + 'T00:00:00')
         .lte('created_at', prevHasta.toISOString().split('T')[0] + 'T23:59:59')
 
@@ -281,4 +281,109 @@ ${JSON.stringify(contexto, null, 2)}`
   }
 }
 
-module.exports = { resumen, tendencia, topClientes, topProductos, aiAnalisis }
+// POST /api/stats/reporte-ia  { periodo, resumen, gastos, tendencia, clientes, productos }
+const reporteIA = async (req, res) => {
+  try {
+    const { periodo, resumen: ven, gastos, tendencia, clientes, productos } = req.body
+
+    const apiKey = process.env.OPENROUTER_API_KEY
+    if (!apiKey) return res.status(500).json({ error: 'OPENROUTER_API_KEY no configurada' })
+
+    const utilidad_bruta = (ven?.total_ventas || 0) - (gastos?.total_gastos || 0)
+    const margen_pct = ven?.total_ventas > 0
+      ? ((utilidad_bruta / ven.total_ventas) * 100).toFixed(1)
+      : 0
+
+    const system = `Eres un analista financiero senior colombiano. Redacta un REPORTE FINANCIERO EJECUTIVO formal y completo para el período ${periodo?.desde} al ${periodo?.hasta}. Responde en español.
+
+ESTRUCTURA OBLIGATORIA DEL REPORTE:
+
+# REPORTE FINANCIERO — ${periodo?.desde} al ${periodo?.hasta}
+
+## 1. RESUMEN EJECUTIVO
+[Párrafo de 3-4 oraciones resumiendo el desempeño financiero del período. Incluye cifras principales.]
+
+---
+
+## 2. INGRESOS
+[Análisis de ventas: total, composición POS vs FE, ticket promedio, comparación período anterior. Tabla si aplica.]
+
+---
+
+## 3. GASTOS
+[Análisis de egresos por categoría, total IVA pagado, principales proveedores.]
+
+---
+
+## 4. RESULTADO OPERACIONAL
+| Concepto | Valor |
+|---|---|
+| Ingresos totales | $X |
+| Gastos totales | $X |
+| Utilidad bruta | $X |
+| Margen de utilidad | X% |
+
+---
+
+## 5. INDICADORES CLAVE
+[KPIs más relevantes: crecimiento, eficiencia, alertas]
+
+---
+
+## 6. CLIENTES Y PRODUCTOS DESTACADOS
+[Top 3 clientes y top 3 productos del período]
+
+---
+
+## 7. RECOMENDACIONES
+1. [Acción específica con cifra]
+2. [Acción específica]
+3. [Acción específica]
+
+---
+> *Reporte generado por AppDian. Consulte con su contador para decisiones fiscales.*
+
+REGLAS:
+- Cifras en COP: $1.234.567
+- Máximo 600 palabras
+- Tono formal y profesional
+- Todos los valores numéricos en **negrita**
+
+DATOS FINANCIEROS:
+${JSON.stringify({ periodo, ingresos: ven, gastos, utilidad_bruta, margen_pct, tendencia, top_clientes: clientes, top_productos: productos }, null, 2)}`
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://appdian.app',
+        'X-Title': 'AppDian Reporte Financiero',
+      },
+      body: JSON.stringify({
+        model: 'nvidia/nemotron-3-ultra-550b-a55b:free',
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user',   content: 'Genera el reporte financiero ejecutivo completo.' },
+        ],
+        temperature: 0.4,
+        max_tokens: 1500,
+      }),
+    })
+
+    if (!response.ok) {
+      const txt = await response.text()
+      return res.status(response.status).json({ error: txt })
+    }
+
+    const json = await response.json()
+    const reporte = json.choices?.[0]?.message?.content
+    if (!reporte) return res.status(503).json({ error: 'El modelo no generó respuesta. Intenta de nuevo.' })
+
+    res.json({ reporte })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+module.exports = { resumen, tendencia, topClientes, topProductos, aiAnalisis, reporteIA }
