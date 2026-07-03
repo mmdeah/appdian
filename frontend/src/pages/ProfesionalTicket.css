@@ -1,0 +1,142 @@
+.pro-ticket-page { max-width: 1100px; }
+
+.pro-ticket-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+/* Hero */
+.ticket-hero {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+.ticket-tipo-tag {
+  display: inline-block;
+  font-size: .72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--accent);
+  background: rgba(99,102,241,.1);
+  padding: .2rem .6rem; border-radius: 20px;
+  margin-bottom: .6rem;
+}
+.ticket-hero h1 { margin: 0 0 .5rem; font-size: 1.35rem; font-weight: 700; line-height: 1.3; }
+.ticket-meta-line { display: flex; align-items: center; gap: .5rem; margin: 0; flex-wrap: wrap; font-size: .88rem; }
+
+/* Descripción */
+.ticket-descripcion {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.section-label {
+  font-size: .73rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted); margin: 0 0 .6rem;
+}
+
+/* Mensajes */
+.mensajes-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+.mensajes-hilo { display: flex; flex-direction: column; gap: .7rem; margin-bottom: 1rem; }
+
+.hilo-msg {
+  padding: .85rem 1rem;
+  border-radius: 10px;
+  max-width: 88%;
+}
+.msg-pro { background: var(--accent); color: #fff; align-self: flex-end; }
+.msg-emp { background: var(--bg); border: 1px solid var(--border); align-self: flex-start; }
+.msg-interno { background: #fefce8 !important; border: 1px dashed #ca8a04 !important; color: #713f12 !important; align-self: center !important; width: 100% !important; max-width: 100% !important; }
+
+.interno-tag {
+  display: block;
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: #92400e; margin-bottom: .3rem;
+}
+.hilo-header { display: flex; justify-content: space-between; gap: .5rem; margin-bottom: .35rem; }
+.hilo-autor { font-size: .78rem; font-weight: 700; }
+.hilo-fecha { font-size: .72rem; opacity: .7; }
+.hilo-body { margin: 0; font-size: .9rem; line-height: 1.5; }
+
+/* Reply */
+.reply-form { display: flex; flex-direction: column; gap: .6rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+.reply-form textarea {
+  padding: .65rem .85rem;
+  border: 1px solid var(--border); border-radius: 8px;
+  font-size: .92rem; background: var(--bg); color: var(--text);
+  resize: vertical; font-family: inherit;
+}
+.reply-form textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,102,241,.12); }
+.internal-input { border-color: #ca8a04 !important; background: #fefce8 !important; }
+.reply-footer { display: flex; align-items: center; justify-content: space-between; }
+.interno-toggle { display: flex; align-items: center; gap: .4rem; font-size: .85rem; cursor: pointer; color: var(--muted); }
+.interno-toggle input { cursor: pointer; }
+
+/* Sidebar cards */
+.sidebar-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.1rem;
+  margin-bottom: .85rem;
+}
+
+.estado-btns { display: flex; flex-direction: column; gap: .4rem; }
+.estado-btn {
+  padding: .5rem .85rem; border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg); color: var(--text);
+  font-size: .85rem; cursor: pointer; text-align: left;
+  transition: background .15s, border-color .15s;
+}
+.estado-btn:hover { background: rgba(99,102,241,.08); border-color: var(--accent); }
+.estado-active { background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
+
+.asignar-select {
+  width: 100%; padding: .5rem .75rem;
+  border: 1px solid var(--border); border-radius: 8px;
+  font-size: .88rem; background: var(--bg); color: var(--text);
+}
+
+.empresa-card .empresa-nombre-big { font-size: 1rem; font-weight: 700; margin: 0 0 .3rem; }
+.empresa-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: .5rem; margin-top: .85rem;
+  background: var(--bg); border-radius: 8px; padding: .65rem;
+}
+.estad-item { text-align: center; }
+.estad-val { display: block; font-size: .8rem; font-weight: 700; color: var(--accent); }
+.estad-lab { font-size: .65rem; color: var(--muted); }
+
+.facturas-recientes { border-top: 1px solid var(--border); padding-top: .6rem; margin-top: .6rem; }
+.fac-row { display: flex; justify-content: space-between; align-items: center; padding: .3rem 0; border-bottom: 1px solid var(--border); }
+.fac-row:last-child { border-bottom: none; }
+
+/* Shared */
+.btn-back {
+  background: none; border: none; cursor: pointer;
+  color: var(--accent); font-size: .9rem; font-weight: 600;
+  padding: 0; margin-bottom: 1.25rem; display: inline-flex; align-items: center; gap: .3rem;
+}
+.btn-back:hover { text-decoration: underline; }
+.page-loading { display: flex; align-items: center; justify-content: center; height: 60vh; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
+.font-semibold { font-weight: 600; }
+
+@media (max-width: 800px) {
+  .pro-ticket-layout { grid-template-columns: 1fr; }
+  .pro-ticket-sidebar { order: -1; }
+}

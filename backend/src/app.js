@@ -13,13 +13,15 @@ app.use(express.json())
 app.use(morgan('dev'))
 
 // ── API routes ───────────────────────────────────────────────────────────────
-app.use('/api/auth',      require('./routes/auth'))
-app.use('/api/products',  require('./routes/products'))
-app.use('/api/customers', require('./routes/customers'))
-app.use('/api/invoices',  require('./routes/invoices'))
-app.use('/api/stats',     require('./routes/stats'))
+app.use('/api/auth',        require('./routes/auth'))
+app.use('/api/products',    require('./routes/products'))
+app.use('/api/customers',   require('./routes/customers'))
+app.use('/api/invoices',    require('./routes/invoices'))
+app.use('/api/stats',       require('./routes/stats'))
+app.use('/api/tickets',     require('./routes/tickets'))
+app.use('/api/profesional', require('./routes/profesional'))
 
-app.get('/health', (_, res) => res.json({ ok: true, v: 6 }))
+app.get('/health', (_, res) => res.json({ ok: true, v: 7 }))
 
 // ── Serve React frontend ─────────────────────────────────────────────────────
 // __dirname = /app/src  →  ../public = /app/public

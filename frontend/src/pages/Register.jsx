@@ -51,7 +51,7 @@ export default function Register() {
       })
       // Store token and redirect
       localStorage.setItem('appdian_token', data.token)
-      localStorage.setItem('appdian_empresa', JSON.stringify(data.empresa))
+      localStorage.setItem('appdian_user', JSON.stringify({ ...data.empresa, rol: 'EMPRESA' }))
       navigate('/dashboard')
     } catch (err) {
       setError(err.response?.data?.error || 'Error al crear la cuenta')

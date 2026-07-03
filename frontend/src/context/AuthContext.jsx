@@ -5,8 +5,11 @@ import { supabase } from '../api/supabase'
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [empresa, setEmpresa] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('appdian_empresa')) } catch { return null }
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('appdian_user')
+      return stored ? JSON.parse(stored) : null
+    } catch { return null }
   })
   const [loading, setLoading] = useState(true)
 
@@ -15,20 +18,29 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('appdian_token')
     if (!token) { setLoading(false); return }
     authApi.me()
-      .then(({ data }) => setEmpresa(data.empresa))
+      .then(({ data }) => {
+        const userData = data.rol === 'PROFESIONAL'
+          ? { ...data.profesional, rol: 'PROFESIONAL' }
+          : { ...data.empresa, rol: 'EMPRESA' }
+        setUser(userData)
+        localStorage.setItem('appdian_user', JSON.stringify(userData))
+      })
       .catch(() => {
         localStorage.removeItem('appdian_token')
-        localStorage.removeItem('appdian_empresa')
+        localStorage.removeItem('appdian_user')
       })
       .finally(() => setLoading(false))
   }, [])
 
-  // Email/password login
+  // Email/password login — works for both empresas and profesionales
   const login = useCallback(async (email, password) => {
     const { data } = await authApi.login(email, password)
     localStorage.setItem('appdian_token', data.token)
-    localStorage.setItem('appdian_empresa', JSON.stringify(data.empresa))
-    setEmpresa(data.empresa)
+    const userData = data.rol === 'PROFESIONAL'
+      ? { ...data.profesional, rol: 'PROFESIONAL' }
+      : { ...data.empresa, rol: 'EMPRESA' }
+    localStorage.setItem('appdian_user', JSON.stringify(userData))
+    setUser(userData)
     return data
   }, [])
 
@@ -36,8 +48,9 @@ export function AuthProvider({ children }) {
   const loginWithToken = useCallback(async (supabaseAccessToken) => {
     const { data } = await authApi.googleAuth(supabaseAccessToken)
     localStorage.setItem('appdian_token', data.token)
-    localStorage.setItem('appdian_empresa', JSON.stringify(data.empresa))
-    setEmpresa(data.empresa)
+    const userData = { ...data.empresa, rol: 'EMPRESA' }
+    localStorage.setItem('appdian_user', JSON.stringify(userData))
+    setUser(userData)
     return data
   }, [])
 
@@ -54,12 +67,21 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     await supabase.auth.signOut().catch(() => {})
     localStorage.removeItem('appdian_token')
-    localStorage.removeItem('appdian_empresa')
-    setEmpresa(null)
+    localStorage.removeItem('appdian_user')
+    setUser(null)
   }, [])
 
+  // Helpers derivados
+  const empresa     = user?.rol === 'EMPRESA'      ? user : null
+  const profesional = user?.rol === 'PROFESIONAL'  ? user : null
+  const rol         = user?.rol || null
+  const isAuth      = !!user
+
   return (
-    <AuthContext.Provider value={{ empresa, login, loginWithToken, loginWithGoogle, logout, loading, isAuth: !!empresa }}>
+    <AuthContext.Provider value={{
+      user, empresa, profesional, rol, isAuth, loading,
+      login, loginWithToken, loginWithGoogle, logout,
+    }}>
       {children}
     </AuthContext.Provider>
   )

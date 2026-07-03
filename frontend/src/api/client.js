@@ -21,7 +21,7 @@ api.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem('appdian_token')
-      localStorage.removeItem('appdian_empresa')
+      localStorage.removeItem('appdian_user')
       window.location.href = '/login'
     }
     return Promise.reject(err)
@@ -71,4 +71,23 @@ export const invoicesApi = {
   get: (id) => api.get(`/invoices/${id}`),
   emitirPOS: (data) => api.post('/invoices/pos', data),
   emitirFE: (data) => api.post('/invoices', data),
+}
+
+// ---- Tickets (empresa) ----
+export const ticketsApi = {
+  crear: (data)             => api.post('/tickets', data),
+  listar: ()                => api.get('/tickets'),
+  obtener: (id)             => api.get(`/tickets/${id}`),
+  responder: (id, contenido) => api.post(`/tickets/${id}/mensajes`, { contenido }),
+}
+
+// ---- Panel profesional ----
+export const profesionalApi = {
+  listarTickets: (params)        => api.get('/profesional/tickets', { params }),
+  obtenerTicket: (id)            => api.get(`/profesional/tickets/${id}`),
+  actualizarTicket: (id, data)   => api.patch(`/profesional/tickets/${id}`, data),
+  responder: (id, contenido, es_interno = false) =>
+    api.post(`/profesional/tickets/${id}/mensajes`, { contenido, es_interno }),
+  resumenEmpresa: (empresa_id)   => api.get(`/profesional/empresa/${empresa_id}/resumen`),
+  listarProfesionales: ()        => api.get('/profesional/profesionales'),
 }

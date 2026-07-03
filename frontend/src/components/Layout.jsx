@@ -9,6 +9,7 @@ const TITLES = {
   '/productos':    'Productos',
   '/clientes':     'Clientes',
   '/estadisticas': 'Estadísticas & Contabilidad',
+  '/consultas':    'Mis Consultas',
 }
 
 export default function Layout() {
