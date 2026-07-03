@@ -58,6 +58,91 @@ function CartItem({ item, onQty, onRemove }) {
   )
 }
 
+/* ── CajeroSelector ───────────────────────────────────────── */
+const CAJEROS_KEY = 'appdian_cajeros'
+
+function loadCajeros() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(CAJEROS_KEY))
+    return Array.isArray(stored) && stored.length > 0 ? stored : ['Cajero 1']
+  } catch { return ['Cajero 1'] }
+}
+
+function saveCajeros(lista) {
+  localStorage.setItem(CAJEROS_KEY, JSON.stringify(lista))
+}
+
+function CajeroSelector({ cajero, onChange }) {
+  const [cajeros, setCajeros] = useState(loadCajeros)
+  const [modal, setModal]     = useState(false)
+  const [nuevo, setNuevo]     = useState('')
+
+  function agregar() {
+    const nombre = nuevo.trim()
+    if (!nombre || cajeros.includes(nombre)) return
+    const next = [...cajeros, nombre]
+    setCajeros(next); saveCajeros(next)
+    onChange(nombre)
+    setNuevo('')
+  }
+
+  function eliminar(c) {
+    if (cajeros.length <= 1) return
+    const next = cajeros.filter(x => x !== c)
+    setCajeros(next); saveCajeros(next)
+    if (cajero === c) onChange(next[0])
+  }
+
+  return (
+    <>
+      <div className="cajero-selector">
+        <span className="cajero-selector-label caps muted">Cajero</span>
+        <div className="cajero-selector-row">
+          <select
+            className="cajero-select"
+            value={cajero}
+            onChange={e => onChange(e.target.value)}
+          >
+            {cajeros.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <button className="cajero-manage-btn" onClick={() => setModal(true)} title="Gestionar cajeros">
+            ⚙️
+          </button>
+        </div>
+      </div>
+
+      {modal && (
+        <div className="cajero-modal-overlay" onClick={() => setModal(false)}>
+          <div className="cajero-modal" onClick={e => e.stopPropagation()}>
+            <h4>Gestionar cajeros</h4>
+            <div className="cajero-list">
+              {cajeros.map(c => (
+                <div key={c} className="cajero-list-item">
+                  <span>{c}</span>
+                  {cajeros.length > 1 && (
+                    <button className="cajero-del-btn" onClick={() => eliminar(c)} title="Eliminar">×</button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="cajero-new-row">
+              <input
+                className="cajero-new-input"
+                placeholder="Nombre del cajero…"
+                value={nuevo}
+                onChange={e => setNuevo(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && agregar()}
+              />
+              <button className="cajero-new-save" onClick={agregar}>Agregar</button>
+            </div>
+            <button className="cajero-modal-close" onClick={() => setModal(false)}>Cerrar</button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 /* ── ClientePanel ─────────────────────────────────────────── */
 function ClientePanel({ cliente, onChange }) {
   const [modo, setModo] = useState('final')       // 'final' | 'identificado'
@@ -374,15 +459,7 @@ export default function POS() {
 
         {/* Cajero (solo POS) */}
         {tipoDoc === 'POS' && (
-          <div className="cajero-wrap">
-            <label className="cajero-label caps muted">Cajero</label>
-            <input
-              className="cajero-input"
-              value={cajero}
-              onChange={e => setCajero(e.target.value)}
-              placeholder="Nombre cajero"
-            />
-          </div>
+          <CajeroSelector cajero={cajero} onChange={setCajero} />
         )}
 
         {/* Medio de pago */}
