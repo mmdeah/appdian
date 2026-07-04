@@ -6,6 +6,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts'
+import AiAssistant from '../components/AiAssistant'
 import './Stats.css'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -28,59 +29,6 @@ function fmtK(v) {
   return `$${v}`
 }
 
-// ── Markdown renderer ─────────────────────────────────────────────────────────
-function renderInline(str) {
-  return str.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g).map((p,i) => {
-    if (p.startsWith('**') && p.endsWith('**')) return <strong key={i}>{p.slice(2,-2)}</strong>
-    if (p.startsWith('*')  && p.endsWith('*'))  return <em key={i}>{p.slice(1,-1)}</em>
-    if (p.startsWith('`')  && p.endsWith('`'))  return <code key={i} className="md-code">{p.slice(1,-1)}</code>
-    return p
-  })
-}
-
-function MarkdownRenderer({ text }) {
-  const lines = text.split('\n')
-  const out = []; let i = 0
-  while (i < lines.length) {
-    const line = lines[i].trim()
-    if (!line) { i++; continue }
-    if (line.startsWith('### '))      { out.push(<h3 key={i} className="md-h3">{renderInline(line.slice(4))}</h3>); i++ }
-    else if (line.startsWith('## ')) { out.push(<h2 key={i} className="md-h2">{renderInline(line.slice(3))}</h2>); i++ }
-    else if (line.startsWith('# '))  { out.push(<h1 key={i} className="md-h1">{renderInline(line.slice(2))}</h1>); i++ }
-    else if (/^[-*_]{3,}$/.test(line)) { out.push(<hr key={i} className="md-hr" />); i++ }
-    else if (line.startsWith('|')) {
-      const rows = []
-      while (i < lines.length && lines[i].trim().startsWith('|')) { rows.push(lines[i].trim()); i++ }
-      const data = rows.filter(r => !/^\|[\s|:-]+\|$/.test(r))
-      if (data.length > 0) {
-        const parse = r => r.split('|').slice(1,-1).map(c=>c.trim())
-        const [head,...body] = data
-        out.push(
-          <div key={`t${i}`} className="md-table-wrap">
-            <table className="md-table">
-              <thead><tr>{parse(head).map((c,j)=><th key={j}>{renderInline(c)}</th>)}</tr></thead>
-              <tbody>{body.map((row,ri)=><tr key={ri}>{parse(row).map((c,ci)=><td key={ci}>{renderInline(c)}</td>)}</tr>)}</tbody>
-            </table>
-          </div>
-        )
-      }
-    } else if (/^\d+\.\s/.test(line)) {
-      const items = []
-      while (i<lines.length && /^\d+\.\s/.test(lines[i].trim())) { items.push(lines[i].trim().replace(/^\d+\.\s/,'')); i++ }
-      out.push(<ol key={`ol${i}`} className="md-ol">{items.map((it,j)=><li key={j}>{renderInline(it)}</li>)}</ol>)
-    } else if (line.startsWith('- ')||line.startsWith('* ')) {
-      const items = []
-      while (i<lines.length && (lines[i].trim().startsWith('- ')||lines[i].trim().startsWith('* '))) { items.push(lines[i].trim().slice(2)); i++ }
-      out.push(<ul key={`ul${i}`} className="md-ul">{items.map((it,j)=><li key={j}>{renderInline(it)}</li>)}</ul>)
-    } else if (line.startsWith('> ')) {
-      out.push(<blockquote key={i} className="md-blockquote">{renderInline(line.slice(2))}</blockquote>); i++
-    } else {
-      out.push(<p key={i} className="md-p">{renderInline(line)}</p>); i++
-    }
-  }
-  return <>{out}</>
-}
-
 // ── KPI Card ──────────────────────────────────────────────────────────────────
 function KpiCard({ label, value, sub, variacion, color }) {
   const sube = variacion > 0
@@ -94,66 +42,6 @@ function KpiCard({ label, value, sub, variacion, color }) {
         </span>
       )}
       {sub && <p className="kpi-sub">{sub}</p>}
-    </div>
-  )
-}
-
-// ── AI Bot (shared component) ─────────────────────────────────────────────────
-function AiBot({ tipo, sugerencias, onEnviar, analizando, respuesta, error }) {
-  const [texto, setTexto] = useState('')
-  const esDatos = tipo === 'datos'
-
-  return (
-    <div className={`ai-body ${esDatos ? '' : 'ai-body--general'}`}>
-      <p className="ai-section-label">Preguntas frecuentes</p>
-      <div className="ai-chips">
-        {sugerencias.map(s => (
-          <button key={s.texto} className={`ai-chip ${esDatos ? '' : 'ai-chip--general'}`} onClick={() => setTexto(s.texto)}>
-            <span className="ai-chip-emoji">{s.emoji}</span>{s.texto}
-          </button>
-        ))}
-      </div>
-      <div className="ai-input-wrap">
-        <textarea
-          className="ai-input"
-          placeholder={esDatos ? 'Consulta sobre tus datos financieros del período...' : 'Pregunta sobre contabilidad, IVA, DIAN, nómina...'}
-          value={texto}
-          onChange={e => setTexto(e.target.value)}
-          rows={3}
-          onKeyDown={e => { if (e.key==='Enter' && (e.ctrlKey||e.metaKey) && texto.trim()) { onEnviar(texto); setTexto('') } }}
-        />
-        <div className="ai-input-footer">
-          <span className="ai-hint">Ctrl+Enter para enviar</span>
-          <button
-            className={`ai-send-btn ${esDatos ? '' : 'ai-send-btn--general'}`}
-            onClick={() => { if (texto.trim()) { onEnviar(texto); setTexto('') } }}
-            disabled={analizando || !texto.trim()}
-          >
-            {analizando ? <><span className="ai-spinner" /> Analizando…</> : <>Enviar <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft:6 }}><path d="M5 12h14M12 5l7 7-7 7"/></svg></>}
-          </button>
-        </div>
-      </div>
-
-      {error && (
-        <div className="ai-error-banner">
-          <span>⚠️</span> {error}
-          <button className="ai-retry" onClick={() => onEnviar(texto)}>Reintentar</button>
-        </div>
-      )}
-
-      {respuesta && (
-        <div className={`ai-response-card ${esDatos ? '' : 'ai-response-card--general'}`}>
-          <div className="ai-response-header">
-            <div className="ai-response-badge">
-              <span className={`ai-response-dot ${esDatos ? '' : 'ai-response-dot--general'}`} />
-              {esDatos ? 'Análisis de tus datos' : 'Respuesta del consultor'}
-            </div>
-          </div>
-          <div className="ai-response-body">
-            <MarkdownRenderer text={respuesta} />
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -195,18 +83,6 @@ export default function Stats() {
   const [porCobrar,  setPorCobrar]  = useState([])
   const [loading,    setLoading]    = useState(true)
   const [error,      setError]      = useState(null)
-
-  // IA — datos
-  const [analizandoDatos, setAnalizandoDatos] = useState(false)
-  const [respDatos,       setRespDatos]       = useState(null)
-  const [errDatos,        setErrDatos]        = useState(null)
-
-  // IA — general
-  const [analizandoGen, setAnalizandoGen] = useState(false)
-  const [respGen,       setRespGen]       = useState(null)
-  const [errGen,        setErrGen]        = useState(null)
-
-  const [tabIA, setTabIA] = useState('datos') // 'datos' | 'general'
 
   function aplicarPreset(idx) {
     setPresetIdx(idx)
@@ -259,47 +135,6 @@ export default function Stats() {
   }, [desde, hasta, agrup])
 
   useEffect(() => { cargar() }, [cargar])
-
-  async function handleDatos(pregunta) {
-    setAnalizandoDatos(true); setRespDatos(null); setErrDatos(null)
-    try {
-      const totalCaja = cajaCierres.reduce((s,c) => s + (c.total_ventas||0), 0)
-      const efectivoCaja = cajaCierres.reduce((s,c) => s + (c.efectivo_contado||0), 0)
-      const ctx = {
-        periodo              : { desde, hasta },
-        resumen,
-        tendencia_ventas     : tendencia.slice(-10),
-        top_clientes         : clientes.slice(0,5),
-        top_productos        : productos.slice(0,5),
-        gastos,
-        inventario           : invResumen,
-        caja_diaria          : {
-          num_cierres        : cajaCierres.length,
-          total_ventas_caja  : totalCaja,
-          efectivo_contado   : efectivoCaja,
-          ultimo_cierre      : cajaCierres[0] || null,
-        },
-        cuentas_por_cobrar   : {
-          num_facturas       : porCobrar.length,
-          total_pendiente    : porCobrar.reduce((s,f)=>s+(f.total||0),0),
-        },
-      }
-      const { data } = await statsApi.ai({ pregunta, contexto: ctx })
-      setRespDatos(data.respuesta)
-    } catch (e) {
-      setErrDatos(e.response?.data?.error || 'Error al consultar el agente. Verifica OPENROUTER_API_KEY.')
-    } finally { setAnalizandoDatos(false) }
-  }
-
-  async function handleGeneral(pregunta) {
-    setAnalizandoGen(true); setRespGen(null); setErrGen(null)
-    try {
-      const { data } = await statsApi.chatGeneral({ pregunta })
-      setRespGen(data.respuesta)
-    } catch (e) {
-      setErrGen(e.response?.data?.error || 'Error al consultar el asistente.')
-    } finally { setAnalizandoGen(false) }
-  }
 
   function irAReporte() {
     navigate('/estadisticas/reporte', {
@@ -487,82 +322,31 @@ export default function Stats() {
           )}
 
           {/* ══════════════════════════════════════════════════
-              AGENTE IA — dos modos claramente diferenciados
+              AGENTE IA — componente compartido
           ══════════════════════════════════════════════════ */}
-          <div className="ai-shell">
-            {/* Tabs de modo */}
-            <div className="ai-mode-tabs">
-              <button
-                className={`ai-mode-tab ${tabIA==='datos' ? 'ai-mode-tab--active' : ''}`}
-                onClick={() => setTabIA('datos')}
-              >
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                  <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-                Analista de tus datos
-              </button>
-              <button
-                className={`ai-mode-tab ai-mode-tab--general ${tabIA==='general' ? 'ai-mode-tab--active-general' : ''}`}
-                onClick={() => setTabIA('general')}
-              >
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                  <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                </svg>
-                Consultor general
-              </button>
-            </div>
-
-            {/* Panel activo */}
-            {tabIA === 'datos' ? (
-              <>
-                <div className="ai-hero ai-hero--datos">
-                  <div className="ai-hero-glow"/>
-                  <div className="ai-hero-content">
-                    <div className="ai-avatar">
-                      <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6">
-                        <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 0 2h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1 0-2h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/>
-                        <circle cx="8.5" cy="14.5" r="1.5" fill="currentColor" stroke="none"/>
-                        <circle cx="15.5" cy="14.5" r="1.5" fill="currentColor" stroke="none"/>
-                      </svg>
-                    </div>
-                    <div className="ai-hero-text">
-                      <h2 className="ai-hero-title">Analista Contable IA</h2>
-                      <p className="ai-hero-sub">
-                        <span className="ai-badge-accede">🔒 Accede a tus datos reales</span>
-                        — ventas, gastos, caja, inventario y cartera del período seleccionado
-                      </p>
-                    </div>
-                    <div className="ai-model-badge"><span className="ai-model-dot"/>Nvidia Nemotron 550B</div>
-                  </div>
-                </div>
-                <AiBot tipo="datos" sugerencias={SUGERENCIAS_DATOS} onEnviar={handleDatos}
-                  analizando={analizandoDatos} respuesta={respDatos} error={errDatos} />
-              </>
-            ) : (
-              <>
-                <div className="ai-hero ai-hero--general">
-                  <div className="ai-hero-content">
-                    <div className="ai-avatar ai-avatar--general">
-                      <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6">
-                        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
-                        <path d="M12 8v4M12 16h.01"/>
-                      </svg>
-                    </div>
-                    <div className="ai-hero-text">
-                      <h2 className="ai-hero-title ai-hero-title--general">Consultor Contable General</h2>
-                      <p className="ai-hero-sub">
-                        <span className="ai-badge-sindata">📚 Sin acceso a tus datos</span>
-                        — responde sobre normativa, tributación, DIAN, NIIF y contabilidad colombiana
-                      </p>
-                    </div>
-                    <div className="ai-model-badge ai-model-badge--general"><span className="ai-model-dot ai-model-dot--general"/>Nvidia Nemotron 550B</div>
-                  </div>
-                </div>
-                <AiBot tipo="general" sugerencias={SUGERENCIAS_GENERAL} onEnviar={handleGeneral}
-                  analizando={analizandoGen} respuesta={respGen} error={errGen} />
-              </>
-            )}
-          </div>
+          <AiAssistant
+            contexto={{
+              periodo              : { desde, hasta },
+              resumen,
+              tendencia_ventas     : tendencia.slice(-10),
+              top_clientes         : clientes.slice(0,5),
+              top_productos        : productos.slice(0,5),
+              gastos,
+              inventario           : invResumen,
+              caja_diaria          : {
+                num_cierres        : cajaCierres.length,
+                total_ventas_caja  : cajaCierres.reduce((s,c) => s+(c.total_ventas||0), 0),
+                efectivo_contado   : cajaCierres.reduce((s,c) => s+(c.efectivo_contado||0), 0),
+                ultimo_cierre      : cajaCierres[0] || null,
+              },
+              cuentas_por_cobrar   : {
+                num_facturas       : porCobrar.length,
+                total_pendiente    : porCobrar.reduce((s,f)=>s+(f.total||0),0),
+              },
+            }}
+            sugerenciasD={SUGERENCIAS_DATOS}
+            sugerenciasG={SUGERENCIAS_GENERAL}
+          />
         </>
       )}
     </div>

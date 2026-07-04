@@ -248,12 +248,14 @@ FORMATO:
 ## [Emoji] [Título breve]
 [Respuesta clara y práctica en párrafos o listas]
 
-> 💼 *Siempre confirma con tu contador certificado para casos específicos.*
+OBLIGATORIO AL FINAL DE CADA RESPUESTA — incluye siempre este bloque exactamente:
+---
+> ⚠️ *Esta respuesta es orientación general y no constituye asesoría profesional. Consulta siempre con un **contador público certificado** o **asesor tributario** para decisiones específicas de tu empresa. La normativa colombiana cambia frecuentemente.*
 
 REGLAS:
 - Español colombiano, tono profesional pero accesible
 - Menciona el año fiscal si das tarifas o porcentajes (pueden cambiar)
-- Máximo 300 palabras
+- Máximo 320 palabras (sin contar el bloque de disclaimer final)
 - No inventes cifras — si no sabes algo con certeza, dilo`
 
     const respuesta = await callOpenRouter({ system, user: pregunta, temperature: 0.5 })

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { invoicesApi, vencimientosApi, statsApi } from '../api/client'
+import { invoicesApi, vencimientosApi } from '../api/client'
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
+import AiAssistant from '../components/AiAssistant'
 import './Dashboard.css'
 
 function StatCard({ label, value, sub, icon, color = 'accent' }) {
@@ -47,147 +48,19 @@ function VencimientoChip({ v }) {
   )
 }
 
-// ── Chips por modo ──────────────────────────────────────────────────────────
-const CHIPS_DATOS = [
-  '¿Cuánto vendí hoy?',
-  '¿Tengo facturas por cobrar?',
-  '¿Cómo van mis ventas este mes?',
+// ── Chips rápidos para el Dashboard ────────────────────────────────────────
+const DASH_SUGERENCIAS_D = [
+  { emoji:'💰', texto:'¿Cuánto vendí hoy?' },
+  { emoji:'📋', texto:'¿Tengo facturas por cobrar?' },
+  { emoji:'📈', texto:'¿Cómo van mis ventas este mes?' },
+  { emoji:'✅', texto:'¿Cuántas facturas aprobó la DIAN hoy?' },
 ]
-const CHIPS_GENERAL = [
-  '¿Cuándo vence el IVA?',
-  '¿Qué es retención en la fuente?',
-  '¿Cómo calculo la nómina?',
+const DASH_SUGERENCIAS_G = [
+  { emoji:'📅', texto:'¿Cuándo vence el IVA?' },
+  { emoji:'🔢', texto:'¿Qué es retención en la fuente?' },
+  { emoji:'👥', texto:'¿Cómo calculo la nómina?' },
+  { emoji:'🏛️', texto:'¿Qué obligaciones tiene una SAS en Colombia?' },
 ]
-
-// ── Mini Bot ────────────────────────────────────────────────────────────────
-function MiniBot({ dashData }) {
-  const navigate   = useNavigate()
-  const [tab,      setTab]      = useState('datos')   // 'datos' | 'general'
-  const [texto,    setTexto]    = useState('')
-  const [loading,  setLoading]  = useState(false)
-  const [resp,     setResp]     = useState(null)
-  const [tipoResp, setTipoResp] = useState('datos')
-
-  const esDatos = tab === 'datos'
-
-  async function enviar(preg) {
-    const q = preg || texto
-    if (!q.trim() || loading) return
-    setTexto('')
-    setLoading(true); setResp(null); setTipoResp(tab)
-    try {
-      if (esDatos) {
-        const hoy = new Date().toISOString().split('T')[0]
-        const ctx = {
-          periodo       : { desde: hoy, hasta: hoy },
-          ventas_hoy    : dashData?.total_ventas,
-          facturas_hoy  : dashData?.num_facturas,
-          ventas_mes    : dashData?.ventas_mes,
-          por_cobrar    : dashData?.por_cobrar,
-          aprobadas_hoy : dashData?.aprobadas,
-        }
-        const { data } = await statsApi.ai({ pregunta: q, contexto: ctx })
-        setResp(data.respuesta)
-      } else {
-        const { data } = await statsApi.chatGeneral({ pregunta: q })
-        setResp(data.respuesta)
-      }
-    } catch (e) {
-      setResp(`⚠️ ${e.response?.data?.error || 'Error al consultar. Verifica OPENROUTER_API_KEY.'}`)
-    } finally { setLoading(false) }
-  }
-
-  // Texto plano de la respuesta (sin markdown complejo)
-  const textoResp = resp
-    ? resp.replace(/#{1,3}\s/g,'').replace(/\*\*/g,'').replace(/\*/g,'').replace(/---/g,'').slice(0,600)
-    : null
-
-  return (
-    <div className="minibot-shell">
-      <div className="minibot-head">
-        <p className="minibot-titulo">
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-            <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 0 2h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1 0-2h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/>
-            <circle cx="8.5" cy="14.5" r="1.5" fill="currentColor" stroke="none"/>
-            <circle cx="15.5" cy="14.5" r="1.5" fill="currentColor" stroke="none"/>
-          </svg>
-          Asistente IA
-        </p>
-        <div className="minibot-tabs">
-          <button
-            className={`minibot-tab minibot-tab--datos ${tab==='datos' ? 'minibot-tab--on':''}`}
-            onClick={() => { setTab('datos'); setResp(null) }}
-          >
-            📊 Mis datos
-          </button>
-          <button
-            className={`minibot-tab minibot-tab--general ${tab==='general' ? 'minibot-tab--on':''}`}
-            onClick={() => { setTab('general'); setResp(null) }}
-          >
-            💬 General
-          </button>
-        </div>
-      </div>
-
-      <div className="minibot-body">
-        {/* Descripción del modo */}
-        <p style={{ fontSize:12, color:'var(--text-muted)', margin:0 }}>
-          {esDatos
-            ? '🔒 Accede a tus datos reales — ventas de hoy, cartera y más'
-            : '📚 Sin acceso a tus datos — normativa, IVA, nómina, DIAN'}
-        </p>
-
-        {/* Chips de sugerencia */}
-        <div className="minibot-chips">
-          {(esDatos ? CHIPS_DATOS : CHIPS_GENERAL).map(c => (
-            <button
-              key={c}
-              className={`minibot-chip minibot-chip--${tab}`}
-              onClick={() => enviar(c)}
-              disabled={loading}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-
-        {/* Input + send */}
-        <div className="minibot-input-row">
-          <input
-            className={`minibot-input ${esDatos ? '' : 'minibot-input--general'}`}
-            placeholder={esDatos ? 'Pregunta sobre tus finanzas…' : 'Pregunta sobre contabilidad…'}
-            value={texto}
-            onChange={e => setTexto(e.target.value)}
-            onKeyDown={e => { if (e.key==='Enter') enviar() }}
-            disabled={loading}
-          />
-          <button
-            className={`minibot-send ${esDatos ? '' : 'minibot-send--general'}`}
-            onClick={() => enviar()}
-            disabled={loading || !texto.trim()}
-          >
-            {loading ? '…' : 'Enviar'}
-          </button>
-        </div>
-
-        {/* Respuesta compacta */}
-        {textoResp && (
-          <div className={`minibot-resp minibot-resp--${tipoResp}`}>
-            <p className={`minibot-resp-label minibot-resp-label--${tipoResp}`}>
-              {tipoResp==='datos' ? '📊 Análisis de tus datos' : '💬 Consultor general'}
-            </p>
-            {textoResp}{resp.length > 600 ? '…' : ''}
-          </div>
-        )}
-
-        {/* Ver análisis completo */}
-        <button className="minibot-ver-mas" onClick={() => navigate('/estadisticas')}>
-          Ver análisis completo en Estadísticas →
-        </button>
-      </div>
-    </div>
-  )
-}
 
 // ── Dashboard principal ─────────────────────────────────────────────────────
 export default function Dashboard() {
@@ -280,9 +153,20 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ── Mini Bot ── */}
+          {/* ── Asistente IA ── */}
           <div className="dash-section">
-            <MiniBot dashData={data} />
+            <AiAssistant
+              contexto={{
+                periodo       : { desde: new Date().toISOString().split('T')[0], hasta: new Date().toISOString().split('T')[0] },
+                ventas_hoy    : data?.total_ventas,
+                num_facturas  : data?.num_facturas,
+                ventas_mes    : data?.ventas_mes,
+                por_cobrar    : data?.por_cobrar,
+                aprobadas_hoy : data?.aprobadas,
+              }}
+              sugerenciasD={DASH_SUGERENCIAS_D}
+              sugerenciasG={DASH_SUGERENCIAS_G}
+            />
           </div>
 
           {/* Vencimientos */}
