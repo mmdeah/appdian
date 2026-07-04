@@ -1,460 +1,399 @@
 /* ══════════════════════════════════════════════════════════
-   Cotizaciones — page styles
-   Prefix: cot-
+   Cotizaciones
    ══════════════════════════════════════════════════════════ */
 
-/* ── Page header ─────────────────────────────────────────── */
-.cot-page {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-4);
-  padding-bottom: var(--s-8);
-}
+.cot-page { display: flex; flex-direction: column; gap: var(--s-4); }
 
-.cot-page-header {
+/* ── Header ─────────────────────────────────────────────── */
+.cot-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: var(--s-4);
-  flex-wrap: wrap;
 }
 
-.cot-page-title {
+.cot-title {
   font-size: var(--text-2xl);
   font-weight: 700;
   color: var(--text-primary);
-  line-height: 1.2;
 }
 
-.cot-page-sub {
+.cot-sub {
   font-size: var(--text-sm);
   color: var(--text-muted);
   margin-top: 2px;
 }
 
-/* ── Summary cards ───────────────────────────────────────── */
-.cot-summary {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--s-3);
-}
-
-.cot-sum-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: var(--s-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-1);
-}
-
-.cot-sum-label {
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.cot-sum-value {
-  font-size: var(--text-xl);
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.cot-sum--green { color: var(--success); }
-.cot-sum--yellow { color: #ca8a04; }
-
-/* ── Overlay ─────────────────────────────────────────────── */
-.cot-overlay {
+/* ── Modal backdrop ─────────────────────────────────────── */
+.cot-modal-bg {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.45);
-  z-index: 100;
+  background: rgba(0,0,0,.5);
+  z-index: 200;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: var(--s-6) var(--s-4);
+  padding: 40px 16px;
   overflow-y: auto;
 }
 
-/* ── Create form ─────────────────────────────────────────── */
-.cot-form-wrap {
+/* ── Modal ──────────────────────────────────────────────── */
+.cot-modal {
   background: var(--surface);
-  border-radius: var(--radius-xl);
+  border-radius: 16px;
   width: 100%;
-  max-width: 900px;
-  padding: var(--s-6);
+  max-width: 820px;
   display: flex;
   flex-direction: column;
-  gap: var(--s-5);
-  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  gap: 0;
+  box-shadow: 0 24px 64px rgba(0,0,0,.22);
+  overflow: hidden;
 }
 
-.cot-form-header {
+.cot-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
 }
 
-.cot-form-title {
-  font-size: var(--text-xl);
+.cot-modal-header h2 {
+  font-size: var(--text-lg);
   font-weight: 700;
   color: var(--text-primary);
 }
 
-.cot-close-btn {
+.cot-modal-close {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 18px;
   color: var(--text-muted);
+  font-size: 16px;
   width: 32px;
   height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s;
+  transition: background .15s;
 }
-.cot-close-btn:hover { background: var(--surface-hover); }
+.cot-modal-close:hover { background: var(--surface-hover); }
 
-/* ── Sections ────────────────────────────────────────────── */
-.cot-section {
+.cot-modal-section {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  gap: var(--s-3);
+  gap: 12px;
 }
 
-.cot-section-label {
-  font-size: var(--text-xs);
+.cot-section-title {
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: .08em;
   color: var(--text-muted);
 }
 
-/* ── Toggle (consumer / client) ──────────────────────────── */
-.cot-toggle-row {
+/* ── Cliente toggle ─────────────────────────────────────── */
+.cot-client-toggle {
   display: flex;
-  gap: var(--s-2);
-  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.cot-toggle {
-  padding: var(--s-2) var(--s-4);
-  border-radius: var(--radius);
+.cot-client-toggle button {
+  padding: 7px 16px;
+  border-radius: 8px;
   border: 1.5px solid var(--border);
-  background: var(--surface);
+  background: var(--bg);
   color: var(--text-secondary);
-  font-size: var(--text-sm);
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all .15s;
 }
-.cot-toggle:hover { border-color: var(--primary); color: var(--primary); }
-.cot-toggle--active {
+.cot-client-toggle button:hover { border-color: var(--primary); color: var(--primary); }
+.cot-client-toggle button.active {
   background: var(--primary);
   border-color: var(--primary);
   color: #fff;
 }
 
-/* ── Client grid ─────────────────────────────────────────── */
 .cot-client-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--s-3);
+  gap: 12px;
 }
 
 .cot-field {
   display: flex;
   flex-direction: column;
-  gap: var(--s-1);
+  gap: 5px;
 }
 
-.cot-field--grow { flex: 1; }
-
-.cot-label {
-  font-size: var(--text-xs);
+.cot-field label {
+  font-size: 11px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
 }
 
-.cot-input {
+.cot-field-input {
   padding: 8px 10px;
   border: 1.5px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 8px;
   background: var(--bg);
   color: var(--text-primary);
-  font-size: var(--text-sm);
+  font-size: 13px;
   outline: none;
   width: 100%;
-  transition: border-color 0.15s;
+  transition: border-color .15s;
 }
-.cot-input:focus { border-color: var(--primary); }
-.cot-input--num  { text-align: right; }
-.cot-input--sm   { max-width: 100px; }
+.cot-field-input:focus { border-color: var(--primary); }
+.cot-field-input--num { text-align: right; }
 
-.cot-textarea {
-  padding: 8px 10px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--bg);
-  color: var(--text-primary);
-  font-size: var(--text-sm);
-  outline: none;
-  resize: vertical;
-  width: 100%;
-  transition: border-color 0.15s;
-}
-.cot-textarea:focus { border-color: var(--primary); }
-
-/* ── Items table ─────────────────────────────────────────── */
-.cot-table-wrap {
-  overflow-x: auto;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-
-.cot-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.cot-table thead th {
-  background: var(--surface-hover);
-  font-size: var(--text-xs);
+/* ── Items header ───────────────────────────────────────── */
+.cot-items-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0 6px;
+  font-size: 10.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: .07em;
   color: var(--text-muted);
-  padding: var(--s-2) var(--s-3);
-  text-align: left;
-}
-
-.cot-table tbody td {
-  padding: var(--s-2) var(--s-2);
   border-bottom: 1px solid var(--border);
-  vertical-align: middle;
 }
 
-.cot-table tbody tr:last-child td { border-bottom: none; }
+.cot-col-desc { flex: 1; }
+.cot-col-num  { width: 100px; text-align: right; }
 
-.cot-item-desc { position: relative; min-width: 240px; }
+/* ── Item rows ──────────────────────────────────────────── */
+.cot-items-list {
+  display: flex;
+  flex-direction: column;
+}
 
-/* ── Catalog suggestions ─────────────────────────────────── */
+.cot-item-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.cot-item-row--last { border-bottom: none; }
+
+.cot-item-desc {
+  flex: 1;
+  position: relative;
+}
+
+/* ── Suggestions dropdown ───────────────────────────────── */
 .cot-suggestions {
   position: absolute;
   top: calc(100% + 4px);
-  left: 0;
-  right: 0;
+  left: 0; right: 0;
   background: var(--surface);
   border: 1.5px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0,0,0,.12);
-  z-index: 50;
+  z-index: 300;
   list-style: none;
-  margin: 0;
-  padding: 4px 0;
-  max-height: 220px;
+  margin: 0; padding: 4px 0;
+  max-height: 200px;
   overflow-y: auto;
 }
-
 .cot-suggestions li {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   padding: 8px 12px;
   cursor: pointer;
-  transition: background 0.1s;
-  font-size: var(--text-sm);
+  font-size: 13px;
+  transition: background .1s;
 }
 .cot-suggestions li:hover { background: var(--surface-hover); }
+.sug-precio { color: var(--text-muted); font-size: 12px; }
 
-.sug-nombre { color: var(--text-primary); font-weight: 500; }
-.sug-precio { color: var(--text-muted); font-size: var(--text-xs); }
-
-/* ── Subtotal cell ───────────────────────────────────────── */
-.cot-subtotal {
+.cot-item-sub {
+  width: 100px;
   text-align: right;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  font-size: var(--text-sm);
-  white-space: nowrap;
 }
 
-/* ── Remove item button ──────────────────────────────────── */
-.cot-rm-btn {
+.cot-rm {
   background: none;
   border: none;
-  color: var(--danger);
   cursor: pointer;
-  font-size: 14px;
-  width: 28px;
-  height: 28px;
+  color: var(--danger);
+  font-size: 12px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s;
+  flex-shrink: 0;
+  transition: background .15s;
 }
-.cot-rm-btn:hover { background: #fee2e2; }
+.cot-rm:hover { background: #fee2e2; }
 
-/* ── Add item ────────────────────────────────────────────── */
-.cot-add-item-btn {
+/* ── Add item ───────────────────────────────────────────── */
+.cot-add-btn {
   background: none;
   border: 1.5px dashed var(--border);
-  border-radius: var(--radius);
+  border-radius: 8px;
   color: var(--text-muted);
-  font-size: var(--text-sm);
-  padding: var(--s-2) var(--s-4);
+  font-size: 13px;
+  padding: 8px 12px;
   cursor: pointer;
   width: 100%;
   text-align: left;
-  transition: all 0.15s;
-  margin-top: var(--s-2);
+  margin-top: 4px;
+  transition: all .15s;
 }
-.cot-add-item-btn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: rgba(99,102,241,.04);
-}
+.cot-add-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(99,102,241,.03); }
 
-/* ── Totals row ──────────────────────────────────────────── */
-.cot-totals-row {
+/* ── Totales ────────────────────────────────────────────── */
+.cot-totals {
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: var(--s-5);
-  padding: var(--s-3) var(--s-4);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 16px 24px;
   background: var(--surface-hover);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
-.cot-total-item {
+.cot-total-line {
   display: flex;
-  gap: var(--s-2);
-  align-items: center;
-  font-size: var(--text-sm);
+  justify-content: space-between;
+  width: 240px;
+  font-size: 13px;
   color: var(--text-secondary);
 }
-.cot-total-item strong { color: var(--text-primary); }
 
-.cot-total-grand {
-  font-size: var(--text-base);
+.cot-total-line--grand {
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-primary);
-  padding-left: var(--s-4);
-  border-left: 2px solid var(--border);
-}
-.cot-total-grand strong { color: var(--primary); font-size: var(--text-lg); }
-
-/* ── Options row ─────────────────────────────────────────── */
-.cot-opts-row {
-  display: flex;
-  gap: var(--s-4);
-  align-items: flex-start;
-  flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1.5px solid var(--border);
+  margin-top: 2px;
 }
 
-/* ── Error ───────────────────────────────────────────────── */
+.cot-total-line--grand span:last-child { color: var(--primary); }
+
+/* ── Extras row ─────────────────────────────────────────── */
+.cot-extras {
+  flex-direction: row !important;
+  align-items: flex-end;
+  gap: 16px !important;
+}
+
+/* ── Error ──────────────────────────────────────────────── */
 .cot-err {
   color: var(--danger);
-  font-size: var(--text-sm);
+  font-size: 13px;
   background: #fee2e2;
-  border-radius: var(--radius);
-  padding: var(--s-2) var(--s-3);
+  border-radius: 8px;
+  padding: 8px 16px;
+  margin: 0 24px;
 }
 
-/* ── Form actions ────────────────────────────────────────── */
-.cot-form-actions {
+/* ── Modal footer ───────────────────────────────────────── */
+.cot-modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: var(--s-3);
+  gap: 10px;
+  padding: 16px 24px;
 }
 
-/* ── State select (in table) ─────────────────────────────── */
+/* ── State select (in table) ────────────────────────────── */
 .cot-state-select {
   padding: 4px 8px;
   border: 1.5px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 6px;
   background: var(--surface);
   color: var(--text-primary);
-  font-size: var(--text-xs);
+  font-size: 12px;
   cursor: pointer;
   outline: none;
 }
 
-/* ── Inline detail ───────────────────────────────────────── */
+.cot-del-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  opacity: .5;
+  padding: 4px;
+  border-radius: 4px;
+  transition: opacity .15s;
+}
+.cot-del-btn:hover { opacity: 1; }
+
+/* ── Detail ─────────────────────────────────────────────── */
 .cot-detail {
-  padding: var(--s-3) var(--s-4);
+  padding: 16px;
   background: var(--surface-hover);
-  border-radius: var(--radius);
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
-  gap: var(--s-3);
+  gap: 12px;
 }
 
 .cot-detail-loading {
   display: flex;
   justify-content: center;
-  padding: var(--s-4);
+  padding: 16px;
 }
 
 .cot-detail-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--s-4);
-  font-size: var(--text-sm);
+  gap: 16px;
+  font-size: 13px;
   color: var(--text-secondary);
 }
 
 .cot-detail-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--text-sm);
+  font-size: 13px;
 }
-
 .cot-detail-table thead th {
-  font-size: var(--text-xs);
+  font-size: 10.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: .07em;
   color: var(--text-muted);
   padding: 6px 10px;
   text-align: left;
   border-bottom: 1px solid var(--border);
 }
-
-.cot-detail-table thead th.td-right { text-align: right; }
-
 .cot-detail-table tbody td {
   padding: 6px 10px;
   border-bottom: 1px solid var(--border);
   color: var(--text-secondary);
 }
-
 .cot-detail-table tbody tr:last-child td { border-bottom: none; }
 
 .cot-detail-totals {
   display: flex;
   justify-content: flex-end;
-  gap: var(--s-5);
-  font-size: var(--text-sm);
+  gap: 20px;
+  font-size: 13px;
   color: var(--text-secondary);
 }
 
-.cot-detail-grand {
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-/* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .cot-summary         { grid-template-columns: 1fr 1fr; }
-  .cot-client-grid     { grid-template-columns: 1fr; }
-  .cot-opts-row        { flex-direction: column; }
-  .cot-form-wrap       { padding: var(--s-4); }
+  .cot-client-grid { grid-template-columns: 1fr; }
+  .cot-extras      { flex-direction: column !important; }
+  .cot-col-num     { width: 72px; }
+  .cot-item-sub    { width: 72px; }
 }
