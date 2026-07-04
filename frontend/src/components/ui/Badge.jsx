@@ -9,6 +9,11 @@ const COLOR_MAP = {
   FE: 'accent',
   NC: 'muted',
   ND: 'muted',
+  // Cotizaciones
+  BORRADOR  : 'muted',
+  ENVIADA   : 'info',
+  ACEPTADA  : 'success',
+  VENCIDA   : 'danger',
   success: 'success',
   warning: 'warning',
   danger: 'danger',

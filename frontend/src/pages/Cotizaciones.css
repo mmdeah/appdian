@@ -1,0 +1,460 @@
+/* ══════════════════════════════════════════════════════════
+   Cotizaciones — page styles
+   Prefix: cot-
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Page header ─────────────────────────────────────────── */
+.cot-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding-bottom: var(--s-8);
+}
+
+.cot-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+
+.cot-page-title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.cot-page-sub {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── Summary cards ───────────────────────────────────────── */
+.cot-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-3);
+}
+
+.cot-sum-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.cot-sum-label {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.cot-sum-value {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.cot-sum--green { color: var(--success); }
+.cot-sum--yellow { color: #ca8a04; }
+
+/* ── Overlay ─────────────────────────────────────────────── */
+.cot-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--s-6) var(--s-4);
+  overflow-y: auto;
+}
+
+/* ── Create form ─────────────────────────────────────────── */
+.cot-form-wrap {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 900px;
+  padding: var(--s-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+
+.cot-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cot-form-title {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.cot-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.cot-close-btn:hover { background: var(--surface-hover); }
+
+/* ── Sections ────────────────────────────────────────────── */
+.cot-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.cot-section-label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+/* ── Toggle (consumer / client) ──────────────────────────── */
+.cot-toggle-row {
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
+.cot-toggle {
+  padding: var(--s-2) var(--s-4);
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.cot-toggle:hover { border-color: var(--primary); color: var(--primary); }
+.cot-toggle--active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* ── Client grid ─────────────────────────────────────────── */
+.cot-client-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-3);
+}
+
+.cot-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.cot-field--grow { flex: 1; }
+
+.cot-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.cot-input {
+  padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+.cot-input:focus { border-color: var(--primary); }
+.cot-input--num  { text-align: right; }
+.cot-input--sm   { max-width: 100px; }
+
+.cot-textarea {
+  padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  outline: none;
+  resize: vertical;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+.cot-textarea:focus { border-color: var(--primary); }
+
+/* ── Items table ─────────────────────────────────────────── */
+.cot-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.cot-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cot-table thead th {
+  background: var(--surface-hover);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  padding: var(--s-2) var(--s-3);
+  text-align: left;
+}
+
+.cot-table tbody td {
+  padding: var(--s-2) var(--s-2);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.cot-table tbody tr:last-child td { border-bottom: none; }
+
+.cot-item-desc { position: relative; min-width: 240px; }
+
+/* ── Catalog suggestions ─────────────────────────────────── */
+.cot-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  z-index: 50;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.cot-suggestions li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.1s;
+  font-size: var(--text-sm);
+}
+.cot-suggestions li:hover { background: var(--surface-hover); }
+
+.sug-nombre { color: var(--text-primary); font-weight: 500; }
+.sug-precio { color: var(--text-muted); font-size: var(--text-xs); }
+
+/* ── Subtotal cell ───────────────────────────────────────── */
+.cot-subtotal {
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+/* ── Remove item button ──────────────────────────────────── */
+.cot-rm-btn {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.cot-rm-btn:hover { background: #fee2e2; }
+
+/* ── Add item ────────────────────────────────────────────── */
+.cot-add-item-btn {
+  background: none;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  padding: var(--s-2) var(--s-4);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.15s;
+  margin-top: var(--s-2);
+}
+.cot-add-item-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(99,102,241,.04);
+}
+
+/* ── Totals row ──────────────────────────────────────────── */
+.cot-totals-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--s-5);
+  padding: var(--s-3) var(--s-4);
+  background: var(--surface-hover);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.cot-total-item {
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+.cot-total-item strong { color: var(--text-primary); }
+
+.cot-total-grand {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--text-primary);
+  padding-left: var(--s-4);
+  border-left: 2px solid var(--border);
+}
+.cot-total-grand strong { color: var(--primary); font-size: var(--text-lg); }
+
+/* ── Options row ─────────────────────────────────────────── */
+.cot-opts-row {
+  display: flex;
+  gap: var(--s-4);
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+/* ── Error ───────────────────────────────────────────────── */
+.cot-err {
+  color: var(--danger);
+  font-size: var(--text-sm);
+  background: #fee2e2;
+  border-radius: var(--radius);
+  padding: var(--s-2) var(--s-3);
+}
+
+/* ── Form actions ────────────────────────────────────────── */
+.cot-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-3);
+}
+
+/* ── State select (in table) ─────────────────────────────── */
+.cot-state-select {
+  padding: 4px 8px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  outline: none;
+}
+
+/* ── Inline detail ───────────────────────────────────────── */
+.cot-detail {
+  padding: var(--s-3) var(--s-4);
+  background: var(--surface-hover);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.cot-detail-loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--s-4);
+}
+
+.cot-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.cot-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.cot-detail-table thead th {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  padding: 6px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.cot-detail-table thead th.td-right { text-align: right; }
+
+.cot-detail-table tbody td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.cot-detail-table tbody tr:last-child td { border-bottom: none; }
+
+.cot-detail-totals {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-5);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.cot-detail-grand {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .cot-summary         { grid-template-columns: 1fr 1fr; }
+  .cot-client-grid     { grid-template-columns: 1fr; }
+  .cot-opts-row        { flex-direction: column; }
+  .cot-form-wrap       { padding: var(--s-4); }
+}

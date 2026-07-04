@@ -26,6 +26,7 @@ app.use('/api/nomina',         require('./routes/nomina'))
 app.use('/api/gastos',         require('./routes/gastos'))
 app.use('/api/caja-diaria',    require('./routes/cajaDiaria'))
 app.use('/api/inventario',     require('./routes/inventario'))
+app.use('/api/cotizaciones',   require('./routes/cotizaciones'))
 
 app.get('/health', (_, res) => res.json({ ok: true, v: 7 }))
 
