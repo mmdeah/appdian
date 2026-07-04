@@ -70,7 +70,7 @@ export default function Stats() {
   const [presetIdx, setPresetIdx] = useState(2)
   const [desde,  setDesde]  = useState(() => isoDesde(30))
   const [hasta,  setHasta]  = useState(() => isoHoy())
-  const [agrup,  setAgrup]  = useState('mes')
+  const [agrup,  setAgrup]  = useState('dia')
 
   const [resumen,    setResumen]    = useState(null)
   const [tendencia,  setTendencia]  = useState([])
@@ -86,8 +86,11 @@ export default function Stats() {
 
   function aplicarPreset(idx) {
     setPresetIdx(idx)
+    const days = PRESETS[idx].days
     setHasta(isoHoy())
-    setDesde(PRESETS[idx].days === 0 ? isoHoy() : isoDesde(PRESETS[idx].days))
+    setDesde(days === 0 ? isoHoy() : isoDesde(days))
+    // Agrupación automática según el rango
+    setAgrup(days <= 7 ? 'dia' : days <= 90 ? 'dia' : days <= 180 ? 'semana' : 'mes')
   }
 
   const cargar = useCallback(async () => {

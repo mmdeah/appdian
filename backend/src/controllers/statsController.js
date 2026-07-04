@@ -5,34 +5,51 @@ async function callOpenRouter({ system, user, temperature = 0.7, max_tokens = 10
   const apiKey = process.env.OPENROUTER_API_KEY
   if (!apiKey) throw new Error('OPENROUTER_API_KEY no configurada en Railway')
 
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method : 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type' : 'application/json',
-      'HTTP-Referer'  : 'https://appdian.app',
-      'X-Title'       : 'AppDian',
-    },
-    body: JSON.stringify({
-      model: 'nvidia/nemotron-3-ultra-550b-a55b:free',
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user',   content: user },
-      ],
-      temperature,
-      max_tokens,
-    }),
-  })
+  // Abortar a 25s para responder antes de que Railway corte la conexión (límite 30s)
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 25_000)
 
-  if (!response.ok) {
-    const txt = await response.text()
-    throw new Error(txt)
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method : 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type' : 'application/json',
+        'HTTP-Referer'  : 'https://appdian.app',
+        'X-Title'       : 'AppDian',
+      },
+      body: JSON.stringify({
+        model: 'nvidia/nemotron-3-ultra-550b-a55b:free',
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user',   content: user },
+        ],
+        temperature,
+        max_tokens,
+      }),
+      signal: controller.signal,
+    })
+
+    clearTimeout(timer)
+
+    if (!response.ok) {
+      const txt = await response.text()
+      try {
+        const j = JSON.parse(txt)
+        const msg = j?.error?.message || j?.error || txt
+        throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg))
+      } catch (_) { throw new Error(txt) }
+    }
+
+    const json    = await response.json()
+    const content = json.choices?.[0]?.message?.content
+    if (!content) throw new Error('El modelo no generó respuesta (posible saturación del tier free). Intenta de nuevo.')
+    return content
+  } catch (err) {
+    clearTimeout(timer)
+    if (err.name === 'AbortError') throw new Error('El modelo tardó más de 25 segundos. El tier free puede estar saturado, intenta de nuevo.')
+    throw err
   }
-
-  const json    = await response.json()
-  const content = json.choices?.[0]?.message?.content
-  if (!content) throw new Error('El modelo no generó respuesta (posible saturación del tier free). Intenta de nuevo.')
-  return content
 }
 
 // ── GET /api/stats/resumen ─────────────────────────────────────────────────────

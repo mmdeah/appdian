@@ -42,9 +42,9 @@ export function MarkdownRenderer({ text }) {
   while (i < lines.length) {
     const line = lines[i].trim()
     if (!line) { i++; continue }
-    if (line.startsWith('### '))      { out.push(<h3 key={i} className="ai-md-h3">{renderInline(line.slice(4))}</h3>); i++ }
-    else if (line.startsWith('## ')) { out.push(<h2 key={i} className="ai-md-h2">{renderInline(line.slice(3))}</h2>); i++ }
-    else if (line.startsWith('# '))  { out.push(<h1 key={i} className="ai-md-h1">{renderInline(line.slice(2))}</h1>); i++ }
+    if (/^###[^#]/.test(line))       { out.push(<h3 key={i} className="ai-md-h3">{renderInline(line.replace(/^###\s*/,''))}</h3>); i++ }
+    else if (/^##[^#]/.test(line))  { out.push(<h2 key={i} className="ai-md-h2">{renderInline(line.replace(/^##\s*/,''))}</h2>);  i++ }
+    else if (/^#[^#]/.test(line))   { out.push(<h1 key={i} className="ai-md-h1">{renderInline(line.replace(/^#\s*/,''))}</h1>);   i++ }
     else if (/^[-*_]{3,}$/.test(line)) { out.push(<hr key={i} className="ai-md-hr"/>); i++ }
     else if (line.startsWith('|')) {
       const rows = []
@@ -104,13 +104,20 @@ export default function AiAssistant({
     if (!q || analizando) return
     setTexto('')
 
+    const parsearError = (e) => {
+      if (e.response?.data?.error) return e.response.data.error
+      if (e.code === 'ECONNABORTED') return 'Tiempo de espera agotado. El modelo gratuito puede estar ocupado — intenta de nuevo en unos segundos.'
+      if (e.message?.includes('timeout')) return 'La respuesta tardó demasiado. Intenta de nuevo en unos segundos.'
+      return 'El modelo no respondió. Puede estar saturado en este momento, reintenta en 30 segundos.'
+    }
+
     if (esDatos) {
       setAnalizandoD(true); setRespD(null); setErrD(null)
       try {
         const { data } = await statsApi.ai({ pregunta: q, contexto })
         setRespD(data.respuesta)
       } catch (e) {
-        setErrD(e.response?.data?.error || 'Error al consultar. Verifica OPENROUTER_API_KEY en Railway.')
+        setErrD(parsearError(e))
       } finally { setAnalizandoD(false) }
     } else {
       setAnalizandoG(true); setRespG(null); setErrG(null)
@@ -118,7 +125,7 @@ export default function AiAssistant({
         const { data } = await statsApi.chatGeneral({ pregunta: q })
         setRespG(data.respuesta)
       } catch (e) {
-        setErrG(e.response?.data?.error || 'Error al consultar el asistente.')
+        setErrG(parsearError(e))
       } finally { setAnalizandoG(false) }
     }
   }
