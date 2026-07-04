@@ -5,17 +5,17 @@ import './Inventario.css'
 const COP = n => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0)
 
 const CATEGORIAS_INV = ['GENERAL','MATERIA_PRIMA','PRODUCTO_TERMINADO','HERRAMIENTAS','PAPELERÍA','TECNOLOGÍA','REPUESTOS','OTROS']
-const UNIDADES       = ['UND','KG','GR','L','ML','M','CM','CAJA','PAQUETE','ROLLO','PAR','DOCENA','OTRO']
+const UNIDADES_INV   = ['UND','KG','GR','L','ML','M','CM','CAJA','PAQUETE','ROLLO','PAR','DOCENA']
 
 const EMPTY_PROD = {
   codigo: '', nombre: '', descripcion: '', categoria: 'GENERAL', unidad: 'UND',
-  precio_costo: '', precio_venta: '', stock_actual: '0', stock_minimo: '0',
+  precio_costo: '0', precio: '0', iva_porcentaje: '19', stock_actual: '0', stock_minimo: '0',
 }
 const EMPTY_MOV = { tipo: 'ENTRADA', cantidad: '', precio_unitario: '', motivo: '', referencia: '' }
 
 function StockBadge({ actual, minimo }) {
-  if (actual <= 0)        return <span className="inv-badge inv-badge--sin">Sin stock</span>
-  if (actual <= minimo)   return <span className="inv-badge inv-badge--bajo">Bajo</span>
+  if (actual <= 0)      return <span className="inv-badge inv-badge--sin">Sin stock</span>
+  if (actual <= minimo) return <span className="inv-badge inv-badge--bajo">Bajo</span>
   return <span className="inv-badge inv-badge--ok">OK</span>
 }
 
@@ -28,8 +28,10 @@ function ModalProducto({ prod, onSave, onClose }) {
     e.preventDefault()
     setSaving(true)
     try {
-      if (form.id) await inventarioApi.actualizar(form.id, form)
-      else         await inventarioApi.crear(form)
+      // Normalizar: enviar precio_venta también para compatibilidad backend
+      const payload = { ...form, precio_venta: form.precio }
+      if (form.id) await inventarioApi.actualizar(form.id, payload)
+      else         await inventarioApi.crear(payload)
       onSave()
     } catch (err) {
       alert(err.response?.data?.error || 'Error al guardar')
@@ -50,7 +52,7 @@ function ModalProducto({ prod, onSave, onClose }) {
             </label>
             <label>Unidad
               <select value={form.unidad} onChange={e => f('unidad', e.target.value)}>
-                {UNIDADES.map(u => <option key={u}>{u}</option>)}
+                {UNIDADES_INV.map(u => <option key={u}>{u}</option>)}
               </select>
             </label>
           </div>
@@ -74,20 +76,24 @@ function ModalProducto({ prod, onSave, onClose }) {
               <input type="number" min="0" step="1" placeholder="0" value={form.precio_costo} onChange={e => f('precio_costo', e.target.value)} />
             </label>
             <label>Precio venta (COP)
-              <input type="number" min="0" step="1" placeholder="0" value={form.precio_venta} onChange={e => f('precio_venta', e.target.value)} />
+              <input type="number" min="0" step="1" placeholder="0" value={form.precio} onChange={e => f('precio', e.target.value)} />
             </label>
           </div>
 
           <div className="inv-field-row">
-            {!form.id && (
-              <label>Stock inicial
-                <input type="number" min="0" step="0.001" placeholder="0" value={form.stock_actual} onChange={e => f('stock_actual', e.target.value)} />
-              </label>
-            )}
+            <label>IVA %
+              <input type="number" min="0" max="100" step="0.5" value={form.iva_porcentaje} onChange={e => f('iva_porcentaje', e.target.value)} />
+            </label>
             <label>Stock mínimo
               <input type="number" min="0" step="0.001" placeholder="0" value={form.stock_minimo} onChange={e => f('stock_minimo', e.target.value)} />
             </label>
           </div>
+
+          {!form.id && (
+            <label>Stock inicial
+              <input type="number" min="0" step="0.001" placeholder="0" value={form.stock_actual} onChange={e => f('stock_actual', e.target.value)} />
+            </label>
+          )}
 
           <div className="inv-modal-foot">
             <button type="button" className="inv-btn-sec" onClick={onClose}>Cancelar</button>
@@ -115,7 +121,11 @@ function ModalMovimiento({ prod, tipoInicial, onSave, onClose }) {
     } finally { setSaving(false) }
   }
 
-  const tipoLabels = { ENTRADA: 'Entrada (compra/producción)', SALIDA: 'Salida (venta/consumo)', AJUSTE: 'Ajuste de inventario' }
+  const tipoLabels = {
+    ENTRADA: 'Entrada (compra / producción)',
+    SALIDA : 'Salida (consumo / baja)',
+    AJUSTE : 'Ajuste de inventario',
+  }
 
   return (
     <div className="inv-overlay" onClick={onClose}>
@@ -123,7 +133,9 @@ function ModalMovimiento({ prod, tipoInicial, onSave, onClose }) {
         <div className="inv-modal-head">
           <div>
             <h3>Movimiento de stock</h3>
-            <p className="muted" style={{ margin: 0, fontSize: 12 }}>{prod.nombre} — Stock actual: <strong>{prod.stock_actual} {prod.unidad}</strong></p>
+            <p className="muted" style={{ margin:0, fontSize:12 }}>
+              {prod.nombre} — Stock actual: <strong>{prod.stock_actual} {prod.unidad}</strong>
+            </p>
           </div>
           <button className="inv-modal-close" onClick={onClose}>✕</button>
         </div>
@@ -146,7 +158,7 @@ function ModalMovimiento({ prod, tipoInicial, onSave, onClose }) {
           </div>
 
           <label>Motivo
-            <input placeholder="Ej: Compra a proveedor, venta, ajuste físico..." value={form.motivo} onChange={e => f('motivo', e.target.value)} />
+            <input placeholder="Compra a proveedor, ajuste físico…" value={form.motivo} onChange={e => f('motivo', e.target.value)} />
           </label>
           <label>Referencia
             <input placeholder="N° factura, orden, etc." value={form.referencia} onChange={e => f('referencia', e.target.value)} />
@@ -154,7 +166,7 @@ function ModalMovimiento({ prod, tipoInicial, onSave, onClose }) {
 
           {form.tipo === 'AJUSTE' && (
             <div className="inv-ajuste-info">
-              ⚠️ El ajuste establece el stock al valor indicado (no suma ni resta).
+              ⚠️ El ajuste establece el stock al valor exacto indicado (no suma ni resta).
             </div>
           )}
 
@@ -173,8 +185,8 @@ export default function Inventario() {
   const [resumen,    setResumen]    = useState(null)
   const [loading,    setLoading]    = useState(true)
   const [error,      setError]      = useState(null)
-  const [modalProd,  setModalProd]  = useState(null)   // null | 'nuevo' | {producto}
-  const [modalMov,   setModalMov]   = useState(null)   // null | { prod, tipo }
+  const [modalProd,  setModalProd]  = useState(null)
+  const [modalMov,   setModalMov]   = useState(null)
   const [filtroQ,    setFiltroQ]    = useState('')
   const [bajosStock, setBajosStock] = useState(false)
 
@@ -188,10 +200,7 @@ export default function Inventario() {
       setProductos(rProd.data.productos || [])
       setResumen(rRes.data)
     } catch (err) {
-      const msg = err.response?.data?.error || err.message || ''
-      setError(msg.includes('does not exist')
-        ? 'La tabla inventario no existe aún. Ejecuta la migración SQL en Supabase.'
-        : `Error al cargar: ${msg}`)
+      setError(`Error al cargar inventario: ${err.response?.data?.error || err.message}`)
     } finally { setLoading(false) }
   }, [filtroQ, bajosStock])
 
@@ -203,20 +212,24 @@ export default function Inventario() {
     cargar()
   }
 
+  // Margen estimado
+  const margen = (p) => {
+    if (!p.precio_costo || p.precio_costo <= 0) return null
+    return Math.round(((p.precio - p.precio_costo) / p.precio) * 100)
+  }
+
   return (
     <div className="inv-page">
-      {/* Header */}
       <div className="inv-header">
         <div>
           <h2 className="inv-titulo">Inventario</h2>
-          <p className="inv-sub muted">Control de productos y stock en tiempo real</p>
+          <p className="inv-sub muted">Productos físicos — control de stock en tiempo real</p>
         </div>
         <button className="inv-btn-pri" onClick={() => setModalProd('nuevo')}>+ Nuevo producto</button>
       </div>
 
       {error && <div className="inv-error">⚠️ {error}</div>}
 
-      {/* KPIs */}
       {resumen && (
         <div className="inv-kpis">
           <div className="inv-kpi">
@@ -246,7 +259,6 @@ export default function Inventario() {
         </div>
       )}
 
-      {/* Filtros */}
       <div className="inv-filtros">
         <input
           className="inv-search"
@@ -261,7 +273,6 @@ export default function Inventario() {
         </label>
       </div>
 
-      {/* Tabla */}
       {loading ? (
         <div className="inv-loading"><div className="spinner" /></div>
       ) : productos.length === 0 ? (
@@ -269,7 +280,7 @@ export default function Inventario() {
           <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.2">
             <path d="M20 7l-8-4-8 4m16 0v10l-8 4m-8-4V7m16 0L12 11M4 7l8 4" />
           </svg>
-          <p>{bajosStock ? 'No hay productos con bajo stock.' : 'No hay productos en inventario.'}</p>
+          <p>{bajosStock ? 'No hay productos con bajo stock.' : 'No hay productos físicos en inventario.'}</p>
           {!bajosStock && (
             <button className="inv-btn-pri" onClick={() => setModalProd('nuevo')}>Agregar primer producto</button>
           )}
@@ -282,39 +293,51 @@ export default function Inventario() {
                 <th>Código</th>
                 <th>Producto</th>
                 <th>Categoría</th>
-                <th style={{ textAlign: 'right' }}>Stock</th>
-                <th style={{ textAlign: 'right' }}>P. Venta</th>
+                <th style={{ textAlign:'right' }}>Stock</th>
+                <th style={{ textAlign:'right' }}>P. Venta</th>
+                <th style={{ textAlign:'right' }}>Margen</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {productos.map(p => (
-                <tr key={p.id}>
-                  <td className="muted t-xs">{p.codigo || '—'}</td>
-                  <td>
-                    <p className="td-main">{p.nombre}</p>
-                    {p.descripcion && <p className="td-sub muted t-xs">{p.descripcion}</p>}
-                  </td>
-                  <td className="muted t-xs">{p.categoria}</td>
-                  <td style={{ textAlign: 'right' }}>
-                    <span className="inv-stock-num">{p.stock_actual} <span className="muted" style={{ fontSize: 11 }}>{p.unidad}</span></span>
-                    {p.stock_minimo > 0 && (
-                      <p className="muted t-xs" style={{ textAlign: 'right' }}>mín: {p.stock_minimo}</p>
-                    )}
-                  </td>
-                  <td style={{ textAlign: 'right' }} className="td-price">{COP(p.precio_venta)}</td>
-                  <td><StockBadge actual={p.stock_actual} minimo={p.stock_minimo} /></td>
-                  <td>
-                    <div className="inv-actions">
-                      <button className="inv-action-btn inv-action-btn--entrada" title="Entrada" onClick={() => setModalMov({ prod: p, tipo: 'ENTRADA' })}>＋</button>
-                      <button className="inv-action-btn inv-action-btn--salida"  title="Salida"  onClick={() => setModalMov({ prod: p, tipo: 'SALIDA' })}>－</button>
-                      <button className="inv-action-btn" title="Editar"  onClick={() => setModalProd(p)}>✏️</button>
-                      <button className="inv-action-btn inv-action-btn--del" title="Eliminar" onClick={() => desactivar(p)}>🗑️</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {productos.map(p => {
+                const mg = margen(p)
+                return (
+                  <tr key={p.id}>
+                    <td className="muted t-xs">{p.codigo || '—'}</td>
+                    <td>
+                      <p className="td-main">{p.nombre}</p>
+                      {p.descripcion && <p className="td-sub muted t-xs">{p.descripcion}</p>}
+                    </td>
+                    <td className="muted t-xs">{p.categoria}</td>
+                    <td style={{ textAlign:'right' }}>
+                      <span className="inv-stock-num">
+                        {p.stock_actual} <span className="muted" style={{ fontSize:11 }}>{p.unidad}</span>
+                      </span>
+                      {p.stock_minimo > 0 && (
+                        <p className="muted t-xs" style={{ textAlign:'right' }}>mín: {p.stock_minimo}</p>
+                      )}
+                    </td>
+                    <td style={{ textAlign:'right' }} className="td-price">{COP(p.precio)}</td>
+                    <td style={{ textAlign:'right' }}>
+                      {mg !== null
+                        ? <span style={{ fontSize:12, fontWeight:700, color: mg >= 30 ? '#059669' : mg >= 10 ? 'var(--warning)' : 'var(--danger)' }}>{mg}%</span>
+                        : <span className="muted t-xs">—</span>
+                      }
+                    </td>
+                    <td><StockBadge actual={p.stock_actual} minimo={p.stock_minimo} /></td>
+                    <td>
+                      <div className="inv-actions">
+                        <button className="inv-action-btn inv-action-btn--entrada" title="Entrada" onClick={() => setModalMov({ prod: p, tipo: 'ENTRADA' })}>＋</button>
+                        <button className="inv-action-btn inv-action-btn--salida"  title="Salida"  onClick={() => setModalMov({ prod: p, tipo: 'SALIDA' })}>－</button>
+                        <button className="inv-action-btn" title="Editar"   onClick={() => setModalProd(p)}>✏️</button>
+                        <button className="inv-action-btn inv-action-btn--del" title="Eliminar" onClick={() => desactivar(p)}>🗑️</button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

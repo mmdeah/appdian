@@ -13,7 +13,7 @@ const TITLES = {
   '/consultas':    'Mis Consultas',
   '/nomina':       'Nómina',
   '/gastos':       'Control de Gastos',
-  '/caja-menor':   'Caja Menor',
+  '/caja-diaria':  'Caja Diaria',
   '/inventario':   'Inventario',
   '/proyecciones': 'Proyecciones Tributarias',
 }

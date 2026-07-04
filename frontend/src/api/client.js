@@ -127,13 +127,11 @@ export const vencimientosApi = {
   listar: () => api.get('/vencimientos'),
 }
 
-// ---- Caja Menor ----
-export const cajaMenorApi = {
-  listar:     (params) => api.get('/caja-menor',         { params }),
-  resumen:    (params) => api.get('/caja-menor/resumen', { params }),
-  crear:      (data)   => api.post('/caja-menor', data),
-  actualizar: (id, data) => api.put(`/caja-menor/${id}`, data),
-  eliminar:   (id)     => api.delete(`/caja-menor/${id}`),
+// ---- Caja Diaria ----
+export const cajaDiariaApi = {
+  resumenDia:      (fecha)  => api.get('/caja-diaria',          { params: fecha ? { fecha } : {} }),
+  historial:       ()       => api.get('/caja-diaria/historial'),
+  registrarCierre: (data)   => api.post('/caja-diaria/cierre', data),
 }
 
 // ---- Inventario ----

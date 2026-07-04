@@ -24,7 +24,7 @@ app.use('/api/proyecciones',   require('./routes/proyecciones'))
 app.use('/api/vencimientos',   require('./routes/vencimientos'))
 app.use('/api/nomina',         require('./routes/nomina'))
 app.use('/api/gastos',         require('./routes/gastos'))
-app.use('/api/caja-menor',     require('./routes/cajaMenor'))
+app.use('/api/caja-diaria',    require('./routes/cajaDiaria'))
 app.use('/api/inventario',     require('./routes/inventario'))
 
 app.get('/health', (_, res) => res.json({ ok: true, v: 7 }))

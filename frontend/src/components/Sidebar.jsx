@@ -106,8 +106,8 @@ const NAV = [
     ),
   },
   {
-    to: '/caja-menor',
-    label: 'Caja Menor',
+    to: '/caja-diaria',
+    label: 'Caja Diaria',
     icon: (
       <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
         <rect x="2" y="7" width="20" height="14" rx="2" />

@@ -8,14 +8,42 @@ import './Products.css'
 const COP = (n) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0)
 
-const EMPTY = { codigo: '', nombre: '', descripcion: '', precio: '', iva_porcentaje: 19, unidad: 'UND' }
+// Unidades de servicio (sin stock físico)
+const UNIDADES_SERVICIO  = ['SRV','HORA','HR','MIN','CONS','MES','DIA']
+const UNIDADES_PRODUCTO  = ['UND','KG','GR','L','ML','M','CM','CAJA','PAQUETE','ROLLO','PAR','DOCENA']
+const CATEGORIAS_PROD    = ['GENERAL','MATERIA_PRIMA','PRODUCTO_TERMINADO','HERRAMIENTAS','PAPELERÍA','TECNOLOGÍA','REPUESTOS','OTROS']
+const CATEGORIAS_SERV    = ['SERVICIO','CONSULTORÍA','ASESORÍA','FORMACIÓN','TRÁMITES','OTROS']
+
+const esServicio = u => UNIDADES_SERVICIO.includes((u || '').toUpperCase())
+
+const EMPTY = {
+  codigo: '', nombre: '', descripcion: '',
+  precio: '', iva_porcentaje: 19, unidad: 'UND',
+  precio_costo: '0', stock_actual: '0', stock_minimo: '0',
+  categoria: 'GENERAL',
+}
 
 function ProductModal({ product, onSave, onClose }) {
   const [form, setForm] = useState(product || EMPTY)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
+  const set = (k) => (e) => setForm(prev => ({ ...prev, [k]: e.target.value }))
+  const setV = (k, v) => setForm(prev => ({ ...prev, [k]: v }))
+
+  const isServ = esServicio(form.unidad)
+
+  // Cuando cambia la unidad, ajustar categoría automáticamente
+  function handleUnidad(u) {
+    const serv = esServicio(u)
+    setForm(prev => ({
+      ...prev,
+      unidad   : u,
+      categoria: serv
+        ? (CATEGORIAS_SERV.includes(prev.categoria) ? prev.categoria : 'SERVICIO')
+        : (CATEGORIAS_PROD.includes(prev.categoria) ? prev.categoria : 'GENERAL'),
+    }))
+  }
 
   async function handleSave(e) {
     e.preventDefault()
@@ -39,7 +67,7 @@ function ProductModal({ product, onSave, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card card fade-up" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h3 className="modal-title">{product?.id ? 'Editar producto' : 'Nuevo producto'}</h3>
+          <h3 className="modal-title">{product?.id ? 'Editar producto / servicio' : 'Nuevo producto / servicio'}</h3>
           <button className="modal-close" onClick={onClose}>
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path d="M6 18L18 6M6 6l12 12" />
@@ -48,16 +76,62 @@ function ProductModal({ product, onSave, onClose }) {
         </div>
 
         <form onSubmit={handleSave} className="modal-form">
+          {/* Fila 1: código + unidad */}
           <div className="form-row">
             <Input label="Código *" value={form.codigo} onChange={set('codigo')} required placeholder="PROD-001" />
-            <Input label="Unidad" value={form.unidad} onChange={set('unidad')} placeholder="UND" />
+            <label className="input-label" style={{ display:'flex', flexDirection:'column', gap:4 }}>
+              <span style={{ fontSize:12, fontWeight:600, color:'var(--text-muted)' }}>Unidad *</span>
+              <select
+                className="input-field"
+                value={form.unidad}
+                onChange={e => handleUnidad(e.target.value)}
+                style={{ height:38 }}
+              >
+                <optgroup label="── Productos físicos ──">
+                  {UNIDADES_PRODUCTO.map(u => <option key={u} value={u}>{u}</option>)}
+                </optgroup>
+                <optgroup label="── Servicios ──">
+                  {UNIDADES_SERVICIO.map(u => <option key={u} value={u}>{u}</option>)}
+                </optgroup>
+              </select>
+            </label>
           </div>
-          <Input label="Nombre *" value={form.nombre} onChange={set('nombre')} required placeholder="Nombre del producto" />
+
+          <Input label="Nombre *" value={form.nombre} onChange={set('nombre')} required placeholder="Nombre del producto o servicio" />
           <Input label="Descripción" value={form.descripcion} onChange={set('descripcion')} placeholder="Opcional" />
+
+          {/* Categoría */}
+          <label className="input-label" style={{ display:'flex', flexDirection:'column', gap:4 }}>
+            <span style={{ fontSize:12, fontWeight:600, color:'var(--text-muted)' }}>Categoría</span>
+            <select className="input-field" value={form.categoria} onChange={set('categoria')} style={{ height:38 }}>
+              {(isServ ? CATEGORIAS_SERV : CATEGORIAS_PROD).map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </label>
+
+          {/* Precios */}
           <div className="form-row">
-            <Input label="Precio (COP) *" type="number" value={form.precio} onChange={set('precio')} required min="0" step="1" />
+            <Input label="Precio venta (COP) *" type="number" value={form.precio} onChange={set('precio')} required min="0" step="1" />
             <Input label="IVA %" type="number" value={form.iva_porcentaje} onChange={set('iva_porcentaje')} min="0" max="100" step="0.5" />
           </div>
+
+          {/* Precio costo — siempre útil para margen */}
+          <Input label="Precio costo (COP)" type="number" value={form.precio_costo} onChange={set('precio_costo')} min="0" step="1" placeholder="0" />
+
+          {/* Stock — solo para productos físicos */}
+          {!isServ && (
+            <div className="form-row">
+              {!product?.id && (
+                <Input label="Stock inicial" type="number" value={form.stock_actual} onChange={set('stock_actual')} min="0" step="0.001" placeholder="0" />
+              )}
+              <Input label="Stock mínimo" type="number" value={form.stock_minimo} onChange={set('stock_minimo')} min="0" step="0.001" placeholder="0" />
+            </div>
+          )}
+
+          {isServ && (
+            <p style={{ fontSize:12, color:'var(--text-muted)', margin:0, padding:'6px 10px', background:'var(--surface)', borderRadius:6 }}>
+              ℹ️ Los servicios no requieren control de stock.
+            </p>
+          )}
 
           {error && <p className="form-error">{error}</p>}
 
@@ -73,9 +147,9 @@ function ProductModal({ product, onSave, onClose }) {
 
 export default function Products() {
   const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [modal, setModal] = useState(null) // null | 'new' | product obj
+  const [loading, setLoading]   = useState(true)
+  const [search,  setSearch]    = useState('')
+  const [modal,   setModal]     = useState(null)
 
   function load(q) {
     setLoading(true)
@@ -99,8 +173,6 @@ export default function Products() {
     load(search)
   }
 
-  const filtered = products
-
   return (
     <div className="products-page">
       <div className="page-toolbar">
@@ -122,7 +194,7 @@ export default function Products() {
       <div className="card table-card">
         {loading ? (
           <div className="table-loading"><div className="spinner" /></div>
-        ) : filtered.length === 0 ? (
+        ) : products.length === 0 ? (
           <div className="empty-state">
             <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.2">
               <path d="M20 7l-8-4-8 4m16 0v10l-8 4m-8-4V7m16 0L12 11M4 7l8 4" />
@@ -137,14 +209,16 @@ export default function Products() {
                 <th>Código</th>
                 <th>Nombre</th>
                 <th>Unidad</th>
-                <th>Precio</th>
+                <th>Categoría</th>
+                <th style={{ textAlign:'right' }}>Precio</th>
                 <th>IVA</th>
+                <th>Stock</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map(p => (
+              {products.map(p => (
                 <tr key={p.id}>
                   <td><code className="code-chip">{p.codigo}</code></td>
                   <td>
@@ -152,8 +226,18 @@ export default function Products() {
                     {p.descripcion && <p className="td-sub muted t-xs">{p.descripcion}</p>}
                   </td>
                   <td className="muted t-sm">{p.unidad}</td>
-                  <td className="td-price">{COP(p.precio)}</td>
+                  <td className="muted t-xs">{p.categoria || '—'}</td>
+                  <td className="td-price" style={{ textAlign:'right' }}>{COP(p.precio)}</td>
                   <td className="muted t-sm">{p.iva_porcentaje}%</td>
+                  <td className="muted t-sm">
+                    {esServicio(p.unidad)
+                      ? <span style={{ color:'var(--text-muted)', fontSize:11 }}>—</span>
+                      : <span style={{ fontWeight: p.stock_actual <= (p.stock_minimo || 0) && p.stock_actual >= 0 ? 700 : 400,
+                                       color: p.stock_actual <= 0 ? 'var(--danger)' : p.stock_actual <= p.stock_minimo ? 'var(--warning)' : 'inherit' }}>
+                          {p.stock_actual}
+                        </span>
+                    }
+                  </td>
                   <td>
                     <Badge variant={p.activo ? 'success' : 'muted'}>{p.activo ? 'Activo' : 'Inactivo'}</Badge>
                   </td>
