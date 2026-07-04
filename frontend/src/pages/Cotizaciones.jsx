@@ -29,8 +29,8 @@ const ITEM_EMPTY = () => ({
   subtotal: 0,
 })
 
-// ── Fila de ítem ─────────────────────────────────────────────────────────────
-function ItemRow({ item, catalogo, onChange, onRemove, isLast }) {
+// ── Fila de ítem (dentro de <tbody>) ─────────────────────────────────────────
+function ItemRow({ item, catalogo, onChange, onRemove }) {
   const [query,    setQuery]    = useState(item.descripcion || '')
   const [sugs,     setSugs]     = useState([])
   const [showSugs, setShowSugs] = useState(false)
@@ -49,9 +49,9 @@ function ItemRow({ item, catalogo, onChange, onRemove, isLast }) {
     onChange({ ...item, descripcion: val })
     if (val.trim().length >= 1) {
       const q = val.toLowerCase()
-      const found = catalogo.filter(p =>
-        p.nombre?.toLowerCase().includes(q) || p.referencia?.toLowerCase().includes(q)
-      ).slice(0, 6)
+      const found = catalogo
+        .filter(p => p.nombre?.toLowerCase().includes(q) || p.referencia?.toLowerCase().includes(q))
+        .slice(0, 6)
       setSugs(found)
       setShowSugs(found.length > 0)
     } else {
@@ -77,64 +77,69 @@ function ItemRow({ item, catalogo, onChange, onRemove, isLast }) {
   }
 
   return (
-    <div className={`cot-item-row ${isLast ? 'cot-item-row--last' : ''}`}>
-      {/* Descripción */}
-      <div className="cot-item-desc" ref={wrapRef}>
+    <tr className="cot-item-tr">
+      {/* Descripción con autocomplete */}
+      <td className="cot-td-desc">
+        <div className="cot-desc-wrap" ref={wrapRef}>
+          <input
+            className="cot-in"
+            placeholder="Producto o servicio…"
+            value={query}
+            onChange={(e) => handleQuery(e.target.value)}
+            onFocus={() => sugs.length > 0 && setShowSugs(true)}
+          />
+          {showSugs && (
+            <ul className="cot-sugs">
+              {sugs.map(p => (
+                <li key={p.id} onMouseDown={() => selectCatalog(p)}>
+                  <span>{p.nombre}</span>
+                  <span className="cot-sug-price">{COP(p.precio_venta || p.precio)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </td>
+
+      <td className="cot-td-num">
         <input
-          className="cot-field-input"
-          placeholder="Descripción del producto o servicio…"
-          value={query}
-          onChange={(e) => handleQuery(e.target.value)}
-          onFocus={() => sugs.length > 0 && setShowSugs(true)}
+          className="cot-in cot-in--r"
+          type="number" min="0.001" step="1"
+          value={item.cantidad}
+          onChange={(e) => handleNum('cantidad', e.target.value)}
         />
-        {showSugs && (
-          <ul className="cot-suggestions">
-            {sugs.map(p => (
-              <li key={p.id} onMouseDown={() => selectCatalog(p)}>
-                <span>{p.nombre}</span>
-                <span className="sug-precio">{COP(p.precio_venta || p.precio)}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      </td>
 
-      {/* Cantidad */}
-      <input
-        className="cot-field-input cot-field-input--num"
-        type="number" min="0.001" step="1"
-        value={item.cantidad}
-        onChange={(e) => handleNum('cantidad', e.target.value)}
-      />
+      <td className="cot-td-num">
+        <input
+          className="cot-in cot-in--r"
+          type="number" min="0" step="1000"
+          value={item.precio_unitario}
+          onChange={(e) => handleNum('precio_unitario', e.target.value)}
+        />
+      </td>
 
-      {/* Precio */}
-      <input
-        className="cot-field-input cot-field-input--num"
-        type="number" min="0" step="1000"
-        value={item.precio_unitario}
-        onChange={(e) => handleNum('precio_unitario', e.target.value)}
-      />
+      <td className="cot-td-iva">
+        <select
+          className="cot-in cot-in--r"
+          value={item.iva_porcentaje}
+          onChange={(e) => {
+            const val = parseFloat(e.target.value)
+            onChange({ ...item, iva_porcentaje: val })
+          }}
+        >
+          <option value={0}>0 %</option>
+          <option value={5}>5 %</option>
+          <option value={19}>19 %</option>
+        </select>
+      </td>
 
-      {/* IVA */}
-      <select
-        className="cot-field-input cot-field-input--num"
-        value={item.iva_porcentaje}
-        onChange={(e) => {
-          const val = parseFloat(e.target.value)
-          onChange({ ...item, iva_porcentaje: val })
-        }}
-      >
-        <option value={0}>0%</option>
-        <option value={5}>5%</option>
-        <option value={19}>19%</option>
-      </select>
+      <td className="cot-td-sub">{COP(item.subtotal)}</td>
 
-      {/* Subtotal */}
-      <div className="cot-item-sub">{COP(item.subtotal)}</div>
-
-      {/* Eliminar */}
-      <button className="cot-rm" onClick={onRemove}>✕</button>
-    </div>
+      <td className="cot-td-rm">
+        <button className="cot-rm" onClick={onRemove} title="Eliminar">✕</button>
+      </td>
+    </tr>
   )
 }
 
@@ -148,22 +153,21 @@ function CreateModal({ catalogo, onSaved, onClose }) {
   const [saving,  setSaving]  = useState(false)
   const [err,     setErr]     = useState('')
 
-  const updateItem = useCallback((idx, next) => {
-    setItems(prev => prev.map((it, i) => i === idx ? next : it))
-  }, [])
+  const updateItem = useCallback((idx, next) =>
+    setItems(prev => prev.map((it, i) => i === idx ? next : it)), [])
 
-  const removeItem = useCallback((idx) => {
-    setItems(prev => prev.filter((_, i) => i !== idx))
-  }, [])
+  const removeItem = useCallback((idx) =>
+    setItems(prev => prev.filter((_, i) => i !== idx)), [])
 
   const subtotal = items.reduce((s, it) => s + (it.subtotal || 0), 0)
-  const iva      = items.reduce((s, it) => s + Math.round(it.subtotal * (it.iva_porcentaje / 100) * 100) / 100, 0)
+  const iva      = items.reduce((s, it) =>
+    s + Math.round(it.subtotal * (it.iva_porcentaje / 100) * 100) / 100, 0)
   const total    = Math.round((subtotal + iva) * 100) / 100
 
   async function handleSave() {
     setErr('')
     const validItems = items.filter(it => it.descripcion.trim())
-    if (!validItems.length) return setErr('Agrega al menos un ítem con descripción.')
+    if (!validItems.length) return setErr('Agrega al menos un ítem.')
     setSaving(true)
     try {
       const { data } = await cotizacionesApi.crear({
@@ -189,124 +193,109 @@ function CreateModal({ catalogo, onSaved, onClose }) {
   }
 
   return (
-    <div className="cot-modal-bg" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="cot-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="cot-modal">
 
-        {/* Header */}
-        <div className="cot-modal-header">
+        {/* ── Header ── */}
+        <div className="cot-modal-hd">
           <h2>Nueva cotización</h2>
-          <button className="cot-modal-close" onClick={onClose}>✕</button>
+          <button className="cot-x" onClick={onClose}>✕</button>
         </div>
 
-        {/* Cliente */}
-        <div className="cot-modal-section">
-          <div className="cot-section-title">Cliente</div>
-          <div className="cot-client-toggle">
-            <button
-              className={consumidorFinal ? 'active' : ''}
-              onClick={() => setConsumidorFinal(true)}
-            >
+        {/* ── Cliente ── */}
+        <div className="cot-block">
+          <p className="cot-block-label">Cliente</p>
+          <div className="cot-toggle">
+            <button className={consumidorFinal ? 'on' : ''} onClick={() => setConsumidorFinal(true)}>
               Consumidor final
             </button>
-            <button
-              className={!consumidorFinal ? 'active' : ''}
-              onClick={() => setConsumidorFinal(false)}
-            >
+            <button className={!consumidorFinal ? 'on' : ''} onClick={() => setConsumidorFinal(false)}>
               Cliente específico
             </button>
           </div>
 
           {!consumidorFinal && (
-            <div className="cot-client-grid">
+            <div className="cot-grid2">
               <div className="cot-field">
                 <label>Nombre / Razón social</label>
-                <input className="cot-field-input" placeholder="Empresa o persona"
+                <input className="cot-in" placeholder="Empresa o persona"
                   value={cliente.nombre} onChange={e => setCliente(p => ({ ...p, nombre: e.target.value }))} />
               </div>
               <div className="cot-field">
                 <label>NIT / CC</label>
-                <input className="cot-field-input" placeholder="900123456-1"
+                <input className="cot-in" placeholder="900123456-1"
                   value={cliente.nit} onChange={e => setCliente(p => ({ ...p, nit: e.target.value }))} />
               </div>
               <div className="cot-field">
                 <label>Email</label>
-                <input className="cot-field-input" type="email" placeholder="cliente@empresa.com"
+                <input className="cot-in" type="email" placeholder="cliente@empresa.com"
                   value={cliente.email} onChange={e => setCliente(p => ({ ...p, email: e.target.value }))} />
               </div>
               <div className="cot-field">
                 <label>Teléfono</label>
-                <input className="cot-field-input" type="tel" placeholder="300 000 0000"
+                <input className="cot-in" type="tel" placeholder="300 000 0000"
                   value={cliente.telefono} onChange={e => setCliente(p => ({ ...p, telefono: e.target.value }))} />
               </div>
             </div>
           )}
         </div>
 
-        {/* Ítems */}
-        <div className="cot-modal-section">
-          <div className="cot-section-title">Ítems</div>
-
-          <div className="cot-items-head">
-            <span className="cot-col-desc">Descripción</span>
-            <span className="cot-col-num">Cant.</span>
-            <span className="cot-col-num">Precio</span>
-            <span className="cot-col-num">IVA</span>
-            <span className="cot-col-num">Subtotal</span>
-            <span style={{ width: 28 }}></span>
-          </div>
-
-          <div className="cot-items-list">
-            {items.map((it, idx) => (
-              <ItemRow
-                key={it._id}
-                item={it}
-                catalogo={catalogo}
-                onChange={(next) => updateItem(idx, next)}
-                onRemove={() => removeItem(idx)}
-                isLast={idx === items.length - 1}
-              />
-            ))}
-          </div>
-
-          <button className="cot-add-btn" onClick={() => setItems(p => [...p, ITEM_EMPTY()])}>
+        {/* ── Ítems (tabla real) ── */}
+        <div className="cot-block">
+          <p className="cot-block-label">Ítems</p>
+          <table className="cot-items-table">
+            <thead>
+              <tr>
+                <th className="cot-th-desc">Descripción</th>
+                <th className="cot-th-num">Cant.</th>
+                <th className="cot-th-num">Precio unit.</th>
+                <th className="cot-th-iva">IVA</th>
+                <th className="cot-th-sub">Subtotal</th>
+                <th style={{ width: 32 }}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((it, idx) => (
+                <ItemRow
+                  key={it._id}
+                  item={it}
+                  catalogo={catalogo}
+                  onChange={(next) => updateItem(idx, next)}
+                  onRemove={() => removeItem(idx)}
+                />
+              ))}
+            </tbody>
+          </table>
+          <button className="cot-add" onClick={() => setItems(p => [...p, ITEM_EMPTY()])}>
             + Agregar ítem
           </button>
         </div>
 
-        {/* Totales */}
+        {/* ── Totales ── */}
         <div className="cot-totals">
-          <div className="cot-total-line">
-            <span>Subtotal</span>
-            <span>{COP(subtotal)}</span>
-          </div>
-          <div className="cot-total-line">
-            <span>IVA</span>
-            <span>{COP(iva)}</span>
-          </div>
-          <div className="cot-total-line cot-total-line--grand">
-            <span>TOTAL</span>
-            <span>{COP(total)}</span>
-          </div>
+          <div className="cot-tot-line"><span>Subtotal</span><span>{COP(subtotal)}</span></div>
+          <div className="cot-tot-line"><span>IVA</span><span>{COP(iva)}</span></div>
+          <div className="cot-tot-line cot-tot-line--grand"><span>TOTAL</span><span>{COP(total)}</span></div>
         </div>
 
-        {/* Opciones extras */}
-        <div className="cot-modal-section cot-extras">
-          <div className="cot-field" style={{ width: 120 }}>
+        {/* ── Extras ── */}
+        <div className="cot-block cot-extras-row">
+          <div className="cot-field" style={{ width: 110 }}>
             <label>Válida (días)</label>
-            <input className="cot-field-input cot-field-input--num" type="number" min="1" max="365"
-              value={validez} onChange={e => setValidez(e.target.value)} />
+            <input className="cot-in" type="number" min="1" max="365"
+              value={validez} onChange={e => setValidez(e.target.value)} style={{ textAlign: 'right' }} />
           </div>
           <div className="cot-field" style={{ flex: 1 }}>
             <label>Notas / condiciones</label>
-            <input className="cot-field-input" placeholder="Ej: Precios sujetos a cambio. Incluye instalación."
+            <input className="cot-in" placeholder="Ej: Precios sujetos a cambio. Incluye instalación."
               value={notas} onChange={e => setNotas(e.target.value)} />
           </div>
         </div>
 
         {err && <p className="cot-err">{err}</p>}
 
-        {/* Acciones */}
-        <div className="cot-modal-footer">
+        {/* ── Footer ── */}
+        <div className="cot-modal-ft">
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
           <Button variant="primary" disabled={saving} onClick={handleSave}>
             {saving ? 'Guardando…' : '✓ Guardar cotización'}
@@ -324,7 +313,7 @@ function CotDetail({ id }) {
     cotizacionesApi.obtener(id).then(({ data }) => setCot(data)).catch(() => {})
   }, [id])
 
-  if (!cot) return <div className="cot-detail-loading"><div className="spinner" /></div>
+  if (!cot) return <div style={{ display:'flex', justifyContent:'center', padding:16 }}><div className="spinner" /></div>
 
   const items = cot.items_cotizacion || []
   return (
@@ -493,7 +482,7 @@ export default function Cotizaciones() {
                         </Button>
                         {ESTADO_NEXT[cot.estado]?.length > 0 && (
                           <select
-                            className="cot-state-select"
+                            className="cot-state-sel"
                             disabled={changingEst === cot.id}
                             value=""
                             onChange={e => e.target.value && handleEstado(cot.id, e.target.value)}
@@ -504,7 +493,7 @@ export default function Cotizaciones() {
                             ))}
                           </select>
                         )}
-                        <button className="cot-del-btn" onClick={() => handleEliminar(cot.id)}>🗑</button>
+                        <button className="cot-del" onClick={() => handleEliminar(cot.id)} title="Eliminar">🗑</button>
                       </div>
                     </td>
                   </tr>

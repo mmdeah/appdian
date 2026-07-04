@@ -4,106 +4,87 @@
 
 .cot-page { display: flex; flex-direction: column; gap: var(--s-4); }
 
-/* ── Header ─────────────────────────────────────────────── */
+/* ── Page header ─────────────────────────────────────────── */
 .cot-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: var(--s-4);
 }
+.cot-title { font-size: var(--text-2xl); font-weight: 700; color: var(--text-primary); }
+.cot-sub   { font-size: var(--text-sm);  color: var(--text-muted); margin-top: 2px; }
 
-.cot-title {
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.cot-sub {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-/* ── Modal backdrop ─────────────────────────────────────── */
-.cot-modal-bg {
+/* ── Backdrop ────────────────────────────────────────────── */
+.cot-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.5);
+  background: rgba(0,0,0,.52);
   z-index: 200;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 40px 16px;
+  padding: 36px 16px 40px;
   overflow-y: auto;
 }
 
-/* ── Modal ──────────────────────────────────────────────── */
+/* ── Modal ───────────────────────────────────────────────── */
 .cot-modal {
   background: var(--surface);
-  border-radius: 16px;
+  border-radius: 14px;
   width: 100%;
-  max-width: 820px;
+  max-width: 780px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
   display: flex;
   flex-direction: column;
-  gap: 0;
-  box-shadow: 0 24px 64px rgba(0,0,0,.22);
-  overflow: hidden;
+  overflow: hidden;          /* children get border-bottom, not the modal */
 }
 
-.cot-modal-header {
+/* ── Modal header ────────────────────────────────────────── */
+.cot-modal-hd {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: 18px 24px;
   border-bottom: 1px solid var(--border);
 }
-
-.cot-modal-header h2 {
+.cot-modal-hd h2 {
   font-size: var(--text-lg);
   font-weight: 700;
   color: var(--text-primary);
 }
-
-.cot-modal-close {
+.cot-x {
   background: none;
   border: none;
   cursor: pointer;
   color: var(--text-muted);
-  font-size: 16px;
-  width: 32px;
-  height: 32px;
+  font-size: 15px;
+  width: 30px; height: 30px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   transition: background .15s;
 }
-.cot-modal-close:hover { background: var(--surface-hover); }
+.cot-x:hover { background: var(--surface-hover); }
 
-.cot-modal-section {
-  padding: 20px 24px;
+/* ── Blocks (sections inside modal) ─────────────────────── */
+.cot-block {
+  padding: 18px 24px;
   border-bottom: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-
-.cot-section-title {
-  font-size: 11px;
+.cot-block-label {
+  font-size: 10.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .08em;
+  letter-spacing: .09em;
   color: var(--text-muted);
 }
 
-/* ── Cliente toggle ─────────────────────────────────────── */
-.cot-client-toggle {
-  display: flex;
-  gap: 8px;
-}
-
-.cot-client-toggle button {
-  padding: 7px 16px;
+/* ── Toggle ──────────────────────────────────────────────── */
+.cot-toggle { display: flex; gap: 8px; }
+.cot-toggle button {
+  padding: 6px 14px;
   border-radius: 8px;
   border: 1.5px solid var(--border);
   background: var(--bg);
@@ -113,208 +94,187 @@
   cursor: pointer;
   transition: all .15s;
 }
-.cot-client-toggle button:hover { border-color: var(--primary); color: var(--primary); }
-.cot-client-toggle button.active {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #fff;
-}
+.cot-toggle button:hover { border-color: var(--primary); color: var(--primary); }
+.cot-toggle button.on    { background: var(--primary); border-color: var(--primary); color: #fff; }
 
-.cot-client-grid {
+/* ── Client grid ─────────────────────────────────────────── */
+.cot-grid2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
-
-.cot-field {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
+.cot-field { display: flex; flex-direction: column; gap: 4px; }
 .cot-field label {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
-  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: .05em;
+  letter-spacing: .06em;
+  color: var(--text-muted);
 }
 
-.cot-field-input {
-  padding: 8px 10px;
+/* ── Input (shared) ──────────────────────────────────────── */
+.cot-in {
+  padding: 6px 8px;
   border: 1.5px solid var(--border);
-  border-radius: 8px;
+  border-radius: 7px;
   background: var(--bg);
   color: var(--text-primary);
   font-size: 13px;
   outline: none;
   width: 100%;
+  min-width: 0;           /* allows shrinking inside table cells */
   transition: border-color .15s;
+  box-sizing: border-box;
+  display: block;
 }
-.cot-field-input:focus { border-color: var(--primary); }
-.cot-field-input--num { text-align: right; }
+.cot-in:focus { border-color: var(--primary); }
+.cot-in--r    { text-align: right; }
 
-/* ── Items header ───────────────────────────────────────── */
-.cot-items-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 0 6px;
+/* ── Items table ─────────────────────────────────────────── */
+.cot-items-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Header cells */
+.cot-items-table thead th {
   font-size: 10.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .07em;
   color: var(--text-muted);
+  padding: 0 6px 8px;
+  border-bottom: 1.5px solid var(--border);
+  text-align: left;
+}
+.cot-th-desc { width: 42%; }
+.cot-th-num  { width: 13%; text-align: right; }
+.cot-th-iva  { width: 10%; text-align: right; }
+.cot-th-sub  { width: 15%; text-align: right; }
+/* remove col: ~4% remaining */
+
+/* Body rows */
+.cot-item-tr td {
+  padding: 5px 6px;
   border-bottom: 1px solid var(--border);
+  vertical-align: middle;
 }
+.cot-item-tr:last-child td { border-bottom: none; }
 
-.cot-col-desc { flex: 1; }
-.cot-col-num  { width: 100px; text-align: right; }
+.cot-td-desc { position: relative; }
+.cot-td-num  { text-align: right; }
+.cot-td-iva  { text-align: right; }
+.cot-td-sub  { text-align: right; font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+.cot-td-rm   { text-align: center; width: 32px; }
 
-/* ── Item rows ──────────────────────────────────────────── */
-.cot-items-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.cot-item-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
-}
-.cot-item-row--last { border-bottom: none; }
-
-.cot-item-desc {
-  flex: 1;
-  position: relative;
-}
-
-/* ── Suggestions dropdown ───────────────────────────────── */
-.cot-suggestions {
+/* ── Autocomplete suggestions ────────────────────────────── */
+.cot-desc-wrap { position: relative; }
+.cot-sugs {
   position: absolute;
   top: calc(100% + 4px);
   left: 0; right: 0;
   background: var(--surface);
   border: 1.5px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.12);
-  z-index: 300;
+  box-shadow: 0 8px 24px rgba(0,0,0,.14);
+  z-index: 400;
   list-style: none;
   margin: 0; padding: 4px 0;
   max-height: 200px;
   overflow-y: auto;
 }
-.cot-suggestions li {
+.cot-sugs li {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 8px 12px;
   cursor: pointer;
   font-size: 13px;
   transition: background .1s;
 }
-.cot-suggestions li:hover { background: var(--surface-hover); }
-.sug-precio { color: var(--text-muted); font-size: 12px; }
+.cot-sugs li:hover { background: var(--surface-hover); }
+.cot-sug-price { font-size: 12px; color: var(--text-muted); }
 
-.cot-item-sub {
-  width: 100px;
-  text-align: right;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
+/* ── Remove button ───────────────────────────────────────── */
 .cot-rm {
   background: none;
   border: none;
   cursor: pointer;
   color: var(--danger);
-  font-size: 12px;
-  width: 24px;
-  height: 24px;
+  font-size: 11px;
+  width: 22px; height: 22px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
   transition: background .15s;
 }
 .cot-rm:hover { background: #fee2e2; }
 
-/* ── Add item ───────────────────────────────────────────── */
-.cot-add-btn {
+/* ── Add item ────────────────────────────────────────────── */
+.cot-add {
   background: none;
   border: 1.5px dashed var(--border);
   border-radius: 8px;
   color: var(--text-muted);
   font-size: 13px;
-  padding: 8px 12px;
+  padding: 7px 12px;
   cursor: pointer;
   width: 100%;
   text-align: left;
-  margin-top: 4px;
+  margin-top: 6px;
   transition: all .15s;
 }
-.cot-add-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(99,102,241,.03); }
+.cot-add:hover { border-color: var(--primary); color: var(--primary); background: rgba(99,102,241,.04); }
 
-/* ── Totales ────────────────────────────────────────────── */
+/* ── Totals ──────────────────────────────────────────────── */
 .cot-totals {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 6px;
-  padding: 16px 24px;
+  gap: 5px;
+  padding: 14px 24px;
   background: var(--surface-hover);
   border-bottom: 1px solid var(--border);
 }
-
-.cot-total-line {
+.cot-tot-line {
   display: flex;
   justify-content: space-between;
-  width: 240px;
+  width: 220px;
   font-size: 13px;
   color: var(--text-secondary);
 }
-
-.cot-total-line--grand {
+.cot-tot-line--grand {
   font-size: 15px;
   font-weight: 700;
   color: var(--text-primary);
-  padding-top: 8px;
+  padding-top: 7px;
   border-top: 1.5px solid var(--border);
   margin-top: 2px;
 }
+.cot-tot-line--grand span:last-child { color: var(--primary); }
 
-.cot-total-line--grand span:last-child { color: var(--primary); }
+/* ── Extras row ──────────────────────────────────────────── */
+.cot-extras-row { flex-direction: row !important; align-items: flex-end; gap: 16px !important; }
 
-/* ── Extras row ─────────────────────────────────────────── */
-.cot-extras {
-  flex-direction: row !important;
-  align-items: flex-end;
-  gap: 16px !important;
-}
-
-/* ── Error ──────────────────────────────────────────────── */
+/* ── Error ───────────────────────────────────────────────── */
 .cot-err {
   color: var(--danger);
   font-size: 13px;
   background: #fee2e2;
   border-radius: 8px;
-  padding: 8px 16px;
-  margin: 0 24px;
+  padding: 8px 24px;
+  margin: 0;
 }
 
-/* ── Modal footer ───────────────────────────────────────── */
-.cot-modal-footer {
+/* ── Modal footer ────────────────────────────────────────── */
+.cot-modal-ft {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding: 16px 24px;
+  padding: 14px 24px;
 }
 
-/* ── State select (in table) ────────────────────────────── */
-.cot-state-select {
+/* ── In-table actions ────────────────────────────────────── */
+.cot-state-sel {
   padding: 4px 8px;
   border: 1.5px solid var(--border);
   border-radius: 6px;
@@ -324,35 +284,27 @@
   cursor: pointer;
   outline: none;
 }
-
-.cot-del-btn {
+.cot-del {
   background: none;
   border: none;
   cursor: pointer;
   font-size: 14px;
-  opacity: .5;
+  opacity: .45;
   padding: 4px;
   border-radius: 4px;
   transition: opacity .15s;
 }
-.cot-del-btn:hover { opacity: 1; }
+.cot-del:hover { opacity: 1; }
 
-/* ── Detail ─────────────────────────────────────────────── */
+/* ── Inline detail ───────────────────────────────────────── */
 .cot-detail {
-  padding: 16px;
+  padding: 14px 16px;
   background: var(--surface-hover);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
-
-.cot-detail-loading {
-  display: flex;
-  justify-content: center;
-  padding: 16px;
-}
-
 .cot-detail-meta {
   display: flex;
   flex-wrap: wrap;
@@ -360,29 +312,23 @@
   font-size: 13px;
   color: var(--text-secondary);
 }
-
-.cot-detail-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
+.cot-detail-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .cot-detail-table thead th {
   font-size: 10.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .07em;
   color: var(--text-muted);
-  padding: 6px 10px;
+  padding: 5px 10px;
   text-align: left;
   border-bottom: 1px solid var(--border);
 }
 .cot-detail-table tbody td {
-  padding: 6px 10px;
+  padding: 5px 10px;
   border-bottom: 1px solid var(--border);
   color: var(--text-secondary);
 }
 .cot-detail-table tbody tr:last-child td { border-bottom: none; }
-
 .cot-detail-totals {
   display: flex;
   justify-content: flex-end;
@@ -391,9 +337,14 @@
   color: var(--text-secondary);
 }
 
+/* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .cot-client-grid { grid-template-columns: 1fr; }
-  .cot-extras      { flex-direction: column !important; }
-  .cot-col-num     { width: 72px; }
-  .cot-item-sub    { width: 72px; }
+  .cot-grid2 { grid-template-columns: 1fr; }
+  .cot-extras-row { flex-direction: column !important; }
+  .cot-th-num { width: 70px; }
+  .cot-td-num { width: 70px; }
+  .cot-th-iva { width: 60px; }
+  .cot-td-iva { width: 60px; }
+  .cot-th-sub { width: 85px; }
+  .cot-td-sub { width: 85px; }
 }
