@@ -60,8 +60,9 @@ export const statsApi = {
   topClientes:  (params) => api.get('/stats/top-clientes',  { params }),
   topProductos: (params) => api.get('/stats/top-productos', { params }),
   // Timeout de 90s — el modelo Nemotron 550B es lento en el tier free
-  ai:        (data) => api.post('/stats/ai',        data, { timeout: 90_000 }),
-  reporteIA: (data) => api.post('/stats/reporte-ia', data, { timeout: 90_000 }),
+  ai:           (data) => api.post('/stats/ai',           data, { timeout: 90_000 }),
+  chatGeneral:  (data) => api.post('/stats/chat-general', data, { timeout: 90_000 }),
+  reporteIA:    (data) => api.post('/stats/reporte-ia',   data, { timeout: 90_000 }),
 }
 
 // ---- Invoices ----

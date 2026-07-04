@@ -1,6 +1,41 @@
 const supabase = require('../config/db')
 
-// GET /api/stats/resumen?desde=&hasta=
+// ── helpers ────────────────────────────────────────────────────────────────────
+async function callOpenRouter({ system, user, temperature = 0.7, max_tokens = 1024 }) {
+  const apiKey = process.env.OPENROUTER_API_KEY
+  if (!apiKey) throw new Error('OPENROUTER_API_KEY no configurada en Railway')
+
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method : 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type' : 'application/json',
+      'HTTP-Referer'  : 'https://appdian.app',
+      'X-Title'       : 'AppDian',
+    },
+    body: JSON.stringify({
+      model: 'nvidia/nemotron-3-ultra-550b-a55b:free',
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user',   content: user },
+      ],
+      temperature,
+      max_tokens,
+    }),
+  })
+
+  if (!response.ok) {
+    const txt = await response.text()
+    throw new Error(txt)
+  }
+
+  const json    = await response.json()
+  const content = json.choices?.[0]?.message?.content
+  if (!content) throw new Error('El modelo no generó respuesta (posible saturación del tier free). Intenta de nuevo.')
+  return content
+}
+
+// ── GET /api/stats/resumen ─────────────────────────────────────────────────────
 const resumen = async (req, res) => {
   try {
     const { desde, hasta } = req.query
@@ -24,7 +59,6 @@ const resumen = async (req, res) => {
     const num_facturas   = data.length
     const promedio       = num_facturas > 0 ? total_ventas / num_facturas : 0
 
-    // Comparación con período anterior de igual duración
     let comparacion = null
     if (desde && hasta) {
       const d1      = new Date(desde)
@@ -44,40 +78,24 @@ const resumen = async (req, res) => {
       const prevTotal = (prev || []).reduce((a, f) => a + (f.total || 0), 0)
       comparacion = {
         periodo_anterior: prevTotal,
-        variacion_pct: prevTotal > 0
-          ? +((total_ventas - prevTotal) / prevTotal * 100).toFixed(1)
-          : null,
+        variacion_pct   : prevTotal > 0 ? +((total_ventas - prevTotal) / prevTotal * 100).toFixed(1) : null,
       }
     }
 
-    res.json({
-      total_ventas,
-      total_iva,
-      total_subtotal,
-      num_facturas,
-      promedio,
-      por_tipo: {
-        POS: data.filter(f => f.tipo === 'POS').length,
-        FE:  data.filter(f => f.tipo === 'FE').length,
-      },
-      comparacion,
-    })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
+    res.json({ total_ventas, total_iva, total_subtotal, num_facturas, promedio,
+      por_tipo: { POS: data.filter(f=>f.tipo==='POS').length, FE: data.filter(f=>f.tipo==='FE').length },
+      comparacion })
+  } catch (err) { res.status(500).json({ error: err.message }) }
 }
 
-// GET /api/stats/tendencia?desde=&hasta=&agrupacion=dia|semana|mes
+// ── GET /api/stats/tendencia ───────────────────────────────────────────────────
 const tendencia = async (req, res) => {
   try {
     const { desde, hasta, agrupacion = 'dia' } = req.query
     const empresa_id = req.user.empresa_id
 
-    let q = supabase
-      .from('facturas')
-      .select('created_at, total')
-      .eq('empresa_id', empresa_id)
-      .in('estado', ['APROBADA', 'EMITIDA_LOCAL', 'PENDIENTE'])
+    let q = supabase.from('facturas').select('created_at, total')
+      .eq('empresa_id', empresa_id).in('estado', ['APROBADA','EMITIDA_LOCAL','PENDIENTE'])
       .order('created_at', { ascending: true })
 
     if (desde) q = q.gte('created_at', `${desde}T00:00:00`)
@@ -91,11 +109,10 @@ const tendencia = async (req, res) => {
       const d = new Date(f.created_at)
       let key
       if (agrupacion === 'mes') {
-        key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+        key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
       } else if (agrupacion === 'semana') {
         const day = d.getDay() || 7
-        const lunes = new Date(d)
-        lunes.setDate(d.getDate() - day + 1)
+        const lunes = new Date(d); lunes.setDate(d.getDate() - day + 1)
         key = lunes.toISOString().split('T')[0]
       } else {
         key = d.toISOString().split('T')[0]
@@ -103,27 +120,18 @@ const tendencia = async (req, res) => {
       grupos[key] = (grupos[key] || 0) + (f.total || 0)
     }
 
-    const serie = Object.entries(grupos)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([fecha, total]) => ({ fecha, total: Math.round(total) }))
-
-    res.json(serie)
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
+    res.json(Object.entries(grupos).sort(([a],[b])=>a.localeCompare(b)).map(([fecha,total])=>({ fecha, total: Math.round(total) })))
+  } catch (err) { res.status(500).json({ error: err.message }) }
 }
 
-// GET /api/stats/top-clientes?desde=&hasta=&limit=10
+// ── GET /api/stats/top-clientes ────────────────────────────────────────────────
 const topClientes = async (req, res) => {
   try {
     const { desde, hasta, limit = 10 } = req.query
     const empresa_id = req.user.empresa_id
 
-    let q = supabase
-      .from('facturas')
-      .select('cliente_nombre, total')
-      .eq('empresa_id', empresa_id)
-      .in('estado', ['APROBADA', 'EMITIDA_LOCAL', 'PENDIENTE'])
+    let q = supabase.from('facturas').select('cliente_nombre, total')
+      .eq('empresa_id', empresa_id).in('estado', ['APROBADA','EMITIDA_LOCAL','PENDIENTE'])
       .neq('cliente_nombre', 'CONSUMIDOR FINAL')
 
     if (desde) q = q.gte('created_at', `${desde}T00:00:00`)
@@ -138,28 +146,18 @@ const topClientes = async (req, res) => {
       mapa[n] = (mapa[n] || 0) + (f.total || 0)
     }
 
-    const top = Object.entries(mapa)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, +limit)
-      .map(([nombre, total]) => ({ nombre, total: Math.round(total) }))
-
-    res.json(top)
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
+    res.json(Object.entries(mapa).sort(([,a],[,b])=>b-a).slice(0,+limit).map(([nombre,total])=>({ nombre, total: Math.round(total) })))
+  } catch (err) { res.status(500).json({ error: err.message }) }
 }
 
-// GET /api/stats/top-productos?desde=&hasta=&limit=10
+// ── GET /api/stats/top-productos ──────────────────────────────────────────────
 const topProductos = async (req, res) => {
   try {
     const { desde, hasta, limit = 10 } = req.query
     const empresa_id = req.user.empresa_id
 
-    let qf = supabase
-      .from('facturas')
-      .select('id')
-      .eq('empresa_id', empresa_id)
-      .in('estado', ['APROBADA', 'EMITIDA_LOCAL', 'PENDIENTE'])
+    let qf = supabase.from('facturas').select('id').eq('empresa_id', empresa_id)
+      .in('estado', ['APROBADA','EMITIDA_LOCAL','PENDIENTE'])
 
     if (desde) qf = qf.gte('created_at', `${desde}T00:00:00`)
     if (hasta) qf = qf.lte('created_at', `${hasta}T23:59:59`)
@@ -168,11 +166,9 @@ const topProductos = async (req, res) => {
     if (fe) return res.status(500).json({ error: fe.message })
     if (!facturas.length) return res.json([])
 
-    const ids = facturas.map(f => f.id)
     const { data: items, error: ie } = await supabase
-      .from('items_factura')
-      .select('descripcion, cantidad, subtotal')
-      .in('factura_id', ids)
+      .from('items_factura').select('descripcion, cantidad, subtotal')
+      .in('factura_id', facturas.map(f=>f.id))
 
     if (ie) return res.status(500).json({ error: ie.message })
 
@@ -184,134 +180,117 @@ const topProductos = async (req, res) => {
       mapa[n].total    += (i.subtotal || 0)
     }
 
-    const top = Object.entries(mapa)
-      .sort(([, a], [, b]) => b.total - a.total)
-      .slice(0, +limit)
-      .map(([nombre, { cantidad, total }]) => ({
-        nombre,
-        cantidad: Math.round(cantidad),
-        total: Math.round(total),
-      }))
-
-    res.json(top)
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
+    res.json(Object.entries(mapa).sort(([,a],[,b])=>b.total-a.total).slice(0,+limit)
+      .map(([nombre,{cantidad,total}])=>({ nombre, cantidad: Math.round(cantidad), total: Math.round(total) })))
+  } catch (err) { res.status(500).json({ error: err.message }) }
 }
 
-// POST /api/stats/ai  { pregunta, contexto }
+// ── POST /api/stats/ai — Analista de datos de la empresa ─────────────────────
 const aiAnalisis = async (req, res) => {
   try {
     const { pregunta, contexto } = req.body
     if (!pregunta) return res.status(400).json({ error: 'pregunta requerida' })
 
-    const apiKey = process.env.OPENROUTER_API_KEY
-    if (!apiKey) return res.status(500).json({ error: 'OPENROUTER_API_KEY no configurada en Railway' })
-
     const system = `Eres un analista financiero senior experto en contabilidad colombiana y facturación electrónica DIAN. Respondes siempre en español.
 
-FORMATO OBLIGATORIO — usa EXACTAMENTE esta estructura Markdown:
+IMPORTANTE: Tienes acceso a los datos REALES de la empresa del usuario en el período analizado.
+Estos datos incluyen: ventas (POS y facturas electrónicas), gastos operativos, caja diaria (cierres y efectivo), inventario de productos, cuentas por cobrar (facturas FE sin pagar), y nómina.
 
-## 📊 Resumen Ejecutivo
-[2-3 oraciones con el hallazgo más importante. Incluye las cifras clave en **negrita**.]
+FORMATO OBLIGATORIO:
+
+## 📊 Resumen
+[2-3 oraciones con el hallazgo más importante. Cifras clave en **negrita**.]
 
 ---
 
 ## 🔍 Análisis
-[Contenido detallado. Usa tablas Markdown para comparaciones numéricas. Usa listas para múltiples puntos.]
+[Análisis detallado. Usa tablas para comparaciones. Listas para múltiples puntos.]
 
 ---
 
 ## 💡 Recomendaciones
-1. [Acción concreta con cifra específica]
+1. [Acción concreta con cifra]
 2. [Acción concreta]
 3. [Acción concreta]
 
 ---
 > 💼 *Consulta con tu contador para decisiones fiscales importantes.*
 
-REGLAS ESTRICTAS:
+REGLAS:
 - Cifras en pesos colombianos: $1.234.567 COP
-- Emojis en los encabezados para visual (📊 💰 📈 📉 ⚠️ ✅ 💡 🎯 👑 🧾)
-- Tablas para comparar más de 2 valores numéricos
-- Máximo 400 palabras en total
-- Siempre menciona el período analizado (${contexto?.periodo?.desde} al ${contexto?.periodo?.hasta})
+- Máximo 400 palabras
+- Período: ${contexto?.periodo?.desde || '—'} al ${contexto?.periodo?.hasta || '—'}
 
-DATOS DEL PERÍODO:
+DATOS REALES DE LA EMPRESA EN ESTE PERÍODO:
 ${JSON.stringify(contexto, null, 2)}`
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://appdian.app',
-        'X-Title': 'AppDian Analista Contable',
-      },
-      body: JSON.stringify({
-        model: 'nvidia/nemotron-3-ultra-550b-a55b:free',
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user',   content: pregunta },
-        ],
-        temperature: 0.7,
-        max_tokens: 1024,
-      }),
-    })
-
-    if (!response.ok) {
-      const txt = await response.text()
-      return res.status(response.status).json({ error: txt })
-    }
-
-    const json = await response.json()
-
-    // El tier free de algunos modelos devuelve 200 con content vacío cuando está saturado
-    const respuesta = json.choices?.[0]?.message?.content
-    if (!respuesta) {
-      console.error('OpenRouter respuesta vacía:', JSON.stringify(json).slice(0, 500))
-      return res.status(503).json({
-        error: 'El modelo no generó respuesta (posible saturación del tier free). Intenta de nuevo en unos segundos.',
-      })
-    }
-
+    const respuesta = await callOpenRouter({ system, user: pregunta })
     res.json({ respuesta })
   } catch (err) {
+    if (err.message.includes('OPENROUTER')) return res.status(500).json({ error: err.message })
+    if (err.message.includes('saturación') || err.message.includes('no generó')) return res.status(503).json({ error: err.message })
     res.status(500).json({ error: err.message })
   }
 }
 
-// POST /api/stats/reporte-ia  { periodo, resumen, gastos, tendencia, clientes, productos }
+// ── POST /api/stats/chat-general — Consultor contable general (sin datos) ─────
+const chatGeneral = async (req, res) => {
+  try {
+    const { pregunta } = req.body
+    if (!pregunta) return res.status(400).json({ error: 'pregunta requerida' })
+
+    const system = `Eres un consultor experto en contabilidad colombiana, tributación, DIAN, NIIF, normativa fiscal y laboral. Respondes en español.
+
+IMPORTANTE: NO tienes acceso a los datos de ninguna empresa. Das información general, educativa y normativa.
+Cuando el usuario pregunte sobre sus propios datos ("mis ventas", "mi empresa"), explícale amablemente que para eso debe ir a la sección Estadísticas donde el agente puede leer sus datos reales.
+
+FORMATO:
+## [Emoji] [Título breve]
+[Respuesta clara y práctica en párrafos o listas]
+
+> 💼 *Siempre confirma con tu contador certificado para casos específicos.*
+
+REGLAS:
+- Español colombiano, tono profesional pero accesible
+- Menciona el año fiscal si das tarifas o porcentajes (pueden cambiar)
+- Máximo 300 palabras
+- No inventes cifras — si no sabes algo con certeza, dilo`
+
+    const respuesta = await callOpenRouter({ system, user: pregunta, temperature: 0.5 })
+    res.json({ respuesta })
+  } catch (err) {
+    if (err.message.includes('OPENROUTER')) return res.status(500).json({ error: err.message })
+    if (err.message.includes('saturación') || err.message.includes('no generó')) return res.status(503).json({ error: err.message })
+    res.status(500).json({ error: err.message })
+  }
+}
+
+// ── POST /api/stats/reporte-ia ─────────────────────────────────────────────────
 const reporteIA = async (req, res) => {
   try {
-    const { periodo, resumen: ven, gastos, tendencia, clientes, productos } = req.body
-
-    const apiKey = process.env.OPENROUTER_API_KEY
-    if (!apiKey) return res.status(500).json({ error: 'OPENROUTER_API_KEY no configurada' })
+    const { periodo, resumen: ven, gastos, tendencia, clientes, productos, cajaDiaria, inventario, porCobrar } = req.body
 
     const utilidad_bruta = (ven?.total_ventas || 0) - (gastos?.total_gastos || 0)
-    const margen_pct = ven?.total_ventas > 0
-      ? ((utilidad_bruta / ven.total_ventas) * 100).toFixed(1)
-      : 0
+    const margen_pct     = ven?.total_ventas > 0 ? ((utilidad_bruta / ven.total_ventas) * 100).toFixed(1) : 0
 
-    const system = `Eres un analista financiero senior colombiano. Redacta un REPORTE FINANCIERO EJECUTIVO formal y completo para el período ${periodo?.desde} al ${periodo?.hasta}. Responde en español.
+    const system = `Eres un analista financiero senior colombiano. Redacta un REPORTE FINANCIERO EJECUTIVO formal para el período ${periodo?.desde} al ${periodo?.hasta}. Responde en español.
 
-ESTRUCTURA OBLIGATORIA DEL REPORTE:
+ESTRUCTURA OBLIGATORIA:
 
 # REPORTE FINANCIERO — ${periodo?.desde} al ${periodo?.hasta}
 
 ## 1. RESUMEN EJECUTIVO
-[Párrafo de 3-4 oraciones resumiendo el desempeño financiero del período. Incluye cifras principales.]
+[3-4 oraciones resumiendo el desempeño. Incluye cifras principales.]
 
 ---
 
 ## 2. INGRESOS
-[Análisis de ventas: total, composición POS vs FE, ticket promedio, comparación período anterior. Tabla si aplica.]
+[Análisis de ventas: total, POS vs FE, ticket promedio, comparación período anterior.]
 
 ---
 
 ## 3. GASTOS
-[Análisis de egresos por categoría, total IVA pagado, principales proveedores.]
+[Egresos por categoría, IVA pagado, principales proveedores.]
 
 ---
 
@@ -325,65 +304,40 @@ ESTRUCTURA OBLIGATORIA DEL REPORTE:
 
 ---
 
-## 5. INDICADORES CLAVE
+## 5. CAJA Y CARTERA
+[Resumen de cierres de caja y cuentas por cobrar pendientes si hay datos.]
+
+---
+
+## 6. INDICADORES CLAVE
 [KPIs más relevantes: crecimiento, eficiencia, alertas]
 
 ---
 
-## 6. CLIENTES Y PRODUCTOS DESTACADOS
+## 7. CLIENTES Y SERVICIOS DESTACADOS
 [Top 3 clientes y top 3 productos del período]
 
 ---
 
-## 7. RECOMENDACIONES
-1. [Acción específica con cifra]
-2. [Acción específica]
-3. [Acción específica]
+## 8. RECOMENDACIONES
+1. [Acción con cifra]
+2. [Acción]
+3. [Acción]
 
 ---
 > *Reporte generado por AppDian. Consulte con su contador para decisiones fiscales.*
 
-REGLAS:
-- Cifras en COP: $1.234.567
-- Máximo 600 palabras
-- Tono formal y profesional
-- Todos los valores numéricos en **negrita**
+REGLAS: Cifras en COP $1.234.567. Máximo 650 palabras. Tono formal. Valores en **negrita**.
 
-DATOS FINANCIEROS:
-${JSON.stringify({ periodo, ingresos: ven, gastos, utilidad_bruta, margen_pct, tendencia, top_clientes: clientes, top_productos: productos }, null, 2)}`
+DATOS:
+${JSON.stringify({ periodo, ingresos: ven, gastos, utilidad_bruta, margen_pct, tendencia, top_clientes: clientes, top_productos: productos, caja_diaria: cajaDiaria, inventario, por_cobrar: porCobrar }, null, 2)}`
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://appdian.app',
-        'X-Title': 'AppDian Reporte Financiero',
-      },
-      body: JSON.stringify({
-        model: 'nvidia/nemotron-3-ultra-550b-a55b:free',
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user',   content: 'Genera el reporte financiero ejecutivo completo.' },
-        ],
-        temperature: 0.4,
-        max_tokens: 1500,
-      }),
-    })
-
-    if (!response.ok) {
-      const txt = await response.text()
-      return res.status(response.status).json({ error: txt })
-    }
-
-    const json = await response.json()
-    const reporte = json.choices?.[0]?.message?.content
-    if (!reporte) return res.status(503).json({ error: 'El modelo no generó respuesta. Intenta de nuevo.' })
-
+    const reporte = await callOpenRouter({ system, user: 'Genera el reporte financiero ejecutivo completo.', temperature: 0.4, max_tokens: 1500 })
     res.json({ reporte })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    if (err.message.includes('OPENROUTER')) return res.status(500).json({ error: err.message })
+    res.status(503).json({ error: err.message })
   }
 }
 
-module.exports = { resumen, tendencia, topClientes, topProductos, aiAnalisis, reporteIA }
+module.exports = { resumen, tendencia, topClientes, topProductos, aiAnalisis, chatGeneral, reporteIA }
