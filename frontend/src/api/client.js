@@ -66,11 +66,13 @@ export const statsApi = {
 
 // ---- Invoices ----
 export const invoicesApi = {
-  dashboard: () => api.get('/invoices/dashboard'),
-  list: (params) => api.get('/invoices', { params }),
-  get: (id) => api.get(`/invoices/${id}`),
-  emitirPOS: (data) => api.post('/invoices/pos', data),
-  emitirFE:  (data) => api.post('/invoices', data),
+  dashboard:   ()     => api.get('/invoices/dashboard'),
+  list:        (params) => api.get('/invoices', { params }),
+  get:         (id)   => api.get(`/invoices/${id}`),
+  emitirPOS:   (data) => api.post('/invoices/pos', data),
+  emitirFE:    (data) => api.post('/invoices', data),
+  porCobrar:   ()     => api.get('/invoices/por-cobrar'),
+  marcarPagada:(id)   => api.patch(`/invoices/${id}/pagar`),
 }
 
 // ---- Gastos ----
@@ -123,6 +125,26 @@ export const proyeccionesApi = {
 // ---- Vencimientos tributarios ----
 export const vencimientosApi = {
   listar: () => api.get('/vencimientos'),
+}
+
+// ---- Caja Menor ----
+export const cajaMenorApi = {
+  listar:     (params) => api.get('/caja-menor',         { params }),
+  resumen:    (params) => api.get('/caja-menor/resumen', { params }),
+  crear:      (data)   => api.post('/caja-menor', data),
+  actualizar: (id, data) => api.put(`/caja-menor/${id}`, data),
+  eliminar:   (id)     => api.delete(`/caja-menor/${id}`),
+}
+
+// ---- Inventario ----
+export const inventarioApi = {
+  listar:       (params)      => api.get('/inventario',              { params }),
+  resumen:      ()            => api.get('/inventario/resumen'),
+  crear:        (data)        => api.post('/inventario', data),
+  actualizar:   (id, data)    => api.put(`/inventario/${id}`, data),
+  desactivar:   (id)          => api.delete(`/inventario/${id}`),
+  movimiento:   (id, data)    => api.post(`/inventario/${id}/movimiento`, data),
+  movimientos:  (id)          => api.get(`/inventario/${id}/movimientos`),
 }
 
 // ---- Panel profesional ----

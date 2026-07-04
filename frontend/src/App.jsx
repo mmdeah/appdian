@@ -22,6 +22,8 @@ import NominaColilla from './pages/NominaColilla'
 import Gastos from './pages/Gastos'
 import StatsReporte from './pages/StatsReporte'
 import VistaEmpresaPro from './pages/VistaEmpresaPro'
+import CajaMenor from './pages/CajaMenor'
+import Inventario from './pages/Inventario'
 
 function Spinner() {
   return (
@@ -74,6 +76,8 @@ export default function App() {
             <Route path="nomina/liquidacion/:id"     element={<NominaLiquidacion />} />
             <Route path="nomina/colilla/:id"         element={<NominaColilla />} />
             <Route path="gastos"                     element={<Gastos />} />
+            <Route path="caja-menor"                 element={<CajaMenor />} />
+            <Route path="inventario"                 element={<Inventario />} />
             <Route path="estadisticas/reporte"       element={<StatsReporte />} />
           </Route>
 

@@ -11,6 +11,11 @@ const TITLES = {
   '/clientes':     'Clientes',
   '/estadisticas': 'Estadísticas & Contabilidad',
   '/consultas':    'Mis Consultas',
+  '/nomina':       'Nómina',
+  '/gastos':       'Control de Gastos',
+  '/caja-menor':   'Caja Menor',
+  '/inventario':   'Inventario',
+  '/proyecciones': 'Proyecciones Tributarias',
 }
 
 export default function Layout() {

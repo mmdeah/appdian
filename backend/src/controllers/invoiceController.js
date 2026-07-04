@@ -275,30 +275,90 @@ const obtener = async (req, res) => {
   res.json(data)
 }
 
-// GET /api/invoices/dashboard — Resumen del día
+// GET /api/invoices/dashboard — Resumen del día + mes + por cobrar
 const dashboard = async (req, res) => {
-  const hoy = new Date().toISOString().split('T')[0]
+  const hoy         = new Date().toISOString().split('T')[0]
+  const primerMes   = hoy.slice(0, 7) + '-01'
+  const empresa_id  = req.user.empresa_id
 
+  // Facturas de hoy
   const { data, error } = await supabase
     .from('facturas')
     .select('tipo, estado, total')
-    .eq('empresa_id', req.user.empresa_id)
+    .eq('empresa_id', empresa_id)
     .gte('created_at', `${hoy}T00:00:00`)
 
   if (error) return res.status(500).json({ error: error.message })
 
+  // Ventas del mes (en paralelo)
+  const [{ data: mesDat }, { data: cobrarDat }] = await Promise.all([
+    supabase
+      .from('facturas')
+      .select('total')
+      .eq('empresa_id', empresa_id)
+      .gte('created_at', `${primerMes}T00:00:00`)
+      .in('estado', ['APROBADA', 'EMITIDA_LOCAL', 'PENDIENTE']),
+
+    // Facturas FE aprobadas sin marcar como pagadas
+    supabase
+      .from('facturas')
+      .select('total')
+      .eq('empresa_id', empresa_id)
+      .eq('tipo', 'FE')
+      .eq('pagada', false)
+      .in('estado', ['APROBADA', 'EMITIDA_LOCAL'])
+      .catch(() => ({ data: [] })),
+  ])
+
   const resumen = {
     total_ventas: data.reduce((acc, f) => acc + (f.total || 0), 0),
     num_facturas: data.length,
-    aprobadas: data.filter(f => f.estado === 'APROBADA' || f.estado === 'EMITIDA_LOCAL').length,
-    pendientes: data.filter(f => f.estado === 'PENDIENTE').length,
+    aprobadas:    data.filter(f => f.estado === 'APROBADA' || f.estado === 'EMITIDA_LOCAL').length,
+    pendientes:   data.filter(f => f.estado === 'PENDIENTE').length,
+    ventas_mes:   (mesDat || []).reduce((acc, f) => acc + (f.total || 0), 0),
+    por_cobrar:   (cobrarDat || []).reduce((acc, f) => acc + (f.total || 0), 0),
     por_tipo: {
       POS: data.filter(f => f.tipo === 'POS').length,
-      FE: data.filter(f => f.tipo === 'FE').length
+      FE:  data.filter(f => f.tipo === 'FE').length
     }
   }
 
   res.json(resumen)
 }
 
-module.exports = { emitirPOS, emitirFacturaElectronica, listar, obtener, dashboard }
+// GET /api/invoices/por-cobrar — Facturas FE pendientes de pago
+const porCobrar = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('facturas')
+      .select('*')
+      .eq('empresa_id', req.user.empresa_id)
+      .eq('tipo', 'FE')
+      .eq('pagada', false)
+      .in('estado', ['APROBADA', 'EMITIDA_LOCAL'])
+      .order('created_at', { ascending: false })
+
+    if (error) return res.status(500).json({ error: error.message })
+    res.json({ facturas: data || [] })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+// PATCH /api/invoices/:id/pagar — Marcar factura como pagada
+const marcarPagada = async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from('facturas')
+      .update({ pagada: true })
+      .eq('id', req.params.id)
+      .eq('empresa_id', req.user.empresa_id)
+
+    if (error) return res.status(500).json({ error: error.message })
+    res.json({ ok: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+module.exports = { emitirPOS, emitirFacturaElectronica, listar, obtener, dashboard, porCobrar, marcarPagada }

@@ -51,6 +51,7 @@
 .stat-icon--success { background: var(--success-soft); color: var(--success); }
 .stat-icon--info    { background: var(--info-soft);    color: var(--info); }
 .stat-icon--warning { background: var(--warning-soft); color: var(--warning); }
+.stat-icon--danger  { background: var(--danger-soft);  color: var(--danger); }
 
 .stat-body { flex: 1; min-width: 0; }
 .stat-label { margin-bottom: var(--s-1); }

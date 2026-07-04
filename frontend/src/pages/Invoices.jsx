@@ -4,6 +4,105 @@ import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
 import './Invoices.css'
 
+// ── Por Cobrar tab ───────────────────────────────────────────
+function PorCobrarTab() {
+  const [facturas, setFacturas] = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [marking, setMarking]   = useState(null)
+
+  function cargar() {
+    setLoading(true)
+    invoicesApi.porCobrar()
+      .then(({ data }) => setFacturas(data.facturas || []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => { cargar() }, [])
+
+  async function marcarPagada(id) {
+    setMarking(id)
+    try {
+      await invoicesApi.marcarPagada(id)
+      cargar()
+    } catch { alert('Error al marcar como pagada') }
+    finally { setMarking(null) }
+  }
+
+  const total = facturas.reduce((s, f) => s + (f.total || 0), 0)
+
+  if (loading) return <div className="table-loading"><div className="spinner" /></div>
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-4)' }}>
+      {facturas.length > 0 && (
+        <div className="inv-summary">
+          <div className="inv-summary-card">
+            <span className="inv-summary-label">Facturas pendientes</span>
+            <span className="inv-summary-value">{facturas.length}</span>
+          </div>
+          <div className="inv-summary-card" style={{ gridColumn: 'span 3' }}>
+            <span className="inv-summary-label">Total por cobrar</span>
+            <span className="inv-summary-value" style={{ color: 'var(--danger)' }}>
+              {new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', maximumFractionDigits:0 }).format(total)}
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div className="card table-card">
+        {facturas.length === 0 ? (
+          <div className="empty-state">
+            <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.2">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p>¡Sin facturas pendientes de cobro!</p>
+          </div>
+        ) : (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Cliente</th>
+                <th className="td-right">Total</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {facturas.map(f => (
+                <tr key={f.id}>
+                  <td><span className="inv-num">#{f.numero_documento}</span></td>
+                  <td>
+                    <p className="td-main">{f.cliente_nombre || '— Consumidor Final'}</p>
+                    {f.cliente_nit && <p className="td-sub muted t-xs">NIT {f.cliente_nit}</p>}
+                  </td>
+                  <td className="td-price td-right">
+                    {new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', maximumFractionDigits:0 }).format(f.total)}
+                  </td>
+                  <td><Badge variant={f.estado}>{f.estado}</Badge></td>
+                  <td className="muted t-xs">{new Date(f.created_at).toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' })}</td>
+                  <td>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      disabled={marking === f.id}
+                      onClick={() => marcarPagada(f.id)}
+                    >
+                      {marking === f.id ? '…' : '✓ Cobrada'}
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  )
+}
+
 const COP = (n) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0)
 
@@ -36,6 +135,7 @@ function exportarExcel(invoices) {
 }
 
 export default function Invoices() {
+  const [tab,      setTab]      = useState('todas')
   const [invoices, setInvoices] = useState([])
   const [loading,  setLoading]  = useState(true)
   const [filters,  setFilters]  = useState({ tipo: '', estado: '', desde: '', hasta: '' })
@@ -72,6 +172,19 @@ export default function Invoices() {
   return (
     <div className="invoices-page">
 
+      {/* ── Tabs ────────────────────────────────────────────────────────────── */}
+      <div className="inv-tabs">
+        <button className={`inv-tab ${tab === 'todas' ? 'inv-tab--active' : ''}`} onClick={() => setTab('todas')}>
+          📋 Todas las facturas
+        </button>
+        <button className={`inv-tab ${tab === 'cobrar' ? 'inv-tab--active' : ''}`} onClick={() => setTab('cobrar')}>
+          💰 Por cobrar
+        </button>
+      </div>
+
+      {tab === 'cobrar' && <PorCobrarTab />}
+
+      {tab === 'todas' && <>
       {/* ── Filtros ─────────────────────────────────────────────────────────── */}
       <div className="inv-filters card">
         <div className="filter-group">
@@ -223,6 +336,7 @@ export default function Invoices() {
           </table>
         )}
       </div>
+      </>}
     </div>
   )
 }

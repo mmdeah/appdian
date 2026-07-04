@@ -159,6 +159,33 @@ function ModalGasto({ gasto, onSave, onClose }) {
   )
 }
 
+// ── Exportar a Excel ─────────────────────────────────────────
+function exportarExcel(gastos) {
+  const headers = ['Fecha','Descripción','Categoría','Proveedor','Monto','IVA','Total','Comprobante','Medio de pago','Pagado']
+  const rows = gastos.map(g => [
+    g.fecha || '',
+    g.descripcion || '',
+    CATEGORIAS[g.categoria]?.label || g.categoria || '',
+    g.proveedor || '',
+    g.monto || 0,
+    g.iva || 0,
+    g.total ?? ((g.monto || 0) + (g.iva || 0)),
+    g.numero_comprobante ? `${g.tipo_comprobante} ${g.numero_comprobante}` : '',
+    g.medio_pago || '',
+    g.pagado ? 'Sí' : 'No',
+  ])
+  const csv = [headers, ...rows]
+    .map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = `gastos-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 // ── Chip de categoría ────────────────────────────────────────
 function CatChip({ cat }) {
   const c = CATEGORIAS[cat] || CATEGORIAS.OTROS
@@ -294,6 +321,15 @@ export default function Gastos() {
         <button className="gf-clear" onClick={() => { setFiltros({ desde: isoDesde(30), hasta: isoHoy(), categoria: '' }); setPagina(0) }}>
           Limpiar
         </button>
+        <div style={{ marginLeft: 'auto' }}>
+          <button
+            className="g-btn-export"
+            onClick={() => exportarExcel(gastos)}
+            disabled={gastos.length === 0}
+          >
+            ↓ Exportar Excel
+          </button>
+        </div>
       </div>
 
       {loading ? (

@@ -434,6 +434,23 @@
 }
 .g-btn-sec:hover { background: var(--border, #e5e7eb); }
 
+.g-btn-export {
+  padding: .45rem 1rem;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border-mid, #d1d5db);
+  border-radius: 8px;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-primary, #111);
+  transition: border-color .15s, background .15s;
+}
+.g-btn-export:hover:not(:disabled) {
+  border-color: var(--accent, #6366f1);
+  background: var(--accent-soft, #eef2ff);
+}
+.g-btn-export:disabled { opacity: .45; cursor: not-allowed; }
+
 /* Spinner */
 .spinner {
   width: 32px; height: 32px;
