@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { invoicesApi } from '../api/client'
+import { useAuth } from '../context/AuthContext'
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
+import { printFactura } from '../utils/printFactura'
 import './Invoices.css'
 
 // ── Por Cobrar tab ───────────────────────────────────────────
@@ -135,11 +137,25 @@ function exportarExcel(invoices) {
 }
 
 export default function Invoices() {
+  const { empresa } = useAuth()
   const [tab,      setTab]      = useState('todas')
   const [invoices, setInvoices] = useState([])
   const [loading,  setLoading]  = useState(true)
   const [filters,  setFilters]  = useState({ tipo: '', estado: '', desde: '', hasta: '' })
   const [expanded, setExpanded] = useState(null)
+  const [printing, setPrinting] = useState(null)
+
+  async function handlePrint(facturaId) {
+    setPrinting(facturaId)
+    try {
+      const { data } = await invoicesApi.get(facturaId)
+      printFactura(data, empresa || {})
+    } catch {
+      alert('No se pudo cargar el detalle de la factura.')
+    } finally {
+      setPrinting(null)
+    }
+  }
 
   function load(f = filters) {
     setLoading(true)
@@ -296,9 +312,18 @@ export default function Invoices() {
                         <Button variant="ghost" size="sm" onClick={() => setExpanded(prev => prev === f.id ? null : f.id)}>
                           {expanded === f.id ? 'Cerrar' : 'Ver'}
                         </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          disabled={printing === f.id}
+                          onClick={() => handlePrint(f.id)}
+                          title="Imprimir / Guardar como PDF"
+                        >
+                          {printing === f.id ? '…' : '🖨️ PDF'}
+                        </Button>
                         {f.pdf_url && (
                           <a href={f.pdf_url} target="_blank" rel="noreferrer">
-                            <Button variant="secondary" size="sm">PDF</Button>
+                            <Button variant="secondary" size="sm">DIAN</Button>
                           </a>
                         )}
                       </div>
