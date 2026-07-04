@@ -8,12 +8,37 @@ const COP = (n) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0)
 
 const DATE = (s) =>
-  new Date(s).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  new Date(s).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })
+
+function exportarExcel(invoices) {
+  const headers = ['N°', 'Tipo', 'Cliente', 'NIT', 'Subtotal', 'IVA', 'Total', 'Estado', 'Fecha']
+  const rows = invoices.map(f => [
+    f.numero_documento || '',
+    f.tipo,
+    f.cliente_nombre || 'Consumidor Final',
+    f.cliente_nit || '',
+    f.subtotal || 0,
+    f.iva || 0,
+    f.total || 0,
+    f.estado,
+    DATE(f.created_at),
+  ])
+  const csv = [headers, ...rows]
+    .map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = `facturas-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [filters, setFilters] = useState({ tipo: '', estado: '', desde: '', hasta: '' })
+  const [loading,  setLoading]  = useState(true)
+  const [filters,  setFilters]  = useState({ tipo: '', estado: '', desde: '', hasta: '' })
   const [expanded, setExpanded] = useState(null)
 
   function load(f = filters) {
@@ -33,13 +58,21 @@ export default function Invoices() {
     load(next)
   }
 
-  function toggleExpand(id) {
-    setExpanded(prev => prev === id ? null : id)
+  function limpiar() {
+    const empty = { tipo: '', estado: '', desde: '', hasta: '' }
+    setFilters(empty)
+    load(empty)
   }
+
+  // Totales calculados del listado actual
+  const totalFacturado = invoices.reduce((s, f) => s + (f.total    || 0), 0)
+  const totalIVA       = invoices.reduce((s, f) => s + (f.iva      || 0), 0)
+  const totalSinIVA    = invoices.reduce((s, f) => s + (f.subtotal || 0), 0)
 
   return (
     <div className="invoices-page">
-      {/* Filters */}
+
+      {/* ── Filtros ─────────────────────────────────────────────────────────── */}
       <div className="inv-filters card">
         <div className="filter-group">
           <label className="filter-label caps muted">Tipo</label>
@@ -56,7 +89,7 @@ export default function Invoices() {
           <select className="filter-select" value={filters.estado} onChange={setFilter('estado')}>
             <option value="">Todos</option>
             <option value="APROBADA">Aprobada (DIAN)</option>
-            <option value="EMITIDA_LOCAL">Emitida local (prueba)</option>
+            <option value="EMITIDA_LOCAL">Emitida local</option>
             <option value="PENDIENTE">Pendiente</option>
             <option value="RECHAZADA">Rechazada</option>
             <option value="ERROR">Error</option>
@@ -70,12 +103,41 @@ export default function Invoices() {
           <label className="filter-label caps muted">Hasta</label>
           <input className="filter-date" type="date" value={filters.hasta} onChange={setFilter('hasta')} />
         </div>
-        <Button variant="ghost" size="sm" onClick={() => { setFilters({ tipo: '', estado: '', desde: '', hasta: '' }); load({ tipo: '', estado: '', desde: '', hasta: '' }) }}>
-          Limpiar
-        </Button>
+        <Button variant="ghost" size="sm" onClick={limpiar}>Limpiar</Button>
+        <div style={{ marginLeft: 'auto' }}>
+          <Button
+            variant="secondary" size="sm"
+            onClick={() => exportarExcel(invoices)}
+            disabled={invoices.length === 0}
+          >
+            ↓ Exportar Excel
+          </Button>
+        </div>
       </div>
 
-      {/* Table */}
+      {/* ── Tarjetas resumen ────────────────────────────────────────────────── */}
+      {!loading && invoices.length > 0 && (
+        <div className="inv-summary">
+          <div className="inv-summary-card">
+            <span className="inv-summary-label">Facturas</span>
+            <span className="inv-summary-value">{invoices.length}</span>
+          </div>
+          <div className="inv-summary-card">
+            <span className="inv-summary-label">Total facturado</span>
+            <span className="inv-summary-value">{COP(totalFacturado)}</span>
+          </div>
+          <div className="inv-summary-card">
+            <span className="inv-summary-label">Subtotal sin IVA</span>
+            <span className="inv-summary-value">{COP(totalSinIVA)}</span>
+          </div>
+          <div className="inv-summary-card inv-summary-iva">
+            <span className="inv-summary-label">IVA total</span>
+            <span className="inv-summary-value">{COP(totalIVA)}</span>
+          </div>
+        </div>
+      )}
+
+      {/* ── Tabla ───────────────────────────────────────────────────────────── */}
       <div className="card table-card">
         {loading ? (
           <div className="table-loading"><div className="spinner" /></div>
@@ -93,7 +155,9 @@ export default function Invoices() {
                 <th>N°</th>
                 <th>Tipo</th>
                 <th>Cliente</th>
-                <th>Total</th>
+                <th className="td-right">Subtotal</th>
+                <th className="td-right">IVA</th>
+                <th className="td-right">Total</th>
                 <th>Estado</th>
                 <th>Fecha</th>
                 <th>Acciones</th>
@@ -109,12 +173,14 @@ export default function Invoices() {
                       <p className="td-main">{f.cliente_nombre || '— Consumidor Final'}</p>
                       {f.cliente_nit && <p className="td-sub muted t-xs">NIT {f.cliente_nit}</p>}
                     </td>
-                    <td className="td-price">{COP(f.total)}</td>
+                    <td className="td-right muted t-sm">{COP(f.subtotal)}</td>
+                    <td className="td-right muted t-sm">{COP(f.iva)}</td>
+                    <td className="td-price td-right">{COP(f.total)}</td>
                     <td><Badge variant={f.estado}>{f.estado}</Badge></td>
                     <td className="muted t-xs">{DATE(f.created_at)}</td>
                     <td>
                       <div className="action-btns">
-                        <Button variant="ghost" size="sm" onClick={() => toggleExpand(f.id)}>
+                        <Button variant="ghost" size="sm" onClick={() => setExpanded(prev => prev === f.id ? null : f.id)}>
                           {expanded === f.id ? 'Cerrar' : 'Ver'}
                         </Button>
                         {f.pdf_url && (
@@ -127,7 +193,7 @@ export default function Invoices() {
                   </tr>
                   {expanded === f.id && (
                     <tr key={`${f.id}-detail`} className="detail-row">
-                      <td colSpan={7}>
+                      <td colSpan={9}>
                         <div className="inv-detail">
                           <div className="detail-grid">
                             <div className="detail-item">

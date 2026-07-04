@@ -1,5 +1,45 @@
 .invoices-page { display: flex; flex-direction: column; gap: var(--s-5); }
 
+/* ── Tarjetas resumen ───────────────────────────────────────────────────── */
+.inv-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-4);
+}
+
+.inv-summary-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--s-4) var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inv-summary-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.inv-summary-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.inv-summary-iva .inv-summary-value { color: var(--accent); }
+
+.td-right { text-align: right; }
+
+@media (max-width: 900px) {
+  .inv-summary { grid-template-columns: repeat(2, 1fr); }
+}
+
 /* Filters */
 .inv-filters {
   display: flex;
