@@ -2,275 +2,183 @@
    Cotizaciones
    ══════════════════════════════════════════════════════════ */
 
-.cot-page { display: flex; flex-direction: column; gap: var(--s-4); }
+.cot-page  { display:flex; flex-direction:column; gap:var(--s-4); }
 
-/* ── Page header ─────────────────────────────────────────── */
-.cot-header { display: flex; justify-content: space-between; align-items: center; gap: var(--s-4); }
-.cot-title  { font-size: var(--text-2xl); font-weight: 700; color: var(--text-primary); }
-.cot-sub    { font-size: var(--text-sm); color: var(--text-muted); margin-top: 2px; }
+/* ── Header ─────────────────────────────────────────────── */
+.cot-header { display:flex; justify-content:space-between; align-items:center; gap:var(--s-4); }
+.cot-title  { font-size:var(--text-2xl); font-weight:700; color:var(--text-primary); }
+.cot-sub    { font-size:var(--text-sm); color:var(--text-muted); margin-top:2px; }
 
 /* ── Backdrop ────────────────────────────────────────────── */
 .cot-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.5);
-  z-index: 200;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 32px 16px 40px;
-  overflow-y: auto;
+  position:fixed; inset:0; background:rgba(0,0,0,.5);
+  z-index:200; display:flex; align-items:flex-start;
+  justify-content:center; padding:32px 16px 40px; overflow-y:auto;
 }
 
-/* ── Modal shell ─────────────────────────────────────────── */
+/* ── Modal ───────────────────────────────────────────────── */
 .cot-modal {
-  background: var(--surface);
-  border-radius: 14px;
-  width: 100%;
-  max-width: 800px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.25);
-  display: flex;
-  flex-direction: column;
-  max-height: calc(100vh - 72px);
+  background:var(--surface); border-radius:14px;
+  width:100%; max-width:800px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  display:flex; flex-direction:column;
+  max-height:calc(100vh - 72px);
 }
-
 .cot-mhd {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 24px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:18px 24px; border-bottom:1px solid var(--border); flex-shrink:0;
 }
-.cot-mhd h2 { font-size: var(--text-lg); font-weight: 700; color: var(--text-primary); }
-
+.cot-mhd h2 { font-size:var(--text-lg); font-weight:700; color:var(--text-primary); }
 .cot-x {
-  background: none; border: none; cursor: pointer; color: var(--text-muted);
-  font-size: 15px; width: 30px; height: 30px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  transition: background .15s;
+  background:none; border:none; cursor:pointer; color:var(--text-muted);
+  font-size:15px; width:30px; height:30px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; transition:background .15s;
 }
-.cot-x:hover { background: var(--surface-hover); }
-
-/* Scrollable body */
-.cot-mbody { overflow-y: auto; flex: 1; }
-
-.cot-mft {
-  display: flex; justify-content: flex-end; gap: 10px;
-  padding: 14px 24px;
-  border-top: 1px solid var(--border);
-  flex-shrink: 0;
-}
+.cot-x:hover { background:var(--surface-hover); }
+.cot-mbody  { overflow-y:auto; flex:1; }
+.cot-mft    { display:flex; justify-content:flex-end; gap:10px; padding:14px 24px; border-top:1px solid var(--border); flex-shrink:0; }
 
 /* ── Sections ────────────────────────────────────────────── */
-.cot-sec {
-  padding: 18px 24px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.cot-sec-lbl {
-  font-size: 10.5px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .09em;
-  color: var(--text-muted);
-}
+.cot-sec   { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; flex-direction:column; gap:12px; }
+.cot-lbl   { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--text-muted); }
 
 /* ── Toggle ──────────────────────────────────────────────── */
-.cot-toggle { display: flex; gap: 8px; }
+.cot-toggle { display:flex; gap:8px; }
 .cot-toggle button {
-  padding: 6px 14px; border-radius: 8px;
-  border: 1.5px solid var(--border);
-  background: var(--bg); color: var(--text-secondary);
-  font-size: 13px; font-weight: 500; cursor: pointer;
-  transition: all .15s;
+  padding:6px 14px; border-radius:8px; border:1.5px solid var(--border);
+  background:var(--bg); color:var(--text-secondary);
+  font-size:13px; font-weight:500; cursor:pointer; transition:all .15s;
 }
-.cot-toggle button:hover { border-color: var(--primary); color: var(--primary); }
-.cot-toggle button.on    { background: var(--primary); border-color: var(--primary); color: #fff; }
+.cot-toggle button:hover { border-color:var(--primary); color:var(--primary); }
+.cot-toggle button.on    { background:var(--primary); border-color:var(--primary); color:#fff; }
 
-/* ── Client 2-col grid ───────────────────────────────────── */
-.cot-g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.cot-f  { display: flex; flex-direction: column; gap: 4px; }
-.cot-f label {
-  font-size: 10.5px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .06em;
-  color: var(--text-muted);
-}
+/* ── Client grid ─────────────────────────────────────────── */
+.cot-g2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.cot-f  { display:flex; flex-direction:column; gap:4px; }
+.cot-f label { font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); }
 
-/* ── Shared input ────────────────────────────────────────── */
+/* ── Input ───────────────────────────────────────────────── */
 .cot-inp {
-  padding: 7px 10px;
-  border: 1.5px solid var(--border);
-  border-radius: 7px;
-  background: var(--bg);
-  color: var(--text-primary);
-  font-size: 13px;
-  outline: none;
+  padding:7px 10px;
+  border:1.5px solid var(--border);
+  border-radius:7px;
+  background:var(--bg);
+  color:var(--text-primary);
+  font-size:13px;
+  outline:none;
+  box-sizing:border-box;
+  transition:border-color .15s;
+  /* NO width:100% here — each context sets its own width */
+}
+.cot-inp:focus { border-color:var(--primary); }
+.cot-inp--r    { text-align:right; }
+
+/* Inside .cot-f (client fields) — full width */
+.cot-f .cot-inp { width:100%; }
+
+/* ── Items table ─────────────────────────────────────────── */
+.cot-tbl {
   width: 100%;
-  box-sizing: border-box;
-  transition: border-color .15s;
+  border-collapse: collapse;
 }
-.cot-inp:focus { border-color: var(--primary); }
-.cot-inp--r    { text-align: right; }
-
-/* ══════════════════════════════════════════════════════════
-   ITEMS — CSS Grid (6 cols)
-   1fr | 80px | 110px | 72px | 100px | 28px
-   ══════════════════════════════════════════════════════════ */
-.cot-grid {
-  display: grid;
-  grid-template-columns: 1fr 80px 110px 72px 100px 28px;
-  gap: 4px 8px;
-  align-items: center;
-}
-
-/* Header cells */
-.cot-gh {
-  font-size: 10.5px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .07em;
+.cot-th {
+  padding: 0 8px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
   color: var(--text-muted);
-  padding-bottom: 6px;
+  text-align: left;
   border-bottom: 1.5px solid var(--border);
 }
-.cot-gh--r { text-align: right; }
+.cot-th--desc { }
+.cot-th--num  { width: 96px;  text-align: right; }
+.cot-th--iva  { width: 76px;  text-align: right; }
+.cot-th--sub  { width: 110px; text-align: right; }
 
-/* Data cells */
-.cot-cell {
-  padding: 3px 0;
-  border-bottom: 1px solid var(--border);
-  /* min-height keeps row readable */
-  min-height: 36px;
-  display: flex;
-  align-items: center;
+.cot-tr td { border-bottom: 1px solid var(--border); }
+.cot-tr:last-child td { border-bottom: none; }
+
+.cot-td {
+  padding: 5px 6px;
+  vertical-align: middle;
 }
 
-.cot-cell--desc { position: relative; }
-.cot-cell--sub  {
-  justify-content: flex-end;
+/* Description cell — input fills it */
+.cot-td:first-child .cot-inp { width: 100%; display: block; }
+
+/* Numeric cells — input sized to column */
+.cot-td:not(:first-child) .cot-inp {
+  width: 100%;
+  display: block;
+}
+
+.cot-td--sub {
+  text-align: right;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
+  padding-right: 6px;
 }
-.cot-cell--rm { justify-content: center; }
-
-/* Last item row — remove bottom border */
-.cot-grid > *:nth-last-child(-n+6) { border-bottom: none; }
-
-/* ── Catalog suggestions ─────────────────────────────────── */
-.cot-sugs {
-  position: absolute;
-  top: calc(100% + 4px); left: 0; right: 0;
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.14);
-  z-index: 500;
-  list-style: none; margin: 0; padding: 4px 0;
-  max-height: 200px; overflow-y: auto;
-}
-.cot-sugs li {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 8px 12px; cursor: pointer; font-size: 13px; transition: background .1s;
-}
-.cot-sugs li:hover { background: var(--surface-hover); }
-.cot-sug-p { font-size: 12px; color: var(--text-muted); }
+.cot-td--rm { text-align: center; width: 32px; }
 
 /* ── Remove button ───────────────────────────────────────── */
 .cot-rm {
-  background: none; border: none; cursor: pointer;
-  color: var(--danger); font-size: 11px;
-  width: 22px; height: 22px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  transition: background .15s;
+  background:none; border:none; cursor:pointer; color:var(--danger);
+  font-size:11px; width:22px; height:22px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; transition:background .15s;
 }
-.cot-rm:hover { background: #fee2e2; }
+.cot-rm:hover { background:#fee2e2; }
 
-/* ── Add item button ─────────────────────────────────────── */
+/* ── Add item ────────────────────────────────────────────── */
 .cot-add {
-  background: none;
-  border: 1.5px dashed var(--border);
-  border-radius: 8px;
-  color: var(--text-muted);
-  font-size: 13px; padding: 7px 12px;
-  cursor: pointer; width: 100%; text-align: left;
-  margin-top: 4px;
-  transition: all .15s;
+  background:none; border:1.5px dashed var(--border); border-radius:8px;
+  color:var(--text-muted); font-size:13px; padding:7px 12px;
+  cursor:pointer; width:100%; text-align:left; margin-top:4px; transition:all .15s;
 }
-.cot-add:hover { border-color: var(--primary); color: var(--primary); background: rgba(99,102,241,.04); }
+.cot-add:hover { border-color:var(--primary); color:var(--primary); background:rgba(99,102,241,.04); }
 
 /* ── Totals ──────────────────────────────────────────────── */
 .cot-totals {
-  display: flex; flex-direction: column; align-items: flex-end;
-  gap: 5px; padding: 14px 24px;
-  background: var(--surface-hover);
-  border-bottom: 1px solid var(--border);
+  display:flex; flex-direction:column; align-items:flex-end;
+  gap:5px; padding:14px 24px;
+  background:var(--surface-hover); border-bottom:1px solid var(--border);
 }
-.cot-tl {
-  display: flex; justify-content: space-between;
-  width: 220px; font-size: 13px; color: var(--text-secondary);
-}
+.cot-tl   { display:flex; justify-content:space-between; width:220px; font-size:13px; color:var(--text-secondary); }
 .cot-tl--g {
-  font-size: 15px; font-weight: 700; color: var(--text-primary);
-  padding-top: 7px; border-top: 1.5px solid var(--border); margin-top: 2px;
+  font-size:15px; font-weight:700; color:var(--text-primary);
+  padding-top:7px; border-top:1.5px solid var(--border); margin-top:2px;
 }
-.cot-tl--g span:last-child { color: var(--primary); }
+.cot-tl--g span:last-child { color:var(--primary); }
 
-/* ── Extras row ──────────────────────────────────────────── */
-.cot-extras { flex-direction: row !important; align-items: flex-end; gap: 16px !important; }
+/* ── Extras ──────────────────────────────────────────────── */
+.cot-extras { flex-direction:row !important; align-items:flex-end; gap:16px !important; }
 
 /* ── Error ───────────────────────────────────────────────── */
-.cot-err {
-  color: var(--danger); font-size: 13px;
-  background: #fee2e2; border-radius: 8px;
-  padding: 8px 24px; margin: 0 24px 0;
-}
+.cot-err { color:var(--danger); font-size:13px; background:#fee2e2; border-radius:8px; padding:8px 24px; margin:0 24px; }
 
 /* ── Table actions ───────────────────────────────────────── */
 .cot-state-sel {
-  padding: 4px 8px;
-  border: 1.5px solid var(--border); border-radius: 6px;
-  background: var(--surface); color: var(--text-primary);
-  font-size: 12px; cursor: pointer; outline: none;
+  padding:4px 8px; border:1.5px solid var(--border); border-radius:6px;
+  background:var(--surface); color:var(--text-primary); font-size:12px; cursor:pointer; outline:none;
 }
-.cot-del {
-  background: none; border: none; cursor: pointer;
-  font-size: 14px; opacity: .45; padding: 4px; border-radius: 4px;
-  transition: opacity .15s;
-}
-.cot-del:hover { opacity: 1; }
+.cot-del { background:none; border:none; cursor:pointer; font-size:14px; opacity:.45; padding:4px; border-radius:4px; transition:opacity .15s; }
+.cot-del:hover { opacity:1; }
 
-/* ── Inline detail ───────────────────────────────────────── */
-.cot-detail {
-  padding: 14px 16px;
-  background: var(--surface-hover);
-  border-radius: 8px;
-  display: flex; flex-direction: column; gap: 10px;
-}
-.cot-dmeta {
-  display: flex; flex-wrap: wrap; gap: 16px;
-  font-size: 13px; color: var(--text-secondary);
-}
-.cot-dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
-.cot-dtable thead th {
-  font-size: 10.5px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .07em;
-  color: var(--text-muted); padding: 5px 10px;
-  text-align: left; border-bottom: 1px solid var(--border);
-}
-.cot-dtable tbody td {
-  padding: 5px 10px; border-bottom: 1px solid var(--border);
-  color: var(--text-secondary);
-}
-.cot-dtable tbody tr:last-child td { border-bottom: none; }
-.cot-dtotals {
-  display: flex; justify-content: flex-end; gap: 20px;
-  font-size: 13px; color: var(--text-secondary);
-}
+/* ── Detail ──────────────────────────────────────────────── */
+.cot-detail { padding:14px 16px; background:var(--surface-hover); border-radius:8px; display:flex; flex-direction:column; gap:10px; }
+.cot-dmeta  { display:flex; flex-wrap:wrap; gap:16px; font-size:13px; color:var(--text-secondary); }
+.cot-dtbl   { width:100%; border-collapse:collapse; font-size:13px; }
+.cot-dtbl thead th { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); padding:5px 10px; text-align:left; border-bottom:1px solid var(--border); }
+.cot-dtbl tbody td { padding:5px 10px; border-bottom:1px solid var(--border); color:var(--text-secondary); }
+.cot-dtbl tbody tr:last-child td { border-bottom:none; }
+.cot-dtots { display:flex; justify-content:flex-end; gap:20px; font-size:13px; color:var(--text-secondary); }
 
-/* ── Responsive ──────────────────────────────────────────── */
-@media (max-width: 640px) {
-  .cot-g2      { grid-template-columns: 1fr; }
-  .cot-extras  { flex-direction: column !important; }
-  .cot-grid    { grid-template-columns: 1fr 60px 80px 60px 80px 24px; }
+@media (max-width:640px) {
+  .cot-g2    { grid-template-columns:1fr; }
+  .cot-extras { flex-direction:column !important; }
+  .cot-th--num { width:70px; }
+  .cot-th--iva { width:58px; }
+  .cot-th--sub { width:85px; }
 }
