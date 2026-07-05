@@ -8,7 +8,7 @@ COPY frontend/package*.json ./frontend/
 RUN cd frontend && npm install --include=dev
 
 COPY frontend/ ./frontend/
-RUN cd frontend && npm run build
+RUN cd frontend && npm run build --force
 
 # ── Backend ───────────────────────────────────────────────────────────────────
 COPY backend/package*.json ./backend/
