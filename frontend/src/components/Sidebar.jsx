@@ -35,15 +35,6 @@ const NAV = [
     ),
   },
   {
-    to: '/productos',
-    label: 'Productos',
-    icon: (
-      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-        <path d="M20 7l-8-4-8 4m16 0v10l-8 4m-8-4V7m16 0L12 11M4 7l8 4" />
-      </svg>
-    ),
-  },
-  {
     to: '/clientes',
     label: 'Clientes',
     icon: (
@@ -118,7 +109,7 @@ const NAV = [
   },
   {
     to: '/inventario',
-    label: 'Inventario',
+    label: 'Productos',
     icon: (
       <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
         <path d="M20 7l-8-4-8 4m16 0v10l-8 4m-8-4V7m16 0L12 11M4 7l8 4" />

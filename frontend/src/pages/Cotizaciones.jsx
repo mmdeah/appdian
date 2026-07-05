@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { productsApi } from '../api/client'
+import { inventarioApi } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/ui/Button'
 import PrecioInput from '../components/ui/PrecioInput'
@@ -194,8 +194,8 @@ export default function Cotizaciones() {
   const [productos, setProductos] = useState([])
 
   useEffect(() => {
-    productsApi.list()
-      .then(({ data }) => setProductos(data.products || []))
+    inventarioApi.listar()
+      .then(({ data }) => setProductos(data.productos || []))
       .catch(() => {})
   }, [])
 
@@ -203,7 +203,7 @@ export default function Cotizaciones() {
     const prod = productos.find(p => p.nombre === val)
     setItems(prev => prev.map((it, i) => {
       if (i !== idx) return it
-      const precio = prod ? parseFloat(prod.precio_venta || prod.precio || 0) : it.precio
+      const precio = prod ? parseFloat(prod.precio || prod.precio_venta || 0) : it.precio
       const iva    = prod ? parseFloat(prod.iva_porcentaje || 0) : it.iva
       return { ...it, desc: val, precio, iva }
     }))

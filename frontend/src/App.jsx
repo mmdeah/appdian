@@ -6,7 +6,6 @@ import Register from './pages/Register'
 import AuthCallback from './pages/AuthCallback'
 import Dashboard from './pages/Dashboard'
 import POS from './pages/POS'
-import Products from './pages/Products'
 import Customers from './pages/Customers'
 import Invoices from './pages/Invoices'
 import Stats from './pages/Stats'
@@ -67,7 +66,6 @@ export default function App() {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard"    element={<Dashboard />} />
             <Route path="pos"          element={<POS />} />
-            <Route path="productos"    element={<Products />} />
             <Route path="clientes"     element={<Customers />} />
             <Route path="facturas"     element={<Invoices />} />
             <Route path="estadisticas" element={<Stats />} />
