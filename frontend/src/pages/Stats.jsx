@@ -4,7 +4,7 @@ import { statsApi, gastosApi, inventarioApi, cajaDiariaApi, invoicesApi } from '
 import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, Legend,
+  ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts'
 import AiAssistant from '../components/AiAssistant'
 import './Stats.css'
@@ -19,6 +19,9 @@ const PRESETS = [
 ]
 
 const CAT_COLORS = ['#6366f1','#0ea5e9','#f59e0b','#10b981','#3b82f6','#8b5cf6','#f43f5e','#64748b','#06b6d4','#dc2626','#84cc16','#a855f7']
+const GRID_COLOR = '#e2e8f0'
+const TICK_COLOR = '#94a3b8'
+const AXIS_COLOR = '#cbd5e1'
 
 function isoHoy() { return new Date().toISOString().split('T')[0] }
 function isoDesde(days) { const d = new Date(); d.setDate(d.getDate()-days); return d.toISOString().split('T')[0] }
@@ -29,13 +32,15 @@ function fmtK(v) {
   return `$${v}`
 }
 
+const ttStyle = { background:'#ffffff', border:'1px solid #e2e8f0', borderRadius:8, fontSize:12, color:'#0f172a' }
+
 // ── KPI Card ──────────────────────────────────────────────────────────────────
-function KpiCard({ label, value, sub, variacion, color }) {
+function KpiCard({ label, value, sub, variacion, valueColor }) {
   const sube = variacion > 0
   return (
-    <div className="kpi-card" style={color ? { borderTopColor:color, borderTopWidth:3 } : {}}>
+    <div className="kpi-card">
       <p className="kpi-label">{label}</p>
-      <p className="kpi-value" style={color ? { color } : {}}>{value}</p>
+      <p className="kpi-value" style={valueColor ? { color: valueColor } : {}}>{value}</p>
       {variacion != null && (
         <span className={`kpi-var ${sube ? 'kpi-var--up':'kpi-var--down'}`}>
           {sube ? '↑':'↓'} {Math.abs(variacion)}% vs período anterior
@@ -46,7 +51,7 @@ function KpiCard({ label, value, sub, variacion, color }) {
   )
 }
 
-// ── MAIN ──────────────────────────────────────────────────────────────────────
+// ── Sugerencias ───────────────────────────────────────────────────────────────
 const SUGERENCIAS_DATOS = [
   { emoji:'📈', texto:'¿Cómo están mis ventas vs el período anterior?' },
   { emoji:'👑', texto:'¿Cuáles son mis clientes más rentables?' },
@@ -89,7 +94,6 @@ export default function Stats() {
     const days = PRESETS[idx].days
     setHasta(isoHoy())
     setDesde(days === 0 ? isoHoy() : isoDesde(days))
-    // Agrupación automática según el rango
     setAgrup(days <= 7 ? 'dia' : days <= 90 ? 'dia' : days <= 180 ? 'semana' : 'mes')
   }
 
@@ -109,7 +113,6 @@ export default function Stats() {
     } catch { setError('No se pudieron cargar las estadísticas de ventas.') }
     finally  { setLoading(false) }
 
-    // Opcionales — fallan silenciosamente si la tabla no existe aún
     try {
       const [g, fl] = await Promise.all([
         gastosApi.resumen({ desde, hasta }),
@@ -125,7 +128,6 @@ export default function Stats() {
 
     try {
       const hist = await cajaDiariaApi.historial()
-      // Filtrar cierres dentro del período seleccionado
       const cierres = (hist.data.cierres || hist.data || [])
         .filter(c => c.fecha >= desde && c.fecha <= hasta)
       setCajaCierres(cierres)
@@ -150,8 +152,6 @@ export default function Stats() {
   const totalCajaStr   = fmt(cajaCierres.reduce((s,c)=>s+(c.total_ventas||0),0))
   const totalPorCobrar = porCobrar.reduce((s,f)=>s+(f.total||0),0)
 
-  const ttStyle = { background:'var(--surface)', border:'1px solid var(--border-mid)', borderRadius:8, fontSize:12 }
-
   return (
     <div className="stats-page">
 
@@ -164,7 +164,7 @@ export default function Stats() {
         </div>
         <div className="toolbar-divider" />
         <div className="toolbar-dates">
-          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" className="toolbar-cal-icon">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" style={{color:'#94a3b8',flexShrink:0}}>
             <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
           </svg>
           <input type="date" className="toolbar-date-input" value={desde} onChange={e=>{setDesde(e.target.value);setPresetIdx(-1)}} />
@@ -178,15 +178,23 @@ export default function Stats() {
           <option value="mes">Por mes</option>
         </select>
         <div className="toolbar-divider" />
-        <button className="btn-reporte" onClick={irAReporte}>📄 Generar reporte</button>
+        <button className="btn-reporte" onClick={irAReporte}>
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          </svg>
+          Generar reporte
+        </button>
       </div>
 
       {error && <div className="stats-error">{error}</div>}
 
-      {loading ? <div className="stats-loading"><div className="spinner"/></div> : (
+      {loading ? <div className="stats-loading"><div className="stats-spinner"/></div> : (
         <>
           {/* ── KPIs Ingresos ── */}
-          <p className="stats-section-label">📈 Ingresos</p>
+          <p className="stats-section-label">
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            Ingresos
+          </p>
           <div className="kpi-grid">
             <KpiCard label="Total Ventas"    value={fmt(resumen?.total_ventas)} variacion={resumen?.comparacion?.variacion_pct} />
             <KpiCard label="IVA Cobrado"     value={fmt(resumen?.total_iva)}    sub={`${resumen?.num_facturas||0} facturas`} />
@@ -195,22 +203,27 @@ export default function Stats() {
           </div>
 
           {/* ── KPIs Gastos + Resultado ── */}
-          <p className="stats-section-label">💸 Gastos y resultado</p>
+          <p className="stats-section-label">
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" style={{color:'var(--danger)'}}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Gastos y resultado
+          </p>
           <div className="kpi-grid">
-            <KpiCard label="Total Gastos"    value={fmt(gastos?.total_gastos)} sub={`${gastos?.num_gastos||0} registros`} color="#dc2626" />
-            <KpiCard label="IVA Pagado"      value={fmt(gastos?.total_iva)}    sub="Descontable en declaración" />
-            <KpiCard label="Utilidad Bruta"  value={fmt(utilidad_bruta)}       sub={`Margen: ${margen_pct}%`} color={utilidad_bruta>=0?'#16a34a':'#dc2626'} />
+            <KpiCard label="Total Gastos"    value={fmt(gastos?.total_gastos)}  sub={`${gastos?.num_gastos||0} registros`}   valueColor="var(--danger)" />
+            <KpiCard label="IVA Pagado"      value={fmt(gastos?.total_iva)}     sub="Descontable en declaración" />
+            <KpiCard label="Utilidad Bruta"  value={fmt(utilidad_bruta)}        sub={`Margen: ${margen_pct}%`}               valueColor={utilidad_bruta>=0?'var(--success)':'var(--danger)'} />
             <KpiCard label="Gastos / Ventas" value={resumen?.total_ventas>0 ? `${((gastos?.total_gastos||0)/resumen.total_ventas*100).toFixed(1)}%`:'—'} sub="Porcentaje de egresos" />
           </div>
 
           {/* ── KPIs Caja + Cartera + Inventario ── */}
-          <p className="stats-section-label">📦 Caja, cartera e inventario</p>
+          <p className="stats-section-label">
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" style={{color:'var(--warning)'}}><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+            Caja, cartera e inventarios
+          </p>
           <div className="kpi-grid">
             <KpiCard
               label="Ventas en Caja Diaria"
               value={totalCajaStr}
               sub={cajaCierres.length > 0 ? `${cajaCierres.length} cierres en el período` : 'Sin cierres en el período'}
-              color="#8b5cf6"
             />
             <KpiCard
               label="Efectivo contado"
@@ -221,13 +234,13 @@ export default function Stats() {
               label="Cuentas por cobrar"
               value={fmt(totalPorCobrar)}
               sub={`${porCobrar.length} factura${porCobrar.length!==1?'s':''} FE pendiente${porCobrar.length!==1?'s':''}`}
-              color={totalPorCobrar > 0 ? '#f59e0b' : undefined}
+              valueColor={totalPorCobrar > 0 ? 'var(--warning)' : undefined}
             />
             <KpiCard
               label="Inventario (valor venta)"
               value={invResumen ? fmt(invResumen.valor_venta) : '—'}
               sub={invResumen ? `${invResumen.total_productos} productos · ${invResumen.bajo_stock} bajo stock` : 'Sin productos físicos'}
-              color={invResumen?.bajo_stock > 0 ? '#f59e0b' : undefined}
+              valueColor={invResumen?.bajo_stock > 0 ? 'var(--warning)' : undefined}
             />
           </div>
 
@@ -237,10 +250,10 @@ export default function Stats() {
             {tendencia.length > 0 ? (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={tendencia}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-low)"/>
-                  <XAxis dataKey="fecha" tick={{fontSize:11,fill:'var(--muted)'}} stroke="var(--border-mid)"/>
-                  <YAxis tick={{fontSize:11,fill:'var(--muted)'}} stroke="var(--border-mid)" tickFormatter={fmtK}/>
-                  <Tooltip formatter={v=>[fmt(v),'Ventas']} contentStyle={ttStyle} labelStyle={{color:'var(--text)',fontWeight:600}}/>
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR}/>
+                  <XAxis dataKey="fecha" tick={{fontSize:11,fill:TICK_COLOR}} stroke={AXIS_COLOR}/>
+                  <YAxis tick={{fontSize:11,fill:TICK_COLOR}} stroke={AXIS_COLOR} tickFormatter={fmtK}/>
+                  <Tooltip formatter={v=>[fmt(v),'Ventas']} contentStyle={ttStyle} labelStyle={{color:'#0f172a',fontWeight:600}}/>
                   <Line type="monotone" dataKey="total" stroke="var(--accent)" strokeWidth={2.5} dot={false} activeDot={{r:5}}/>
                 </LineChart>
               </ResponsiveContainer>
@@ -253,16 +266,20 @@ export default function Stats() {
               <h3 className="chart-title">Flujo de Caja — Ingresos vs Gastos</h3>
               <ResponsiveContainer width="100%" height={240}>
                 <LineChart data={flujo}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-low)"/>
-                  <XAxis dataKey="fecha" tick={{fontSize:11,fill:'var(--muted)'}} stroke="var(--border-mid)"/>
-                  <YAxis tick={{fontSize:11,fill:'var(--muted)'}} stroke="var(--border-mid)" tickFormatter={fmtK}/>
-                  <Tooltip formatter={(v,n)=>[fmt(v),n==='ingresos'?'Ingresos':n==='gastos'?'Gastos':'Utilidad']} contentStyle={ttStyle} labelStyle={{color:'var(--text)',fontWeight:600}}/>
-                  <Legend formatter={n=>n==='ingresos'?'Ingresos':n==='gastos'?'Gastos':'Utilidad'}/>
-                  <Line type="monotone" dataKey="ingresos" stroke="#2563eb" strokeWidth={2} dot={false}/>
-                  <Line type="monotone" dataKey="gastos"   stroke="#dc2626" strokeWidth={2} dot={false} strokeDasharray="4 2"/>
-                  <Line type="monotone" dataKey="utilidad" stroke="#16a34a" strokeWidth={2} dot={false}/>
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR}/>
+                  <XAxis dataKey="fecha" tick={{fontSize:11,fill:TICK_COLOR}} stroke={AXIS_COLOR}/>
+                  <YAxis tick={{fontSize:11,fill:TICK_COLOR}} stroke={AXIS_COLOR} tickFormatter={fmtK}/>
+                  <Tooltip formatter={(v,n)=>[fmt(v),n==='ingresos'?'Ingresos':n==='gastos'?'Gastos':'Utilidad']} contentStyle={ttStyle} labelStyle={{color:'#0f172a',fontWeight:600}}/>
+                  <Line type="monotone" dataKey="ingresos" stroke="#2563eb"       strokeWidth={2}   dot={false} name="ingresos"/>
+                  <Line type="monotone" dataKey="gastos"   stroke="var(--danger)" strokeWidth={2}   dot={false} strokeDasharray="4 2" name="gastos"/>
+                  <Line type="monotone" dataKey="utilidad" stroke="var(--success)"strokeWidth={2}   dot={false} name="utilidad"/>
                 </LineChart>
               </ResponsiveContainer>
+              <div className="chart-legend">
+                <span className="chart-legend-item"><span className="chart-legend-dot" style={{background:'#2563eb'}}/> Ingresos</span>
+                <span className="chart-legend-item"><span className="chart-legend-dot" style={{background:'var(--danger)'}}/> Gastos</span>
+                <span className="chart-legend-item"><span className="chart-legend-dot" style={{background:'var(--success)'}}/> Utilidad</span>
+              </div>
             </div>
           )}
 
@@ -273,11 +290,11 @@ export default function Stats() {
               {clientes.length > 0 ? (
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={clientes.slice(0,7)} layout="vertical" margin={{left:8,right:8}}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-low)" horizontal={false}/>
-                    <XAxis type="number" tick={{fontSize:10,fill:'var(--muted)'}} stroke="var(--border-mid)" tickFormatter={fmtK}/>
-                    <YAxis type="category" dataKey="nombre" tick={{fontSize:10,fill:'var(--muted)'}} stroke="var(--border-mid)" width={110}/>
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} horizontal={false}/>
+                    <XAxis type="number" tick={{fontSize:10,fill:TICK_COLOR}} stroke={AXIS_COLOR} tickFormatter={fmtK}/>
+                    <YAxis type="category" dataKey="nombre" tick={{fontSize:10,fill:TICK_COLOR}} stroke={AXIS_COLOR} width={110}/>
                     <Tooltip formatter={v=>[fmt(v),'Ventas']} contentStyle={ttStyle}/>
-                    <Bar dataKey="total" fill="var(--accent)" radius={[0,4,4,0]}/>
+                    <Bar dataKey="total" fill="var(--sidebar)" radius={[0,4,4,0]}/>
                   </BarChart>
                 </ResponsiveContainer>
               ) : <div className="chart-empty">Sin datos</div>}
@@ -287,11 +304,11 @@ export default function Stats() {
               {productos.length > 0 ? (
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={productos.slice(0,7)} layout="vertical" margin={{left:8,right:8}}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-low)" horizontal={false}/>
-                    <XAxis type="number" tick={{fontSize:10,fill:'var(--muted)'}} stroke="var(--border-mid)" tickFormatter={fmtK}/>
-                    <YAxis type="category" dataKey="nombre" tick={{fontSize:10,fill:'var(--muted)'}} stroke="var(--border-mid)" width={110}/>
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} horizontal={false}/>
+                    <XAxis type="number" tick={{fontSize:10,fill:TICK_COLOR}} stroke={AXIS_COLOR} tickFormatter={fmtK}/>
+                    <YAxis type="category" dataKey="nombre" tick={{fontSize:10,fill:TICK_COLOR}} stroke={AXIS_COLOR} width={110}/>
                     <Tooltip formatter={v=>[fmt(v),'Ingresos']} contentStyle={ttStyle}/>
-                    <Bar dataKey="total" fill="#7c3aed" radius={[0,4,4,0]}/>
+                    <Bar dataKey="total" fill="#f97316" radius={[0,4,4,0]}/>
                   </BarChart>
                 </ResponsiveContainer>
               ) : <div className="chart-empty">Sin datos</div>}
@@ -324,9 +341,7 @@ export default function Stats() {
             </div>
           )}
 
-          {/* ══════════════════════════════════════════════════
-              AGENTE IA — componente compartido
-          ══════════════════════════════════════════════════ */}
+          {/* ── Agente IA ── */}
           <AiAssistant
             contexto={{
               periodo              : { desde, hasta },
