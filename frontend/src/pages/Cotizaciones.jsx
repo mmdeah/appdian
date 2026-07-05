@@ -12,9 +12,9 @@ const itemVacio = () => ({ id: Math.random(), desc: '', cantidad: 1, precio: 0, 
 function calcSub(it) { return Math.round(it.cantidad * it.precio * 100) / 100 }
 function calcIva(it) { return Math.round(calcSub(it) * it.iva / 100 * 100) / 100 }
 
-// ── Abre ventana de impresión ─────────────────────────────────────────────────
+// ── Impresión ──────────────────────────────────────────────────────────────────
 function imprimir({ empresa, consumidorFinal, cliente, items, nota, validez }) {
-  const COP2 = (n) =>
+  const F = (n) =>
     new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0)
 
   const subtotal = items.reduce((s, it) => s + calcSub(it), 0)
@@ -22,8 +22,7 @@ function imprimir({ empresa, consumidorFinal, cliente, items, nota, validez }) {
   const total    = Math.round((subtotal + iva) * 100) / 100
   const numero   = String(Math.floor(Math.random() * 9000) + 1000)
   const hoy      = new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' })
-
-  const vence = (() => {
+  const vence    = (() => {
     const d = new Date(); d.setDate(d.getDate() + (validez || 30))
     return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' })
   })()
@@ -33,9 +32,9 @@ function imprimir({ empresa, consumidorFinal, cliente, items, nota, validez }) {
       <td class="c">${i + 1}</td>
       <td>${it.desc}</td>
       <td class="r">${Number(it.cantidad).toLocaleString('es-CO')}</td>
-      <td class="r">${COP2(it.precio)}</td>
+      <td class="r">${F(it.precio)}</td>
       <td class="r">${it.iva}%</td>
-      <td class="r"><strong>${COP2(calcSub(it))}</strong></td>
+      <td class="r"><strong>${F(calcSub(it))}</strong></td>
     </tr>`).join('')
 
   const nombreCliente = consumidorFinal ? 'Consumidor Final' : (cliente.nombre || 'Consumidor Final')
@@ -104,7 +103,6 @@ function imprimir({ empresa, consumidorFinal, cliente, items, nota, validez }) {
       <div class="badge">BORRADOR</div>
     </div>
   </div>
-
   <div class="info-grid">
     <div class="info-box">
       <div class="info-label">Cliente / Destinatario</div>
@@ -120,7 +118,6 @@ function imprimir({ empresa, consumidorFinal, cliente, items, nota, validez }) {
       <div class="info-sub">NIT: ${empresa?.nit || '—'}<br>${empresa?.email || ''}</div>
     </div>
   </div>
-
   <div class="sec-label">Detalle de productos y servicios</div>
   <table>
     <thead>
@@ -135,22 +132,18 @@ function imprimir({ empresa, consumidorFinal, cliente, items, nota, validez }) {
     </thead>
     <tbody>${filas || '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:16px">Sin ítems</td></tr>'}</tbody>
   </table>
-
   <div class="totals-wrap">
     <div class="totals">
-      <div class="tot-row"><span>Base gravable</span><span>${COP2(subtotal)}</span></div>
-      <div class="tot-row"><span>IVA</span><span>${COP2(iva)}</span></div>
-      <div class="tot-row"><span>TOTAL</span><span>${COP2(total)}</span></div>
+      <div class="tot-row"><span>Base gravable</span><span>${F(subtotal)}</span></div>
+      <div class="tot-row"><span>IVA</span><span>${F(iva)}</span></div>
+      <div class="tot-row"><span>TOTAL</span><span>${F(total)}</span></div>
     </div>
   </div>
-
   ${nota ? `<div class="nota-block"><div class="nota-label">Notas / Condiciones</div>${nota}</div>` : ''}
-
   <div class="footer">
     <strong>Documento generado por AppDian</strong> · ${new Date().toLocaleString('es-CO')}<br>
     Esta cotización no constituye una factura de venta · Válida por ${validez || 30} días
   </div>
-
   <script>window.addEventListener('load', () => window.print())</script>
 </body>
 </html>`
@@ -159,6 +152,35 @@ function imprimir({ empresa, consumidorFinal, cliente, items, nota, validez }) {
   if (!win) { alert('Permite las ventanas emergentes para este sitio e intenta de nuevo.'); return }
   win.document.write(html)
   win.document.close()
+}
+
+// ── Componentes de UI locales ─────────────────────────────────────────────────
+function NumBadge({ n }) {
+  return (
+    <div style={{
+      width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+      background: 'var(--primary)', color: '#fff',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: 12, fontWeight: 700,
+    }}>{n}</div>
+  )
+}
+
+function SectionCard({ children, style }) {
+  return (
+    <div className="card" style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 16, ...style }}>
+      {children}
+    </div>
+  )
+}
+
+function SectionTitle({ n, label }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <NumBadge n={n} />
+      <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>{label}</span>
+    </div>
+  )
 }
 
 // ── Página principal ──────────────────────────────────────────────────────────
@@ -177,7 +199,6 @@ export default function Cotizaciones() {
       .catch(() => {})
   }, [])
 
-  // Cuando el usuario escoge un producto del datalist, auto-llena precio e IVA
   function onDescChange(idx, val) {
     const prod = productos.find(p => p.nombre === val)
     setItems(prev => prev.map((it, i) => {
@@ -190,236 +211,266 @@ export default function Cotizaciones() {
 
   function onNum(idx, field, val) {
     const n = typeof val === 'number' ? val : (parseFloat(val) || 0)
-    setItems(prev => prev.map((it, i) =>
-      i !== idx ? it : { ...it, [field]: n }
-    ))
+    setItems(prev => prev.map((it, i) => i !== idx ? it : { ...it, [field]: n }))
   }
 
   const subtotal = items.reduce((s, it) => s + calcSub(it), 0)
   const ivaTotal = items.reduce((s, it) => s + calcIva(it), 0)
   const total    = Math.round((subtotal + ivaTotal) * 100) / 100
 
-  const inputStyle = {
-    width: '100%', padding: '7px 10px',
-    border: '1.5px solid var(--border)', borderRadius: 7,
+  const inp = {
+    width: '100%', padding: '8px 11px',
+    border: '1.5px solid var(--border)', borderRadius: 8,
     background: 'var(--bg)', color: 'var(--text-primary)',
     fontSize: 13, outline: 'none', boxSizing: 'border-box',
+    transition: 'border-color .15s',
   }
-  const labelStyle = {
-    display: 'block', fontSize: 11, fontWeight: 700,
-    textTransform: 'uppercase', letterSpacing: '.06em',
-    color: 'var(--text-muted)', marginBottom: 4,
+  const lbl = {
+    display: 'block', fontSize: 10.5, fontWeight: 700,
+    textTransform: 'uppercase', letterSpacing: '.07em',
+    color: 'var(--text-muted)', marginBottom: 5,
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-4)' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
 
-      {/* ── Cabecera ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 700, color: 'var(--text-primary)' }}>
-            Cotizaciones
-          </h1>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', marginTop: 2 }}>
-            Genera una propuesta comercial en PDF
-          </p>
-        </div>
-        <Button variant="primary" onClick={() => imprimir({ empresa, consumidorFinal, cliente, items, nota, validez })}>
-          🖨️ Generar cotización
-        </Button>
-      </div>
+      {/* ════════════ COLUMNA IZQUIERDA ════════════ */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-      {/* ── 1. Cliente ── */}
-      <div className="card" style={{ padding: 'var(--s-5)', display: 'flex', flexDirection: 'column', gap: 'var(--s-3)' }}>
-        <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)' }}>
-          1 · Cliente
-        </p>
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            onClick={() => setCF(true)}
-            style={{
-              padding: '7px 16px', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer',
-              border: '1.5px solid', transition: 'all .15s',
-              borderColor: consumidorFinal ? 'var(--primary)' : 'var(--border)',
-              background: consumidorFinal ? 'var(--primary)' : 'var(--bg)',
-              color: consumidorFinal ? '#fff' : 'var(--text-secondary)',
-            }}
-          >
-            Consumidor final
-          </button>
-          <button
-            onClick={() => setCF(false)}
-            style={{
-              padding: '7px 16px', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer',
-              border: '1.5px solid', transition: 'all .15s',
-              borderColor: !consumidorFinal ? 'var(--primary)' : 'var(--border)',
-              background: !consumidorFinal ? 'var(--primary)' : 'var(--bg)',
-              color: !consumidorFinal ? '#fff' : 'var(--text-secondary)',
-            }}
-          >
-            Cliente específico
-          </button>
-        </div>
-
-        {!consumidorFinal && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-            <div>
-              <label style={labelStyle}>Nombre / Razón social</label>
-              <input style={inputStyle} placeholder="Empresa o persona"
-                value={cliente.nombre} onChange={e => setCliente(p => ({ ...p, nombre: e.target.value }))} />
-            </div>
-            <div>
-              <label style={labelStyle}>NIT / CC</label>
-              <input style={inputStyle} placeholder="900123456-1"
-                value={cliente.nit} onChange={e => setCliente(p => ({ ...p, nit: e.target.value }))} />
-            </div>
-            <div>
-              <label style={labelStyle}>Email</label>
-              <input style={inputStyle} type="email" placeholder="cliente@empresa.com"
-                value={cliente.email} onChange={e => setCliente(p => ({ ...p, email: e.target.value }))} />
-            </div>
+        {/* Encabezado */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+              Nueva cotización
+            </h1>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>
+              Genera una propuesta comercial en PDF para tu cliente.
+            </p>
           </div>
-        )}
-      </div>
+          <button
+            style={{
+              padding: '8px 18px', borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              border: '1.5px solid var(--border)', background: 'transparent',
+              color: 'var(--text-secondary)', transition: 'all .15s',
+            }}
+            onClick={() => {}}
+          >
+            Guardar borrador
+          </button>
+        </div>
 
-      {/* ── 2. Ítems ── */}
-      <div className="card" style={{ padding: 'var(--s-5)', display: 'flex', flexDirection: 'column', gap: 'var(--s-3)' }}>
-        <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)' }}>
-          2 · Productos / Servicios
-        </p>
+        {/* ── Sección 1: Cliente ── */}
+        <SectionCard>
+          <SectionTitle n={1} label="Cliente" />
 
-        {/* datalist con el catálogo */}
-        <datalist id="cot-productos">
-          {productos.map(p => <option key={p.id} value={p.nombre} />)}
-        </datalist>
+          {/* Toggle pill */}
+          <div style={{
+            display: 'inline-flex', background: 'var(--surface-hover)',
+            borderRadius: 10, padding: 3, gap: 3, alignSelf: 'flex-start',
+          }}>
+            {[['Consumidor final', true], ['Cliente específico', false]].map(([label, val]) => (
+              <button
+                key={label}
+                onClick={() => setCF(val)}
+                style={{
+                  padding: '7px 16px', borderRadius: 8, fontSize: 13, fontWeight: 500,
+                  cursor: 'pointer', border: 'none', transition: 'all .18s',
+                  background: consumidorFinal === val ? 'var(--surface)' : 'transparent',
+                  color: consumidorFinal === val ? 'var(--text-primary)' : 'var(--text-muted)',
+                  boxShadow: consumidorFinal === val ? '0 1px 4px rgba(0,0,0,.12)' : 'none',
+                  fontWeight: consumidorFinal === val ? 600 : 400,
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
 
-        {/* Tabla con estilos inline para garantizar renderizado */}
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              {['Descripción', 'Cant.', 'Precio unit.', 'IVA', 'Subtotal', ''].map((h, i) => (
-                <th key={i} style={{
-                  padding: '8px 10px', fontSize: 10.5, fontWeight: 700,
-                  textTransform: 'uppercase', letterSpacing: '.07em',
-                  color: 'var(--text-muted)', textAlign: i > 0 ? 'right' : 'left',
-                  borderBottom: '1.5px solid var(--border)',
-                  width: i === 0 ? 'auto' : i === 5 ? 32 : i === 2 ? 130 : i === 1 ? 80 : i === 3 ? 75 : 120,
-                }}>
-                  {h}
-                </th>
+          {!consumidorFinal && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+              {[
+                ['Nombre / Razón social', 'nombre', 'text', 'Empresa o persona'],
+                ['NIT / CC', 'nit', 'text', '900123456-1'],
+                ['Email', 'email', 'email', 'cliente@empresa.com'],
+              ].map(([label, key, type, ph]) => (
+                <div key={key}>
+                  <label style={lbl}>{label}</label>
+                  <input style={inp} type={type} placeholder={ph}
+                    value={cliente[key]}
+                    onChange={e => setCliente(p => ({ ...p, [key]: e.target.value }))} />
+                </div>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((it, idx) => (
-              <tr key={it.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                <td style={{ padding: '6px 8px' }}>
-                  <input
-                    list="cot-productos"
-                    style={inputStyle}
-                    placeholder="Escribe o elige del catálogo…"
-                    value={it.desc}
-                    onChange={e => onDescChange(idx, e.target.value)}
-                  />
-                </td>
-                <td style={{ padding: '6px 8px' }}>
-                  <input style={{ ...inputStyle, textAlign: 'right' }}
-                    type="number" min="1" step="1"
-                    value={it.cantidad}
-                    onChange={e => onNum(idx, 'cantidad', e.target.value)} />
-                </td>
-                <td style={{ padding: '6px 8px' }}>
-                  <PrecioInput
-                    style={{ ...inputStyle, textAlign: 'right' }}
-                    value={it.precio}
-                    onChange={e => onNum(idx, 'precio', e.target.value)}
-                  />
-                </td>
-                <td style={{ padding: '6px 8px' }}>
-                  <select style={{ ...inputStyle, textAlign: 'right' }}
-                    value={it.iva}
-                    onChange={e => onNum(idx, 'iva', e.target.value)}>
-                    <option value={0}>0 %</option>
-                    <option value={5}>5 %</option>
-                    <option value={19}>19 %</option>
-                  </select>
-                </td>
-                <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap' }}>
-                  {COP(calcSub(it))}
-                </td>
-                <td style={{ padding: '6px 4px', textAlign: 'center' }}>
-                  <button
-                    onClick={() => setItems(p => p.filter((_, i) => i !== idx))}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 13 }}
-                  >✕</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <button
-          onClick={() => setItems(p => [...p, itemVacio()])}
-          style={{
-            background: 'none', border: '1.5px dashed var(--border)', borderRadius: 8,
-            color: 'var(--text-muted)', fontSize: 13, padding: '7px 12px',
-            cursor: 'pointer', textAlign: 'left', transition: 'all .15s',
-          }}
-        >
-          + Agregar ítem
-        </button>
-
-        {/* Totales */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <div style={{ width: 240, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {[['Subtotal', subtotal], ['IVA', ivaTotal]].map(([label, val]) => (
-              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--text-secondary)' }}>
-                <span>{label}</span><span>{COP(val)}</span>
-              </div>
-            ))}
-            <div style={{
-              display: 'flex', justifyContent: 'space-between',
-              fontSize: 15, fontWeight: 700, color: 'var(--text-primary)',
-              paddingTop: 8, borderTop: '1.5px solid var(--border)', marginTop: 2,
-            }}>
-              <span>TOTAL</span>
-              <span style={{ color: 'var(--primary)' }}>{COP(total)}</span>
             </div>
-          </div>
-        </div>
+          )}
+        </SectionCard>
+
+        {/* ── Sección 2: Productos ── */}
+        <SectionCard>
+          <SectionTitle n={2} label="Productos / Servicios" />
+
+          <datalist id="cot-productos">
+            {productos.map(p => <option key={p.id} value={p.nombre} />)}
+          </datalist>
+
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid var(--border)' }}>
+                {[
+                  ['Descripción', 'left', 'auto'],
+                  ['Cant.', 'right', 72],
+                  ['Precio unit.', 'right', 130],
+                  ['IVA', 'right', 80],
+                  ['Subtotal', 'right', 110],
+                  ['', 'center', 32],
+                ].map(([h, align, w], i) => (
+                  <th key={i} style={{
+                    padding: '7px 8px', fontSize: 10.5, fontWeight: 700,
+                    textTransform: 'uppercase', letterSpacing: '.07em',
+                    color: 'var(--text-muted)', textAlign: align, width: w,
+                  }}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((it, idx) => (
+                <tr key={it.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                  <td style={{ padding: '6px 8px 6px 0' }}>
+                    <input list="cot-productos" style={inp}
+                      placeholder="Escribe o elige del catálogo…"
+                      value={it.desc}
+                      onChange={e => onDescChange(idx, e.target.value)} />
+                  </td>
+                  <td style={{ padding: '6px 4px' }}>
+                    <input style={{ ...inp, textAlign: 'right' }}
+                      type="number" min="1" step="1"
+                      value={it.cantidad}
+                      onChange={e => onNum(idx, 'cantidad', e.target.value)} />
+                  </td>
+                  <td style={{ padding: '6px 4px' }}>
+                    <PrecioInput style={{ ...inp, textAlign: 'right' }}
+                      value={it.precio}
+                      onChange={e => onNum(idx, 'precio', e.target.value)} />
+                  </td>
+                  <td style={{ padding: '6px 4px' }}>
+                    <select style={{ ...inp }}
+                      value={it.iva}
+                      onChange={e => onNum(idx, 'iva', e.target.value)}>
+                      <option value={0}>0 %</option>
+                      <option value={5}>5 %</option>
+                      <option value={19}>19 %</option>
+                    </select>
+                  </td>
+                  <td style={{ padding: '6px 4px', textAlign: 'right', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>
+                    {COP(calcSub(it))}
+                  </td>
+                  <td style={{ padding: '6px 0 6px 4px', textAlign: 'center' }}>
+                    <button
+                      onClick={() => setItems(p => p.filter((_, i) => i !== idx))}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: 'var(--text-muted)', fontSize: 14, width: 26, height: 26,
+                        borderRadius: 6, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all .15s',
+                      }}
+                    >✕</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <button
+            onClick={() => setItems(p => [...p, itemVacio()])}
+            style={{
+              background: 'none', border: '1.5px dashed var(--border)', borderRadius: 8,
+              color: 'var(--text-muted)', fontSize: 13, padding: '8px 14px',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+              transition: 'all .15s',
+            }}
+          >
+            <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Agregar ítem
+          </button>
+        </SectionCard>
       </div>
 
-      {/* ── 3. Nota + validez ── */}
-      <div className="card" style={{ padding: 'var(--s-5)', display: 'flex', flexDirection: 'column', gap: 'var(--s-3)' }}>
-        <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)' }}>
-          3 · Nota y validez
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 16, alignItems: 'flex-start' }}>
-          <div>
-            <label style={labelStyle}>Válida (días)</label>
-            <input style={{ ...inputStyle, textAlign: 'right' }} type="number" min="1" max="365"
-              value={validez} onChange={e => setValidez(parseInt(e.target.value) || 30)} />
+      {/* ════════════ COLUMNA DERECHA (sticky) ════════════ */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, position: 'sticky', top: 20 }}>
+
+        {/* Resumen */}
+        <div style={{
+          borderRadius: 14, padding: '20px 22px',
+          background: 'var(--primary)',
+          display: 'flex', flexDirection: 'column', gap: 0,
+        }}>
+          <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.12em', color: 'rgba(255,255,255,.6)', marginBottom: 16 }}>
+            Resumen
+          </p>
+
+          {[['Subtotal', subtotal], ['IVA', ivaTotal]].map(([label, val]) => (
+            <div key={label} style={{
+              display: 'flex', justifyContent: 'space-between',
+              fontSize: 13, color: 'rgba(255,255,255,.75)',
+              padding: '7px 0', borderBottom: '1px solid rgba(255,255,255,.12)',
+            }}>
+              <span>{label}</span><span>{COP(val)}</span>
+            </div>
+          ))}
+
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            paddingTop: 14, marginTop: 2,
+          }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>Total</span>
+            <span style={{ fontSize: 22, fontWeight: 800, color: '#fff', letterSpacing: '-.5px' }}>
+              {COP(total)}
+            </span>
           </div>
+        </div>
+
+        {/* Nota y validez */}
+        <SectionCard>
+          <SectionTitle n={3} label="Nota y validez" />
+
           <div>
-            <label style={labelStyle}>Nota / condiciones</label>
+            <label style={lbl}>Válida (días)</label>
+            <input style={inp} type="number" min="1" max="365"
+              value={validez}
+              onChange={e => setValidez(parseInt(e.target.value) || 30)} />
+          </div>
+
+          <div>
+            <label style={lbl}>Nota / condiciones</label>
             <textarea
-              rows={3}
-              style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}
+              rows={5}
+              style={{ ...inp, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }}
               placeholder="Ej: Precios sujetos a cambio sin previo aviso. Incluye instalación y garantía de 1 año."
               value={nota}
               onChange={e => setNota(e.target.value)}
             />
           </div>
-        </div>
-      </div>
+        </SectionCard>
 
-      {/* ── Botón final ── */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button variant="primary"
-          onClick={() => imprimir({ empresa, consumidorFinal, cliente, items, nota, validez })}>
-          🖨️ Generar cotización PDF
-        </Button>
+        {/* CTA */}
+        <button
+          onClick={() => imprimir({ empresa, consumidorFinal, cliente, items, nota, validez })}
+          style={{
+            width: '100%', padding: '14px', borderRadius: 10, border: 'none',
+            background: 'var(--primary)', color: '#fff',
+            fontSize: 14, fontWeight: 700, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            transition: 'opacity .15s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.opacity = '.88'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+        >
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
+            <rect x="6" y="13" width="12" height="8" rx="1"/>
+          </svg>
+          Generar cotización PDF
+        </button>
       </div>
 
     </div>
