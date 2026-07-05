@@ -29,47 +29,44 @@ const ITEM_EMPTY = () => ({
   subtotal: 0,
 })
 
-// ── Fila de ítem (dentro de <tbody>) ─────────────────────────────────────────
-function ItemRow({ item, catalogo, onChange, onRemove }) {
+// ── Celdas de un ítem — se renderizan como hijos directos del grid ────────────
+// React Fragment: los 6 divs caen directamente en el grid del padre
+function ItemCells({ item, catalogo, onChange, onRemove }) {
   const [query,    setQuery]    = useState(item.descripcion || '')
   const [sugs,     setSugs]     = useState([])
   const [showSugs, setShowSugs] = useState(false)
   const wrapRef = useRef(null)
 
   useEffect(() => {
-    const handler = (e) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) setShowSugs(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    const h = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setShowSugs(false) }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
   }, [])
 
   function handleQuery(val) {
     setQuery(val)
     onChange({ ...item, descripcion: val })
-    if (val.trim().length >= 1) {
+    if (val.trim()) {
       const q = val.toLowerCase()
-      const found = catalogo
-        .filter(p => p.nombre?.toLowerCase().includes(q) || p.referencia?.toLowerCase().includes(q))
-        .slice(0, 6)
+      const found = catalogo.filter(p =>
+        p.nombre?.toLowerCase().includes(q) || p.referencia?.toLowerCase().includes(q)
+      ).slice(0, 6)
       setSugs(found)
       setShowSugs(found.length > 0)
     } else {
-      setSugs([])
-      setShowSugs(false)
+      setSugs([]); setShowSugs(false)
     }
   }
 
-  function selectCatalog(prod) {
+  function pick(prod) {
     const precio = parseFloat(prod.precio_venta || prod.precio || 0)
     const iva    = parseFloat(prod.iva_porcentaje || 0)
     const sub    = Math.round(item.cantidad * precio * 100) / 100
-    setQuery(prod.nombre)
-    setShowSugs(false)
+    setQuery(prod.nombre); setShowSugs(false)
     onChange({ ...item, descripcion: prod.nombre, precio_unitario: precio, iva_porcentaje: iva, subtotal: sub })
   }
 
-  function handleNum(field, raw) {
+  function num(field, raw) {
     const val = parseFloat(raw) || 0
     const next = { ...item, [field]: val }
     next.subtotal = Math.round(next.cantidad * next.precio_unitario * 100) / 100
@@ -77,69 +74,58 @@ function ItemRow({ item, catalogo, onChange, onRemove }) {
   }
 
   return (
-    <tr className="cot-item-tr">
-      {/* Descripción con autocomplete */}
-      <td className="cot-td-desc">
-        <div className="cot-desc-wrap" ref={wrapRef}>
-          <input
-            className="cot-in"
-            placeholder="Producto o servicio…"
-            value={query}
-            onChange={(e) => handleQuery(e.target.value)}
-            onFocus={() => sugs.length > 0 && setShowSugs(true)}
-          />
-          {showSugs && (
-            <ul className="cot-sugs">
-              {sugs.map(p => (
-                <li key={p.id} onMouseDown={() => selectCatalog(p)}>
-                  <span>{p.nombre}</span>
-                  <span className="cot-sug-price">{COP(p.precio_venta || p.precio)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </td>
-
-      <td className="cot-td-num">
+    <>
+      {/* col 1 — descripción */}
+      <div className="cot-cell cot-cell--desc" ref={wrapRef}>
         <input
-          className="cot-in cot-in--r"
-          type="number" min="0.001" step="1"
-          value={item.cantidad}
-          onChange={(e) => handleNum('cantidad', e.target.value)}
+          className="cot-inp"
+          placeholder="Busca en catálogo o escribe…"
+          value={query}
+          onChange={e => handleQuery(e.target.value)}
+          onFocus={() => sugs.length > 0 && setShowSugs(true)}
         />
-      </td>
+        {showSugs && (
+          <ul className="cot-sugs">
+            {sugs.map(p => (
+              <li key={p.id} onMouseDown={() => pick(p)}>
+                <span>{p.nombre}</span>
+                <span className="cot-sug-p">{COP(p.precio_venta || p.precio)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
-      <td className="cot-td-num">
-        <input
-          className="cot-in cot-in--r"
-          type="number" min="0" step="1000"
-          value={item.precio_unitario}
-          onChange={(e) => handleNum('precio_unitario', e.target.value)}
-        />
-      </td>
+      {/* col 2 — cantidad */}
+      <div className="cot-cell">
+        <input className="cot-inp cot-inp--r" type="number" min="0.001" step="1"
+          value={item.cantidad} onChange={e => num('cantidad', e.target.value)} />
+      </div>
 
-      <td className="cot-td-iva">
-        <select
-          className="cot-in cot-in--r"
-          value={item.iva_porcentaje}
-          onChange={(e) => {
-            const val = parseFloat(e.target.value)
-            onChange({ ...item, iva_porcentaje: val })
-          }}
-        >
+      {/* col 3 — precio */}
+      <div className="cot-cell">
+        <input className="cot-inp cot-inp--r" type="number" min="0" step="1000"
+          value={item.precio_unitario} onChange={e => num('precio_unitario', e.target.value)} />
+      </div>
+
+      {/* col 4 — IVA */}
+      <div className="cot-cell">
+        <select className="cot-inp cot-inp--r" value={item.iva_porcentaje}
+          onChange={e => onChange({ ...item, iva_porcentaje: parseFloat(e.target.value) })}>
           <option value={0}>0 %</option>
           <option value={5}>5 %</option>
           <option value={19}>19 %</option>
         </select>
-      </td>
+      </div>
 
-      <td className="cot-td-sub">{COP(item.subtotal)}</td>
+      {/* col 5 — subtotal */}
+      <div className="cot-cell cot-cell--sub">{COP(item.subtotal)}</div>
 
-      <td className="cot-td-rm">
-        <button className="cot-rm" onClick={onRemove} title="Eliminar">✕</button>
-      </td>
-    </tr>
+      {/* col 6 — eliminar */}
+      <div className="cot-cell cot-cell--rm">
+        <button className="cot-rm" onClick={onRemove}>✕</button>
+      </div>
+    </>
   )
 }
 
@@ -155,7 +141,6 @@ function CreateModal({ catalogo, onSaved, onClose }) {
 
   const updateItem = useCallback((idx, next) =>
     setItems(prev => prev.map((it, i) => i === idx ? next : it)), [])
-
   const removeItem = useCallback((idx) =>
     setItems(prev => prev.filter((_, i) => i !== idx)), [])
 
@@ -164,10 +149,10 @@ function CreateModal({ catalogo, onSaved, onClose }) {
     s + Math.round(it.subtotal * (it.iva_porcentaje / 100) * 100) / 100, 0)
   const total    = Math.round((subtotal + iva) * 100) / 100
 
-  async function handleSave() {
+  async function save() {
     setErr('')
-    const validItems = items.filter(it => it.descripcion.trim())
-    if (!validItems.length) return setErr('Agrega al menos un ítem.')
+    const valid = items.filter(it => it.descripcion.trim())
+    if (!valid.length) return setErr('Agrega al menos un ítem.')
     setSaving(true)
     try {
       const { data } = await cotizacionesApi.crear({
@@ -177,86 +162,74 @@ function CreateModal({ catalogo, onSaved, onClose }) {
         cliente_telefono : consumidorFinal ? null : (cliente.telefono.trim() || null),
         validez_dias     : parseInt(validez) || 30,
         notas            : notas.trim() || null,
-        items            : validItems.map(it => ({
-          descripcion     : it.descripcion,
-          cantidad        : it.cantidad,
-          precio_unitario : it.precio_unitario,
-          iva_porcentaje  : it.iva_porcentaje,
+        items            : valid.map(it => ({
+          descripcion: it.descripcion, cantidad: it.cantidad,
+          precio_unitario: it.precio_unitario, iva_porcentaje: it.iva_porcentaje,
         })),
       })
       onSaved(data)
     } catch (e) {
       setErr(e?.response?.data?.error || 'Error al guardar.')
-    } finally {
-      setSaving(false)
-    }
+    } finally { setSaving(false) }
   }
 
+  const setC = (k) => (e) => setCliente(p => ({ ...p, [k]: e.target.value }))
+
   return (
-    <div className="cot-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="cot-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="cot-modal">
 
-        {/* ── Header ── */}
-        <div className="cot-modal-hd">
+        {/* Header */}
+        <div className="cot-mhd">
           <h2>Nueva cotización</h2>
           <button className="cot-x" onClick={onClose}>✕</button>
         </div>
 
-        {/* ── Cliente ── */}
-        <div className="cot-block">
-          <p className="cot-block-label">Cliente</p>
-          <div className="cot-toggle">
-            <button className={consumidorFinal ? 'on' : ''} onClick={() => setConsumidorFinal(true)}>
-              Consumidor final
-            </button>
-            <button className={!consumidorFinal ? 'on' : ''} onClick={() => setConsumidorFinal(false)}>
-              Cliente específico
-            </button>
+        {/* Cuerpo scrollable */}
+        <div className="cot-mbody">
+
+          {/* — Cliente — */}
+          <div className="cot-sec">
+            <p className="cot-sec-lbl">Cliente</p>
+            <div className="cot-toggle">
+              <button className={consumidorFinal ? 'on' : ''} onClick={() => setConsumidorFinal(true)}>
+                Consumidor final
+              </button>
+              <button className={!consumidorFinal ? 'on' : ''} onClick={() => setConsumidorFinal(false)}>
+                Cliente específico
+              </button>
+            </div>
+            {!consumidorFinal && (
+              <div className="cot-g2">
+                <div className="cot-f"><label>Nombre / Razón social</label>
+                  <input className="cot-inp" placeholder="Empresa o persona" value={cliente.nombre} onChange={setC('nombre')} /></div>
+                <div className="cot-f"><label>NIT / CC</label>
+                  <input className="cot-inp" placeholder="900123456-1" value={cliente.nit} onChange={setC('nit')} /></div>
+                <div className="cot-f"><label>Email</label>
+                  <input className="cot-inp" type="email" placeholder="cliente@empresa.com" value={cliente.email} onChange={setC('email')} /></div>
+                <div className="cot-f"><label>Teléfono</label>
+                  <input className="cot-inp" type="tel" placeholder="300 000 0000" value={cliente.telefono} onChange={setC('telefono')} /></div>
+              </div>
+            )}
           </div>
 
-          {!consumidorFinal && (
-            <div className="cot-grid2">
-              <div className="cot-field">
-                <label>Nombre / Razón social</label>
-                <input className="cot-in" placeholder="Empresa o persona"
-                  value={cliente.nombre} onChange={e => setCliente(p => ({ ...p, nombre: e.target.value }))} />
-              </div>
-              <div className="cot-field">
-                <label>NIT / CC</label>
-                <input className="cot-in" placeholder="900123456-1"
-                  value={cliente.nit} onChange={e => setCliente(p => ({ ...p, nit: e.target.value }))} />
-              </div>
-              <div className="cot-field">
-                <label>Email</label>
-                <input className="cot-in" type="email" placeholder="cliente@empresa.com"
-                  value={cliente.email} onChange={e => setCliente(p => ({ ...p, email: e.target.value }))} />
-              </div>
-              <div className="cot-field">
-                <label>Teléfono</label>
-                <input className="cot-in" type="tel" placeholder="300 000 0000"
-                  value={cliente.telefono} onChange={e => setCliente(p => ({ ...p, telefono: e.target.value }))} />
-              </div>
-            </div>
-          )}
-        </div>
+          {/* — Ítems (CSS Grid) — */}
+          <div className="cot-sec">
+            <p className="cot-sec-lbl">Ítems</p>
 
-        {/* ── Ítems (tabla real) ── */}
-        <div className="cot-block">
-          <p className="cot-block-label">Ítems</p>
-          <table className="cot-items-table">
-            <thead>
-              <tr>
-                <th className="cot-th-desc">Descripción</th>
-                <th className="cot-th-num">Cant.</th>
-                <th className="cot-th-num">Precio unit.</th>
-                <th className="cot-th-iva">IVA</th>
-                <th className="cot-th-sub">Subtotal</th>
-                <th style={{ width: 32 }}></th>
-              </tr>
-            </thead>
-            <tbody>
+            {/* Grid: 6 columnas — el header y los ítems comparten el mismo grid */}
+            <div className="cot-grid">
+              {/* Header */}
+              <div className="cot-gh">Descripción</div>
+              <div className="cot-gh cot-gh--r">Cant.</div>
+              <div className="cot-gh cot-gh--r">Precio unit.</div>
+              <div className="cot-gh cot-gh--r">IVA</div>
+              <div className="cot-gh cot-gh--r">Subtotal</div>
+              <div></div>
+
+              {/* Filas de ítems */}
               {items.map((it, idx) => (
-                <ItemRow
+                <ItemCells
                   key={it._id}
                   item={it}
                   catalogo={catalogo}
@@ -264,40 +237,41 @@ function CreateModal({ catalogo, onSaved, onClose }) {
                   onRemove={() => removeItem(idx)}
                 />
               ))}
-            </tbody>
-          </table>
-          <button className="cot-add" onClick={() => setItems(p => [...p, ITEM_EMPTY()])}>
-            + Agregar ítem
-          </button>
-        </div>
+            </div>
 
-        {/* ── Totales ── */}
-        <div className="cot-totals">
-          <div className="cot-tot-line"><span>Subtotal</span><span>{COP(subtotal)}</span></div>
-          <div className="cot-tot-line"><span>IVA</span><span>{COP(iva)}</span></div>
-          <div className="cot-tot-line cot-tot-line--grand"><span>TOTAL</span><span>{COP(total)}</span></div>
-        </div>
-
-        {/* ── Extras ── */}
-        <div className="cot-block cot-extras-row">
-          <div className="cot-field" style={{ width: 110 }}>
-            <label>Válida (días)</label>
-            <input className="cot-in" type="number" min="1" max="365"
-              value={validez} onChange={e => setValidez(e.target.value)} style={{ textAlign: 'right' }} />
+            <button className="cot-add" onClick={() => setItems(p => [...p, ITEM_EMPTY()])}>
+              + Agregar ítem
+            </button>
           </div>
-          <div className="cot-field" style={{ flex: 1 }}>
-            <label>Notas / condiciones</label>
-            <input className="cot-in" placeholder="Ej: Precios sujetos a cambio. Incluye instalación."
-              value={notas} onChange={e => setNotas(e.target.value)} />
+
+          {/* — Totales — */}
+          <div className="cot-totals">
+            <div className="cot-tl"><span>Subtotal</span><span>{COP(subtotal)}</span></div>
+            <div className="cot-tl"><span>IVA</span><span>{COP(iva)}</span></div>
+            <div className="cot-tl cot-tl--g"><span>TOTAL</span><span>{COP(total)}</span></div>
           </div>
+
+          {/* — Extras — */}
+          <div className="cot-sec cot-extras">
+            <div className="cot-f" style={{ width: 110 }}>
+              <label>Válida (días)</label>
+              <input className="cot-inp" type="number" min="1" max="365"
+                value={validez} onChange={e => setValidez(e.target.value)} style={{ textAlign:'right' }} />
+            </div>
+            <div className="cot-f" style={{ flex: 1 }}>
+              <label>Notas / condiciones</label>
+              <input className="cot-inp" placeholder="Ej: Precios sujetos a cambio."
+                value={notas} onChange={e => setNotas(e.target.value)} />
+            </div>
+          </div>
+
+          {err && <p className="cot-err">{err}</p>}
         </div>
 
-        {err && <p className="cot-err">{err}</p>}
-
-        {/* ── Footer ── */}
-        <div className="cot-modal-ft">
+        {/* Footer */}
+        <div className="cot-mft">
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" disabled={saving} onClick={handleSave}>
+          <Button variant="primary" disabled={saving} onClick={save}>
             {saving ? 'Guardando…' : '✓ Guardar cotización'}
           </Button>
         </div>
@@ -319,14 +293,14 @@ function CotDetail({ id }) {
   return (
     <div className="cot-detail">
       {(cot.cliente_email || cot.cliente_telefono || cot.notas) && (
-        <div className="cot-detail-meta">
+        <div className="cot-dmeta">
           {cot.cliente_email    && <span><b>Email:</b> {cot.cliente_email}</span>}
           {cot.cliente_telefono && <span><b>Tel:</b> {cot.cliente_telefono}</span>}
           {cot.notas            && <span><b>Notas:</b> {cot.notas}</span>}
           <span><b>Validez:</b> {cot.validez_dias} días</span>
         </div>
       )}
-      <table className="cot-detail-table">
+      <table className="cot-dtable">
         <thead>
           <tr>
             <th>#</th><th>Descripción</th>
@@ -349,16 +323,16 @@ function CotDetail({ id }) {
           ))}
         </tbody>
       </table>
-      <div className="cot-detail-totals">
+      <div className="cot-dtotals">
         <span>Base: <b>{COP(cot.subtotal)}</b></span>
         <span>IVA: <b>{COP(cot.iva)}</b></span>
-        <span>TOTAL: <b style={{ color: 'var(--primary)' }}>{COP(cot.total)}</b></span>
+        <span>TOTAL: <b style={{ color:'var(--primary)' }}>{COP(cot.total)}</b></span>
       </div>
     </div>
   )
 }
 
-// ── Página principal ──────────────────────────────────────────────────────────
+// ── Página ────────────────────────────────────────────────────────────────────
 export default function Cotizaciones() {
   const { empresa }  = useAuth()
   const [cotizaciones, setCotizaciones] = useState([])
@@ -377,17 +351,12 @@ export default function Cotizaciones() {
       .finally(() => setLoading(false))
   }, [])
 
-  function handleSaved(cot) {
-    setCreating(false)
-    setCotizaciones(prev => [cot, ...prev])
-  }
+  function handleSaved(cot) { setCreating(false); setCotizaciones(prev => [cot, ...prev]) }
 
   async function handlePrint(cotId) {
     setPrinting(cotId)
-    try {
-      const { data } = await cotizacionesApi.obtener(cotId)
-      printCotizacion(data, empresa || {})
-    } catch { alert('No se pudo cargar la cotización.') }
+    try { const { data } = await cotizacionesApi.obtener(cotId); printCotizacion(data, empresa || {}) }
+    catch { alert('No se pudo cargar la cotización.') }
     finally { setPrinting(null) }
   }
 
@@ -411,16 +380,8 @@ export default function Cotizaciones() {
 
   return (
     <div className="cot-page">
+      {creating && <CreateModal catalogo={catalogo} onSaved={handleSaved} onClose={() => setCreating(false)} />}
 
-      {creating && (
-        <CreateModal
-          catalogo={catalogo}
-          onSaved={handleSaved}
-          onClose={() => setCreating(false)}
-        />
-      )}
-
-      {/* Cabecera */}
       <div className="cot-header">
         <div>
           <h1 className="cot-title">Cotizaciones</h1>
@@ -433,7 +394,6 @@ export default function Cotizaciones() {
         <Button variant="primary" onClick={() => setCreating(true)}>+ Nueva cotización</Button>
       </div>
 
-      {/* Tabla / empty */}
       <div className="card table-card">
         {loading ? (
           <div className="table-loading"><div className="spinner" /></div>
@@ -449,19 +409,16 @@ export default function Cotizaciones() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>N°</th>
-                <th>Cliente</th>
+                <th>N°</th><th>Cliente</th>
                 <th className="td-right">Total</th>
-                <th>Estado</th>
-                <th>Fecha</th>
-                <th>Acciones</th>
+                <th>Estado</th><th>Fecha</th><th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {cotizaciones.map(cot => (
                 <>
                   <tr key={cot.id} className={expanded === cot.id ? 'row-expanded' : ''}>
-                    <td><span className="inv-num">COT-{String(cot.numero_cotizacion).padStart(4, '0')}</span></td>
+                    <td><span className="inv-num">COT-{String(cot.numero_cotizacion).padStart(4,'0')}</span></td>
                     <td>
                       <p className="td-main">{cot.cliente_nombre || 'Consumidor Final'}</p>
                       {cot.cliente_nit && <p className="td-sub muted t-xs">NIT {cot.cliente_nit}</p>}
@@ -476,29 +433,22 @@ export default function Cotizaciones() {
                           {expanded === cot.id ? 'Cerrar' : 'Ver'}
                         </Button>
                         <Button variant="secondary" size="sm"
-                          disabled={printing === cot.id}
-                          onClick={() => handlePrint(cot.id)}>
+                          disabled={printing === cot.id} onClick={() => handlePrint(cot.id)}>
                           {printing === cot.id ? '…' : '🖨️ PDF'}
                         </Button>
                         {ESTADO_NEXT[cot.estado]?.length > 0 && (
-                          <select
-                            className="cot-state-sel"
-                            disabled={changingEst === cot.id}
-                            value=""
-                            onChange={e => e.target.value && handleEstado(cot.id, e.target.value)}
-                          >
+                          <select className="cot-state-sel" disabled={changingEst === cot.id}
+                            value="" onChange={e => e.target.value && handleEstado(cot.id, e.target.value)}>
                             <option value="">Estado ▾</option>
-                            {ESTADO_NEXT[cot.estado].map(s => (
-                              <option key={s} value={s}>{s}</option>
-                            ))}
+                            {ESTADO_NEXT[cot.estado].map(s => <option key={s} value={s}>{s}</option>)}
                           </select>
                         )}
-                        <button className="cot-del" onClick={() => handleEliminar(cot.id)} title="Eliminar">🗑</button>
+                        <button className="cot-del" onClick={() => handleEliminar(cot.id)}>🗑</button>
                       </div>
                     </td>
                   </tr>
                   {expanded === cot.id && (
-                    <tr key={`${cot.id}-det`} className="detail-row">
+                    <tr key={`${cot.id}-d`} className="detail-row">
                       <td colSpan={6}><CotDetail id={cot.id} /></td>
                     </tr>
                   )}
