@@ -126,6 +126,18 @@ const NAV = [
     ),
     badge: 'NUEVO',
   },
+  {
+    to: '/cotizaciones',
+    label: 'Cotizaciones',
+    icon: (
+      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        <path d="M9 12h6M9 16h4" />
+        <circle cx="18" cy="18" r="4" fill="currentColor" stroke="none" />
+        <path d="M16.5 18h3M18 16.5v3" stroke="#fff" strokeWidth="1.2" strokeLinecap="round" />
+      </svg>
+    ),
+  },
 ]
 
 export default function Sidebar() {
