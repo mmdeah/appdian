@@ -10,6 +10,12 @@ function isoDesde(days) {
   const d = new Date(); d.setDate(d.getDate() - days)
   return d.toISOString().split('T')[0]
 }
+function fechaCorta(iso) {
+  if (!iso) return ''
+  const [y, m, d] = iso.split('-')
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
+  return `${parseInt(d)} ${meses[+m-1]}`
+}
 
 // ── Datos de categorías ──────────────────────────────────────
 const CATEGORIAS = {
@@ -259,33 +265,36 @@ export default function Gastos() {
         <button className="g-btn-pri" onClick={() => setModal('nuevo')}>+ Registrar gasto</button>
       </div>
 
-      {error && (
-        <div style={{ background:'#fee2e2', border:'1px solid #fca5a5', borderRadius:8, padding:'12px 16px', color:'#991b1b', fontSize:14, marginBottom:16 }}>
-          ⚠️ {error}
-        </div>
-      )}
+      {error && <div className="g-error">⚠️ {error}</div>}
 
       {/* ── Resumen cards ── */}
       {resumen && (
         <div className="g-resumen-grid">
-          <div className="g-kpi">
-            <p className="g-kpi-label">Total gastos</p>
-            <p className="g-kpi-val color-danger">{COP(resumen.total_gastos)}</p>
-            <p className="g-kpi-sub muted">{resumen.num_gastos} registros</p>
+          <div className="g-kpi g-kpi--accent">
+            <p className="g-kpi-label">Total Gastos</p>
+            <p className="g-kpi-val g-kpi-val--danger">{COP(resumen.total_gastos)}</p>
+            <p className="g-kpi-sub">{resumen.num_gastos} registros</p>
           </div>
           <div className="g-kpi">
-            <p className="g-kpi-label">IVA pagado</p>
+            <p className="g-kpi-label">IVA Pagado</p>
             <p className="g-kpi-val">{COP(resumen.total_iva)}</p>
-            <p className="g-kpi-sub muted">Deducible en declaración</p>
-          </div>
-          <div className="g-kpi g-kpi--top">
-            <p className="g-kpi-label">Mayor categoría</p>
-            <p className="g-kpi-val g-kpi-val--sm">{resumen.categorias?.[0] ? CATEGORIAS[resumen.categorias[0].nombre]?.emoji + ' ' + CATEGORIAS[resumen.categorias[0].nombre]?.label : '—'}</p>
-            <p className="g-kpi-sub muted">{COP(resumen.categorias?.[0]?.total)}</p>
+            <p className="g-kpi-sub">Deducible en declaración</p>
           </div>
           <div className="g-kpi">
+            <p className="g-kpi-label">Mayor Categoría</p>
+            <p className="g-kpi-val g-kpi-val--sm">
+              {resumen.categorias?.[0]
+                ? CATEGORIAS[resumen.categorias[0].nombre]?.emoji + ' ' + CATEGORIAS[resumen.categorias[0].nombre]?.label
+                : '—'}
+            </p>
+            <p className="g-kpi-sub">{COP(resumen.categorias?.[0]?.total)}</p>
+          </div>
+          <div className="g-kpi g-kpi--dark">
             <p className="g-kpi-label">Período</p>
-            <p className="g-kpi-val g-kpi-val--sm">{filtros.desde} → {filtros.hasta}</p>
+            <p className="g-kpi-val g-kpi-val--sm">
+              {fechaCorta(filtros.desde)} → {fechaCorta(filtros.hasta)}
+            </p>
+            <p className="g-kpi-sub">{filtros.hasta?.split('-')[0]}</p>
           </div>
         </div>
       )}
@@ -293,10 +302,12 @@ export default function Gastos() {
       {/* ── Tabs ── */}
       <div className="g-tabs">
         <button className={`g-tab ${tab === 'lista' ? 'g-tab--active' : ''}`} onClick={() => setTab('lista')}>
-          📋 Listado
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Listado
         </button>
         <button className={`g-tab ${tab === 'categorias' ? 'g-tab--active' : ''}`} onClick={() => setTab('categorias')}>
-          📊 Por categoría
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Por categoría
         </button>
       </div>
 
@@ -324,11 +335,12 @@ export default function Gastos() {
         </button>
         <div style={{ marginLeft: 'auto' }}>
           <button
-            className="g-btn-export"
+            className="g-btn-dark"
             onClick={() => exportarExcel(gastos)}
             disabled={gastos.length === 0}
           >
-            ↓ Exportar Excel
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar Excel
           </button>
         </div>
       </div>
@@ -341,8 +353,12 @@ export default function Gastos() {
         <>
           {gastos.length === 0 ? (
             <div className="g-empty">
-              <p>No hay gastos en este período.</p>
-              <button className="g-btn-pri" onClick={() => setModal('nuevo')}>Registrar primer gasto</button>
+              <div className="g-empty-icon">
+                <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+              </div>
+              <p className="g-empty-title">No hay gastos en este período</p>
+              <p className="g-empty-sub">Registra tu primer egreso para empezar a analizar tus finanzas.</p>
+              <button className="g-btn-dark" onClick={() => setModal('nuevo')}>+ Registrar primer gasto</button>
             </div>
           ) : (
             <>
