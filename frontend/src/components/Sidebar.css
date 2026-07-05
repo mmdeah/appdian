@@ -30,10 +30,9 @@
   color: #fff;
   font-weight: 800;
   font-size: 15px;
-  font-family: Georgia, serif;
   letter-spacing: -0.02em;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(233,112,75,0.4);
+  box-shadow: 0 4px 12px rgba(99,102,241,0.4);
 }
 
 .logo-text {
@@ -57,7 +56,7 @@
 .empresa-avatar {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #e9704b 0%, #e7b24c 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   border-radius: var(--r-sm);
   display: flex;
   align-items: center;
