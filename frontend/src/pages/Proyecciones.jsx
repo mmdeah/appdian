@@ -37,9 +37,9 @@ function InfoRow({ label, value, highlight }) {
   )
 }
 
-function Card({ titulo, children, badge, badgeColor }) {
+function Card({ titulo, children, badge, badgeColor, dark }) {
   return (
-    <div className="proy-card">
+    <div className={`proy-card ${dark ? 'proy-card--dark' : ''}`}>
       <div className="proy-card-head">
         <p className="proy-card-titulo">{titulo}</p>
         {badge && <span className={`proy-badge proy-badge--${badgeColor || 'neutral'}`}>{badge}</span>}
@@ -123,16 +123,22 @@ export default function Proyecciones() {
       <div className="regimen-config">
         <div className="regimen-toggles">
           <span className="regimen-label">Régimen:</span>
-          {['ORDINARIO', 'SIMPLE'].map(r => (
-            <button
-              key={r}
-              className={`regimen-btn ${config.regimen === r ? 'regimen-btn--active' : ''}`}
-              onClick={() => handleRegimen(r)}
-              disabled={saving}
-            >
-              {r === 'ORDINARIO' ? '📊 Régimen Ordinario' : '✳️ Régimen SIMPLE'}
-            </button>
-          ))}
+          <button
+            className={`regimen-btn ${config.regimen === 'ORDINARIO' ? 'regimen-btn--active' : ''}`}
+            onClick={() => handleRegimen('ORDINARIO')}
+            disabled={saving}
+          >
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            Régimen Ordinario
+          </button>
+          <button
+            className={`regimen-btn ${config.regimen === 'SIMPLE' ? 'regimen-btn--active' : ''}`}
+            onClick={() => handleRegimen('SIMPLE')}
+            disabled={saving}
+          >
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            Régimen SIMPLE
+          </button>
         </div>
         {esSimple && (
           <div className="actividad-select-wrap">
@@ -249,7 +255,7 @@ export default function Proyecciones() {
         </Card>
 
         {/* Períodos activos */}
-        <Card titulo="Períodos tributarios activos">
+        <Card titulo="Períodos tributarios activos" dark>
           <div className="periodos-grid">
             <div className="periodo-item">
               <p className="periodo-tipo">{esSimple ? 'Cuatrimestre IVA' : 'Bimestre IVA'}</p>
