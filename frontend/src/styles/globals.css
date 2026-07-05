@@ -6,20 +6,20 @@
 /* --- Tokens --- */
 :root {
   /* Palette */
-  --bg:         #f4f6fb;
+  --bg:         #f5f0eb;
   --bg-card:    #ffffff;
-  --bg-input:   #f8fafc;
-  --sidebar:    #0a0f1e;
-  --sidebar-hover: rgba(255,255,255,0.06);
-  --sidebar-active: rgba(99,102,241,0.18);
+  --bg-input:   #faf7f4;
+  --sidebar:    #143A30;
+  --sidebar-hover: rgba(255,255,255,0.07);
+  --sidebar-active: rgba(233,112,75,0.2);
   --border:     rgba(0,0,0,0.07);
   --border-mid: rgba(0,0,0,0.12);
 
   /* Accent */
-  --accent:     #6366f1;
-  --accent-hover: #4f52e0;
-  --accent-soft: rgba(99,102,241,0.1);
-  --accent-glow: rgba(99,102,241,0.25);
+  --accent:     #e9704b;
+  --accent-hover: #d4623c;
+  --accent-soft: rgba(233,112,75,0.1);
+  --accent-glow: rgba(233,112,75,0.25);
 
   /* Semantic */
   --success:    #10b981;

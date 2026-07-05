@@ -148,8 +148,10 @@ export default function Sidebar() {
     <aside className="sidebar">
       {/* Logo */}
       <div className="sidebar-logo">
-        <div className="logo-mark">A</div>
-        <span className="logo-text">AppDian</span>
+        <div className="logo-mark">k</div>
+        <span className="logo-text">
+          konta<span style={{ color: 'var(--accent)' }}>.</span>
+        </span>
       </div>
 
       {/* Empresa pill */}
