@@ -6,6 +6,25 @@ import Button from '../components/ui/Button'
 const COP = (n) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0)
 
+// Input de precio con formato de miles (180.000) en tiempo real
+function PrecioInput({ value, onChange, style }) {
+  function handleChange(e) {
+    const raw = e.target.value.replace(/\D/g, '')
+    onChange(raw ? parseInt(raw, 10) : 0)
+  }
+  const display = value ? parseInt(value).toLocaleString('es-CO') : ''
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      style={style}
+      value={display}
+      onChange={handleChange}
+      placeholder="0"
+    />
+  )
+}
+
 const itemVacio = () => ({ id: Math.random(), desc: '', cantidad: 1, precio: 0, iva: 0 })
 
 function calcSub(it) { return Math.round(it.cantidad * it.precio * 100) / 100 }
@@ -188,8 +207,9 @@ export default function Cotizaciones() {
   }
 
   function onNum(idx, field, val) {
+    const n = typeof val === 'number' ? val : (parseFloat(val) || 0)
     setItems(prev => prev.map((it, i) =>
-      i !== idx ? it : { ...it, [field]: parseFloat(val) || 0 }
+      i !== idx ? it : { ...it, [field]: n }
     ))
   }
 
@@ -328,10 +348,11 @@ export default function Cotizaciones() {
                     onChange={e => onNum(idx, 'cantidad', e.target.value)} />
                 </td>
                 <td style={{ padding: '6px 8px' }}>
-                  <input style={{ ...inputStyle, textAlign: 'right' }}
-                    type="number" min="0" step="1000"
+                  <PrecioInput
+                    style={{ ...inputStyle, textAlign: 'right' }}
                     value={it.precio}
-                    onChange={e => onNum(idx, 'precio', e.target.value)} />
+                    onChange={val => onNum(idx, 'precio', val)}
+                  />
                 </td>
                 <td style={{ padding: '6px 8px' }}>
                   <select style={{ ...inputStyle, textAlign: 'right' }}
