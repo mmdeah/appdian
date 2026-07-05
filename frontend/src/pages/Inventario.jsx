@@ -348,31 +348,33 @@ export default function Inventario() {
             <p className="inv-kpi-val">{resumen.total_productos}</p>
           </div>
           <div className={`inv-kpi ${resumen.bajo_stock > 0 ? 'inv-kpi--warn' : ''}`}>
+            {resumen.bajo_stock > 0 && <span className="inv-kpi-icon">!</span>}
             <p className="inv-kpi-label">Bajo stock</p>
-            <p className="inv-kpi-val" style={{ color: resumen.bajo_stock > 0 ? 'var(--warning)' : undefined }}>
-              {resumen.bajo_stock}
-            </p>
+            <p className="inv-kpi-val">{resumen.bajo_stock}</p>
           </div>
           <div className={`inv-kpi ${resumen.sin_stock > 0 ? 'inv-kpi--danger' : ''}`}>
             <p className="inv-kpi-label">Sin stock</p>
-            <p className="inv-kpi-val" style={{ color: resumen.sin_stock > 0 ? 'var(--danger)' : undefined }}>
-              {resumen.sin_stock}
-            </p>
+            <p className="inv-kpi-val">{resumen.sin_stock}</p>
           </div>
           <div className="inv-kpi">
             <p className="inv-kpi-label">Valor al costo</p>
-            <p className="inv-kpi-val">{COP(resumen.valor_costo)}</p>
+            <p className="inv-kpi-val" style={{ fontSize: 18 }}>{COP(resumen.valor_costo)}</p>
           </div>
-          <div className="inv-kpi">
+          <div className="inv-kpi inv-kpi--dark">
             <p className="inv-kpi-label">Valor a precio venta</p>
-            <p className="inv-kpi-val" style={{ color: 'var(--accent)' }}>{COP(resumen.valor_venta)}</p>
+            <p className="inv-kpi-val">{COP(resumen.valor_venta)}</p>
           </div>
         </div>
       )}
 
       <div className="inv-filtros">
-        <input className="inv-search" type="search" placeholder="Buscar por nombre, código…"
-          value={filtroQ} onChange={e => setFiltroQ(e.target.value)} />
+        <div className="inv-search-wrap">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <input className="inv-search" type="search" placeholder="Buscar por nombre, código…"
+            value={filtroQ} onChange={e => setFiltroQ(e.target.value)} />
+        </div>
         <label className="inv-check-label">
           <input type="checkbox" checked={bajosStock} onChange={e => setBajosStock(e.target.checked)} />
           Solo bajo stock
@@ -411,12 +413,31 @@ export default function Inventario() {
               {productos.map(p => {
                 const serv = esServicio(p.unidad)
                 const mg   = margen(p)
+
+                // Barra de stock
+                const pct = !serv && p.stock_minimo > 0
+                  ? Math.min(100, Math.round((p.stock_actual / (p.stock_minimo * 2)) * 100))
+                  : 100
+                const barColor = p.stock_actual <= 0 ? 'var(--danger)'
+                  : p.stock_actual <= p.stock_minimo ? 'var(--warning)'
+                  : '#10b981'
+
+                // Estado
+                const statusClass = serv ? 'inv-status-serv'
+                  : p.stock_actual <= 0 ? 'inv-status-sin'
+                  : p.stock_actual <= p.stock_minimo ? 'inv-status-bajo'
+                  : 'inv-status-ok'
+                const statusLabel = serv ? 'Servicio'
+                  : p.stock_actual <= 0 ? 'Sin stock'
+                  : p.stock_actual <= p.stock_minimo ? 'Bajo'
+                  : 'OK'
+
                 return (
                   <tr key={p.id}>
                     <td>
                       <code style={{ fontSize: 11, fontFamily: 'monospace',
                         background: 'var(--accent-soft)', color: 'var(--accent)',
-                        padding: '2px 6px', borderRadius: 4 }}>
+                        padding: '2px 7px', borderRadius: 4, fontWeight: 700 }}>
                         {p.codigo || '—'}
                       </code>
                     </td>
@@ -424,45 +445,60 @@ export default function Inventario() {
                       <p className="td-main">{p.nombre}</p>
                       {p.descripcion && <p className="td-sub muted t-xs">{p.descripcion}</p>}
                     </td>
-                    <td className="muted t-xs">{p.categoria}</td>
+                    <td><span className="inv-cat-pill">{p.categoria}</span></td>
                     <td className="muted t-xs">{p.unidad}</td>
                     <td style={{ textAlign: 'right' }}>
                       {serv ? (
                         <span className="muted t-xs">—</span>
                       ) : (
-                        <>
+                        <div className="inv-stock-wrap">
                           <span className="inv-stock-num">
                             {p.stock_actual} <span className="muted" style={{ fontSize: 11 }}>{p.unidad}</span>
                           </span>
+                          <div className="inv-stock-bar-track">
+                            <div className="inv-stock-bar-fill" style={{ width: `${pct}%`, background: barColor }} />
+                          </div>
                           {p.stock_minimo > 0 && (
-                            <p className="muted t-xs" style={{ textAlign: 'right' }}>mín: {p.stock_minimo}</p>
+                            <span className="inv-stock-min">mín {p.stock_minimo}</span>
                           )}
-                        </>
+                        </div>
                       )}
                     </td>
                     <td style={{ textAlign: 'right' }} className="td-price">{COP(p.precio)}</td>
                     <td style={{ textAlign: 'right' }}>
                       {!serv && mg !== null
-                        ? <span style={{ fontSize: 12, fontWeight: 700, color: mg >= 30 ? '#059669' : mg >= 10 ? 'var(--warning)' : 'var(--danger)' }}>{mg}%</span>
+                        ? <span style={{ fontSize: 12, fontWeight: 700,
+                            color: mg >= 30 ? '#059669' : mg >= 10 ? 'var(--warning)' : 'var(--danger)' }}>
+                            {mg}%
+                          </span>
                         : <span className="muted t-xs">—</span>
                       }
                     </td>
-                    <td>
-                      {serv
-                        ? <ServicioBadge />
-                        : <StockBadge actual={p.stock_actual} minimo={p.stock_minimo} />
-                      }
-                    </td>
+                    <td><span className={`inv-status-dot ${statusClass}`}>{statusLabel}</span></td>
                     <td>
                       <div className="inv-actions">
                         {!serv && (
                           <>
-                            <button className="inv-action-btn inv-action-btn--entrada" title="Entrada" onClick={() => setModalMov({ prod: p, tipo: 'ENTRADA' })}>＋</button>
-                            <button className="inv-action-btn inv-action-btn--salida"  title="Salida"  onClick={() => setModalMov({ prod: p, tipo: 'SALIDA' })}>－</button>
+                            <button className="inv-action-btn inv-action-btn--entrada" title="Entrada"
+                              onClick={() => setModalMov({ prod: p, tipo: 'ENTRADA' })}>+</button>
+                            <button className="inv-action-btn inv-action-btn--salida" title="Salida"
+                              onClick={() => setModalMov({ prod: p, tipo: 'SALIDA' })}>−</button>
                           </>
                         )}
-                        <button className="inv-action-btn" title="Editar"   onClick={() => setModalProd(p)}>✏️</button>
-                        <button className="inv-action-btn inv-action-btn--del" title="Eliminar" onClick={() => desactivar(p)}>🗑️</button>
+                        <button className="inv-action-btn inv-action-btn--edit" title="Editar"
+                          onClick={() => setModalProd(p)}>
+                          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                        </button>
+                        <button className="inv-action-btn inv-action-btn--del" title="Eliminar"
+                          onClick={() => desactivar(p)}>
+                          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+                            <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+                          </svg>
+                        </button>
                       </div>
                     </td>
                   </tr>
