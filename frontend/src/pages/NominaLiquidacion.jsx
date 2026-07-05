@@ -5,7 +5,7 @@ import './Nomina.css'
 
 const COP = n => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0)
 const ESTADO_SIGUIENTE = { BORRADOR: 'PROCESADA', PROCESADA: 'PAGADA' }
-const ESTADO_COLOR = { BORRADOR: 'neutral', PROCESADA: 'warning', PAGADA: 'success' }
+const ESTADO_COLOR     = { BORRADOR: 'neutral', PROCESADA: 'warning', PAGADA: 'success' }
 
 function periodoLabel(p) {
   if (!p) return ''
@@ -16,8 +16,8 @@ function periodoLabel(p) {
 export default function NominaLiquidacion() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [liq, setLiq]         = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [liq, setLiq]             = useState(null)
+  const [loading, setLoading]     = useState(true)
   const [cambiando, setCambiando] = useState(false)
 
   async function cargar() {
@@ -47,46 +47,53 @@ export default function NominaLiquidacion() {
 
   return (
     <div className="nomina-page">
-      <button className="btn-back" onClick={() => navigate('/nomina')}>← Volver</button>
 
+      {/* ← Volver */}
+      <button className="nom-btn-back" onClick={() => navigate('/nomina')}>
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2"><polyline points="15 18 9 12 15 6"/></svg>
+        Volver
+      </button>
+
+      {/* Header */}
       <div className="nom-header">
         <div>
           <h2 className="nom-titulo">Nómina — {periodoLabel(liq.periodo)}</h2>
-          <p className="muted t-sm">{liq.num_empleados} empleados liquidados</p>
+          <p className="nom-sub">{liq.num_empleados} empleado{liq.num_empleados !== 1 ? 's' : ''} liquidado{liq.num_empleados !== 1 ? 's' : ''}</p>
         </div>
-        <div style={{ display: 'flex', gap: '.6rem', alignItems: 'center' }}>
-          <span className={`estado-chip estado-chip--${ESTADO_COLOR[liq.estado]}`}>{liq.estado}</span>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <span className={`nom-estado nom-estado--${ESTADO_COLOR[liq.estado]}`}>{liq.estado}</span>
           {sig && (
-            <button className="btn-pri" onClick={avanzarEstado} disabled={cambiando}>
+            <button className="nom-btn-dark" onClick={avanzarEstado} disabled={cambiando}>
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2"><polyline points="20 6 9 17 4 12"/></svg>
               {cambiando ? '...' : `Marcar como ${sig}`}
             </button>
           )}
         </div>
       </div>
 
-      {/* Resumen */}
-      <div className="liq-resumen">
-        <div className="resumen-card">
-          <p className="resumen-label">Total devengado</p>
-          <p className="resumen-val">{COP(liq.total_devengado)}</p>
+      {/* KPIs */}
+      <div className="nom-kpis">
+        <div className="nom-kpi">
+          <p className="nom-kpi-label">Total devengado</p>
+          <p className="nom-kpi-val">{COP(liq.total_devengado)}</p>
         </div>
-        <div className="resumen-card">
-          <p className="resumen-label">Deducciones empleados</p>
-          <p className="resumen-val color-danger">-{COP(liq.total_deducciones)}</p>
+        <div className="nom-kpi">
+          <p className="nom-kpi-label">Deducciones empleado</p>
+          <p className="nom-kpi-val nom-kpi-val--danger">-{COP(liq.total_deducciones)}</p>
         </div>
-        <div className="resumen-card resumen-card--highlight">
-          <p className="resumen-label">Neto a pagar</p>
-          <p className="resumen-val">{COP(liq.total_neto)}</p>
+        <div className="nom-kpi nom-kpi--dark">
+          <p className="nom-kpi-label">Neto a pagar</p>
+          <p className="nom-kpi-val nom-kpi-val--lg">{COP(liq.total_neto)}</p>
         </div>
-        <div className="resumen-card">
-          <p className="resumen-label">Aportes empresa</p>
-          <p className="resumen-val color-warning">{COP(liq.total_aportes_empresa)}</p>
+        <div className="nom-kpi nom-kpi--accent-border">
+          <p className="nom-kpi-label">Aportes empresa</p>
+          <p className="nom-kpi-val nom-kpi-val--accent">{COP(liq.total_aportes_empresa)}</p>
         </div>
       </div>
 
       {/* Tabla empleados */}
-      <div className="det-tabla">
-        <div className="det-tabla-head">
+      <div className="nom-tabla">
+        <div className="nom-det-head">
           <span>Empleado</span>
           <span>Devengado</span>
           <span>Deducciones</span>
@@ -95,33 +102,46 @@ export default function NominaLiquidacion() {
           <span></span>
         </div>
         {detalles.map(d => (
-          <div key={d.id} className="det-row">
-            <div>
-              <p className="emp-nombre">{d.nombre_empleado}</p>
-              <p className="emp-doc muted">{d.cargo} · {d.dias_trabajados} días</p>
+          <div key={d.id} className="nom-det-row">
+            <div className="nom-emp-col">
+              <span className="nom-emp-nombre">{d.nombre_empleado}</span>
+              <span className="nom-emp-doc">{d.cargo} · {d.dias_trabajados} días</span>
             </div>
             <span>{COP(d.total_devengado)}</span>
-            <span className="color-danger">-{COP(d.total_deducciones)}</span>
-            <span className="font-bold">{COP(d.neto_pagar)}</span>
-            <span className="color-warning">{COP(d.total_aportes)}</span>
+            <span className="nom-danger">-{COP(d.total_deducciones)}</span>
+            <span className="nom-cell-bold">{COP(d.neto_pagar)}</span>
+            <span className="nom-kpi-val--accent" style={{ fontSize: 14, fontWeight: 700 }}>{COP(d.total_aportes)}</span>
             <button
-              className="btn-colilla"
+              className="nom-btn-colilla"
               onClick={() => navigate(`/nomina/colilla/${d.id}`)}
             >
-              🖨️ Colilla
+              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              Colilla
             </button>
           </div>
         ))}
       </div>
 
-      {/* Provisiones totales */}
-      <div className="prov-card">
-        <p className="section-label-sm">Provisiones del mes (referencia)</p>
-        <div className="prov-grid">
-          <div><span className="prov-lab">Prima</span><span className="prov-val">{COP(detalles.reduce((s,d)=>s+d.prov_prima,0))}</span></div>
-          <div><span className="prov-lab">Cesantías</span><span className="prov-val">{COP(detalles.reduce((s,d)=>s+d.prov_cesantias,0))}</span></div>
-          <div><span className="prov-lab">Int. cesantías</span><span className="prov-val">{COP(detalles.reduce((s,d)=>s+d.prov_int_cesantias,0))}</span></div>
-          <div><span className="prov-lab">Vacaciones</span><span className="prov-val">{COP(detalles.reduce((s,d)=>s+d.prov_vacaciones,0))}</span></div>
+      {/* Provisiones */}
+      <div className="nom-prov-card">
+        <p className="nom-prov-label">Provisiones del mes (referencia)</p>
+        <div className="nom-prov-grid">
+          <div>
+            <span className="nom-prov-lab">Prima</span>
+            <span className="nom-prov-val">{COP(detalles.reduce((s,d)=>s+d.prov_prima,0))}</span>
+          </div>
+          <div>
+            <span className="nom-prov-lab">Cesantías</span>
+            <span className="nom-prov-val">{COP(detalles.reduce((s,d)=>s+d.prov_cesantias,0))}</span>
+          </div>
+          <div>
+            <span className="nom-prov-lab">Int. cesantías</span>
+            <span className="nom-prov-val">{COP(detalles.reduce((s,d)=>s+d.prov_int_cesantias,0))}</span>
+          </div>
+          <div>
+            <span className="nom-prov-lab">Vacaciones</span>
+            <span className="nom-prov-val">{COP(detalles.reduce((s,d)=>s+d.prov_vacaciones,0))}</span>
+          </div>
         </div>
       </div>
     </div>
