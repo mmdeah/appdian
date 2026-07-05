@@ -16,6 +16,19 @@ const CATEGORIAS_SERV    = ['SERVICIO','CONSULTORÍA','ASESORÍA','FORMACIÓN','
 
 const esServicio = u => UNIDADES_SERVICIO.includes((u || '').toUpperCase())
 
+// Genera el siguiente código progresivo según los existentes
+// Ej: si ya hay PROD-001, PROD-003 → genera PROD-004
+function generarCodigo(allProducts, unidad) {
+  const prefix = esServicio(unidad) ? 'SRV' : 'PROD'
+  const nums = (allProducts || [])
+    .map(p => p.codigo || '')
+    .filter(c => c.startsWith(prefix + '-'))
+    .map(c => parseInt(c.slice(prefix.length + 1)) || 0)
+    .filter(n => n > 0)
+  const next = nums.length > 0 ? Math.max(...nums) + 1 : 1
+  return `${prefix}-${String(next).padStart(3, '0')}`
+}
+
 const EMPTY = {
   codigo: '', nombre: '', descripcion: '',
   precio: '', iva_porcentaje: 19, unidad: 'UND',
@@ -23,26 +36,42 @@ const EMPTY = {
   categoria: 'GENERAL',
 }
 
-function ProductModal({ product, onSave, onClose }) {
-  const [form, setForm] = useState(product || EMPTY)
+function ProductModal({ product, allProducts, onSave, onClose }) {
+  const isNew = !product?.id
+  const [autoCode, setAutoCode] = useState(isNew)
+  const [form, setForm] = useState(() =>
+    isNew
+      ? { ...EMPTY, codigo: generarCodigo(allProducts, EMPTY.unidad) }
+      : product
+  )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   const set = (k) => (e) => setForm(prev => ({ ...prev, [k]: e.target.value }))
-  const setV = (k, v) => setForm(prev => ({ ...prev, [k]: v }))
 
   const isServ = esServicio(form.unidad)
 
-  // Cuando cambia la unidad, ajustar categoría automáticamente
+  // Cuando cambia la unidad, ajustar categoría y regenerar código si está en auto
   function handleUnidad(u) {
     const serv = esServicio(u)
     setForm(prev => ({
       ...prev,
       unidad   : u,
+      codigo   : autoCode ? generarCodigo(allProducts, u) : prev.codigo,
       categoria: serv
         ? (CATEGORIAS_SERV.includes(prev.categoria) ? prev.categoria : 'SERVICIO')
         : (CATEGORIAS_PROD.includes(prev.categoria) ? prev.categoria : 'GENERAL'),
     }))
+  }
+
+  function activarAuto() {
+    setAutoCode(true)
+    setForm(prev => ({ ...prev, codigo: generarCodigo(allProducts, prev.unidad) }))
+  }
+
+  function activarManual() {
+    setAutoCode(false)
+    setForm(prev => ({ ...prev, codigo: '' }))
   }
 
   async function handleSave(e) {
@@ -78,7 +107,43 @@ function ProductModal({ product, onSave, onClose }) {
         <form onSubmit={handleSave} className="modal-form">
           {/* Fila 1: código + unidad */}
           <div className="form-row">
-            <Input label="Código *" value={form.codigo} onChange={set('codigo')} required placeholder="PROD-001" />
+            {/* ── Campo código con toggle Auto/Manual ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label className="field-label">Código *</label>
+                {isNew && (
+                  <div style={{ display: 'flex', gap: 2, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: 2 }}>
+                    {[['✦ Auto', true], ['Manual', false]].map(([label, val]) => (
+                      <button
+                        key={label} type="button"
+                        onClick={() => val ? activarAuto() : activarManual()}
+                        style={{
+                          padding: '2px 9px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                          border: 'none', cursor: 'pointer', transition: 'all .15s',
+                          background: autoCode === val ? 'var(--accent)' : 'transparent',
+                          color: autoCode === val ? '#fff' : 'var(--text-secondary)',
+                        }}
+                      >{label}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <input
+                className="field-input"
+                required
+                value={form.codigo}
+                readOnly={autoCode}
+                placeholder={autoCode ? '' : 'Ej: PROD-001'}
+                onChange={e => { setAutoCode(false); set('codigo')(e) }}
+                style={{
+                  background: autoCode ? 'var(--accent-soft)' : undefined,
+                  color: autoCode ? 'var(--accent)' : undefined,
+                  fontWeight: autoCode ? 600 : undefined,
+                  fontFamily: 'monospace',
+                  cursor: autoCode ? 'default' : undefined,
+                }}
+              />
+            </div>
             <label className="input-label" style={{ display:'flex', flexDirection:'column', gap:4 }}>
               <span style={{ fontSize:12, fontWeight:600, color:'var(--text-muted)' }}>Unidad *</span>
               <select
@@ -257,6 +322,7 @@ export default function Products() {
       {modal && (
         <ProductModal
           product={modal === 'new' ? null : modal}
+          allProducts={products}
           onSave={() => { load(search); setModal(null) }}
           onClose={() => setModal(null)}
         />
