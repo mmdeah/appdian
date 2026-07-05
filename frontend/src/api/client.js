@@ -146,15 +146,6 @@ export const inventarioApi = {
   movimientos:  (id)          => api.get(`/inventario/${id}/movimientos`),
 }
 
-// ---- Cotizaciones ----
-export const cotizacionesApi = {
-  listar:       (params) => api.get('/cotizaciones', { params }),
-  crear:        (data)   => api.post('/cotizaciones', data),
-  obtener:      (id)     => api.get(`/cotizaciones/${id}`),
-  cambiarEstado:(id, estado) => api.patch(`/cotizaciones/${id}/estado`, { estado }),
-  eliminar:     (id)     => api.delete(`/cotizaciones/${id}`),
-}
-
 // ---- Panel profesional ----
 export const profesionalApi = {
   accesoEmpresa: (id)            => api.get(`/profesional/empresa/${id}/acceso`),

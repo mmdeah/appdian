@@ -24,7 +24,6 @@ import StatsReporte from './pages/StatsReporte'
 import VistaEmpresaPro from './pages/VistaEmpresaPro'
 import CajaDiaria from './pages/CajaDiaria'
 import Inventario from './pages/Inventario'
-import Cotizaciones from './pages/Cotizaciones'
 
 function Spinner() {
   return (
@@ -79,7 +78,6 @@ export default function App() {
             <Route path="gastos"                     element={<Gastos />} />
             <Route path="caja-diaria"                element={<CajaDiaria />} />
             <Route path="inventario"                 element={<Inventario />} />
-            <Route path="cotizaciones"               element={<Cotizaciones />} />
             <Route path="estadisticas/reporte"       element={<StatsReporte />} />
           </Route>
 
