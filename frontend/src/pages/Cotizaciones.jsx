@@ -159,7 +159,7 @@ function NumBadge({ n }) {
   return (
     <div style={{
       width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-      background: 'var(--primary)', color: '#fff',
+      background: 'var(--accent)', color: '#fff',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: 12, fontWeight: 700,
     }}>{n}</div>
@@ -221,14 +221,14 @@ export default function Cotizaciones() {
   const inp = {
     width: '100%', padding: '8px 11px',
     border: '1.5px solid var(--border)', borderRadius: 8,
-    background: 'var(--bg)', color: 'var(--text-primary)',
+    background: 'var(--bg-input)', color: 'var(--text-primary)',
     fontSize: 13, outline: 'none', boxSizing: 'border-box',
     transition: 'border-color .15s',
   }
   const lbl = {
     display: 'block', fontSize: 10.5, fontWeight: 700,
     textTransform: 'uppercase', letterSpacing: '.07em',
-    color: 'var(--text-muted)', marginBottom: 5,
+    color: 'var(--text-secondary)', marginBottom: 5,
   }
 
   return (
@@ -243,7 +243,7 @@ export default function Cotizaciones() {
             <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2 }}>
               Nueva cotización
             </h1>
-            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>
               Genera una propuesta comercial en PDF para tu cliente.
             </p>
           </div>
@@ -265,19 +265,20 @@ export default function Cotizaciones() {
 
           {/* Toggle pill */}
           <div style={{
-            display: 'inline-flex', background: 'var(--surface-hover)',
+            display: 'inline-flex', background: 'var(--bg)',
             borderRadius: 10, padding: 3, gap: 3, alignSelf: 'flex-start',
+            border: '1px solid var(--border)',
           }}>
             {[['Consumidor final', true], ['Cliente específico', false]].map(([label, val]) => (
               <button
                 key={label}
                 onClick={() => setCF(val)}
                 style={{
-                  padding: '7px 16px', borderRadius: 8, fontSize: 13, fontWeight: 500,
+                  padding: '7px 16px', borderRadius: 8, fontSize: 13,
                   cursor: 'pointer', border: 'none', transition: 'all .18s',
-                  background: consumidorFinal === val ? 'var(--surface)' : 'transparent',
-                  color: consumidorFinal === val ? 'var(--text-primary)' : 'var(--text-muted)',
-                  boxShadow: consumidorFinal === val ? '0 1px 4px rgba(0,0,0,.12)' : 'none',
+                  background: consumidorFinal === val ? 'var(--bg-card)' : 'transparent',
+                  color: consumidorFinal === val ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  boxShadow: consumidorFinal === val ? 'var(--shadow-xs)' : 'none',
                   fontWeight: consumidorFinal === val ? 600 : 400,
                 }}
               >
@@ -326,7 +327,7 @@ export default function Cotizaciones() {
                   <th key={i} style={{
                     padding: '7px 8px', fontSize: 10.5, fontWeight: 700,
                     textTransform: 'uppercase', letterSpacing: '.07em',
-                    color: 'var(--text-muted)', textAlign: align, width: w,
+                    color: 'var(--text-secondary)', textAlign: align, width: w,
                   }}>
                     {h}
                   </th>
@@ -370,7 +371,7 @@ export default function Cotizaciones() {
                       onClick={() => setItems(p => p.filter((_, i) => i !== idx))}
                       style={{
                         background: 'none', border: 'none', cursor: 'pointer',
-                        color: 'var(--text-muted)', fontSize: 14, width: 26, height: 26,
+                        color: 'var(--text-secondary)', fontSize: 14, width: 26, height: 26,
                         borderRadius: 6, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                         transition: 'all .15s',
                       }}
@@ -385,7 +386,7 @@ export default function Cotizaciones() {
             onClick={() => setItems(p => [...p, itemVacio()])}
             style={{
               background: 'none', border: '1.5px dashed var(--border)', borderRadius: 8,
-              color: 'var(--text-muted)', fontSize: 13, padding: '8px 14px',
+              color: 'var(--text-secondary)', fontSize: 13, padding: '8px 14px',
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
               transition: 'all .15s',
             }}
@@ -401,18 +402,18 @@ export default function Cotizaciones() {
         {/* Resumen */}
         <div style={{
           borderRadius: 14, padding: '20px 22px',
-          background: 'var(--primary)',
+          background: 'var(--sidebar)',
           display: 'flex', flexDirection: 'column', gap: 0,
         }}>
-          <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.12em', color: 'rgba(255,255,255,.6)', marginBottom: 16 }}>
+          <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.12em', color: 'rgba(255,255,255,.5)', marginBottom: 16 }}>
             Resumen
           </p>
 
           {[['Subtotal', subtotal], ['IVA', ivaTotal]].map(([label, val]) => (
             <div key={label} style={{
               display: 'flex', justifyContent: 'space-between',
-              fontSize: 13, color: 'rgba(255,255,255,.75)',
-              padding: '7px 0', borderBottom: '1px solid rgba(255,255,255,.12)',
+              fontSize: 13, color: 'rgba(255,255,255,.7)',
+              padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,.08)',
             }}>
               <span>{label}</span><span>{COP(val)}</span>
             </div>
@@ -423,7 +424,7 @@ export default function Cotizaciones() {
             paddingTop: 14, marginTop: 2,
           }}>
             <span style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>Total</span>
-            <span style={{ fontSize: 22, fontWeight: 800, color: '#fff', letterSpacing: '-.5px' }}>
+            <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent)', letterSpacing: '-.5px' }}>
               {COP(total)}
             </span>
           </div>
@@ -457,10 +458,10 @@ export default function Cotizaciones() {
           onClick={() => imprimir({ empresa, consumidorFinal, cliente, items, nota, validez })}
           style={{
             width: '100%', padding: '14px', borderRadius: 10, border: 'none',
-            background: 'var(--primary)', color: '#fff',
+            background: 'var(--accent)', color: '#fff',
             fontSize: 14, fontWeight: 700, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            transition: 'opacity .15s',
+            transition: 'opacity .15s', boxShadow: 'var(--shadow-accent)',
           }}
           onMouseEnter={e => e.currentTarget.style.opacity = '.88'}
           onMouseLeave={e => e.currentTarget.style.opacity = '1'}
