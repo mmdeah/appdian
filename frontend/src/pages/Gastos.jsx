@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { gastosApi } from '../api/client'
+import PrecioInput from '../components/ui/PrecioInput'
 import './Gastos.css'
 
 const COP = n => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0)
@@ -101,10 +102,10 @@ function ModalGasto({ gasto, onSave, onClose }) {
           {/* Valores */}
           <div className="g-field-row">
             <label>Valor (sin IVA) *
-              <input required type="number" min="0" step="1" placeholder="0" value={form.monto} onChange={e => f('monto', e.target.value)} />
+              <PrecioInput required placeholder="0" value={form.monto} onChange={e => f('monto', e.target.value)} />
             </label>
             <label>IVA
-              <input type="number" min="0" step="1" placeholder="0" value={form.iva} onChange={e => f('iva', e.target.value)} />
+              <PrecioInput placeholder="0" value={form.iva} onChange={e => f('iva', e.target.value)} />
             </label>
           </div>
 

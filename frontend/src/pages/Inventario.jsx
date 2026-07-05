@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { inventarioApi } from '../api/client'
+import PrecioInput from '../components/ui/PrecioInput'
 import './Inventario.css'
 
 const COP = n => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0)
@@ -73,10 +74,10 @@ function ModalProducto({ prod, onSave, onClose }) {
 
           <div className="inv-field-row">
             <label>Precio costo (COP)
-              <input type="number" min="0" step="1" placeholder="0" value={form.precio_costo} onChange={e => f('precio_costo', e.target.value)} />
+              <PrecioInput placeholder="0" value={form.precio_costo} onChange={e => f('precio_costo', e.target.value)} />
             </label>
             <label>Precio venta (COP)
-              <input type="number" min="0" step="1" placeholder="0" value={form.precio} onChange={e => f('precio', e.target.value)} />
+              <PrecioInput placeholder="0" value={form.precio} onChange={e => f('precio', e.target.value)} />
             </label>
           </div>
 
@@ -152,7 +153,7 @@ function ModalMovimiento({ prod, tipoInicial, onSave, onClose }) {
             </label>
             {form.tipo === 'ENTRADA' && (
               <label>Precio unitario (COP)
-                <input type="number" min="0" step="1" placeholder="0" value={form.precio_unitario} onChange={e => f('precio_unitario', e.target.value)} />
+                <PrecioInput placeholder="0" value={form.precio_unitario} onChange={e => f('precio_unitario', e.target.value)} />
               </label>
             )}
           </div>

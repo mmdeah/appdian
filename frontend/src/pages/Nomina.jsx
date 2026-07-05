@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { nominaApi } from '../api/client'
+import PrecioInput from '../components/ui/PrecioInput'
 import './Nomina.css'
 
 const COP = n => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0)
@@ -62,7 +63,7 @@ function ModalEmpleado({ emp, onSave, onClose }) {
           <div className="form-row">
             <label>Cargo<input required value={form.cargo} onChange={e => f('cargo', e.target.value)} /></label>
             <label>Salario base
-              <input required type="number" min="0" value={form.salario_base} onChange={e => f('salario_base', e.target.value)} />
+              <PrecioInput required value={form.salario_base} onChange={e => f('salario_base', e.target.value)} />
             </label>
           </div>
           <div className="form-row">

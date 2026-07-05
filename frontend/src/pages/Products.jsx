@@ -110,12 +110,12 @@ function ProductModal({ product, onSave, onClose }) {
 
           {/* Precios */}
           <div className="form-row">
-            <Input label="Precio venta (COP) *" type="number" value={form.precio} onChange={set('precio')} required min="0" step="1" />
+            <Input label="Precio venta (COP) *" price value={form.precio} onChange={set('precio')} required />
             <Input label="IVA %" type="number" value={form.iva_porcentaje} onChange={set('iva_porcentaje')} min="0" max="100" step="0.5" />
           </div>
 
           {/* Precio costo — siempre útil para margen */}
-          <Input label="Precio costo (COP)" type="number" value={form.precio_costo} onChange={set('precio_costo')} min="0" step="1" placeholder="0" />
+          <Input label="Precio costo (COP)" price value={form.precio_costo} onChange={set('precio_costo')} placeholder="0" />
 
           {/* Stock — solo para productos físicos */}
           {!isServ && (

@@ -2,28 +2,10 @@ import { useState, useEffect } from 'react'
 import { productsApi } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/ui/Button'
+import PrecioInput from '../components/ui/PrecioInput'
 
 const COP = (n) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0)
-
-// Input de precio con formato de miles (180.000) en tiempo real
-function PrecioInput({ value, onChange, style }) {
-  function handleChange(e) {
-    const raw = e.target.value.replace(/\D/g, '')
-    onChange(raw ? parseInt(raw, 10) : 0)
-  }
-  const display = value ? parseInt(value).toLocaleString('es-CO') : ''
-  return (
-    <input
-      type="text"
-      inputMode="numeric"
-      style={style}
-      value={display}
-      onChange={handleChange}
-      placeholder="0"
-    />
-  )
-}
 
 const itemVacio = () => ({ id: Math.random(), desc: '', cantidad: 1, precio: 0, iva: 0 })
 
@@ -351,7 +333,7 @@ export default function Cotizaciones() {
                   <PrecioInput
                     style={{ ...inputStyle, textAlign: 'right' }}
                     value={it.precio}
-                    onChange={val => onNum(idx, 'precio', val)}
+                    onChange={e => onNum(idx, 'precio', e.target.value)}
                   />
                 </td>
                 <td style={{ padding: '6px 8px' }}>
