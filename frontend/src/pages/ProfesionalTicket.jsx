@@ -85,14 +85,15 @@ export default function ProfesionalTicket() {
   }
 
   async function abrirVistaEmpresa() {
-    if (!empresa?.empresa?.id) return
-    const win = window.open('', '_blank') // abrir dentro del gesto del usuario para evitar bloqueador
+    const empresaId = ticket?.empresa_id
+    if (!empresaId) { alert('Esta consulta no tiene empresa asociada'); return }
+    const win = window.open('', '_blank')
     try {
-      const { data } = await profesionalApi.accesoEmpresa(empresa.empresa.id)
+      const { data } = await profesionalApi.accesoEmpresa(empresaId)
       win.location.href = `/vista-empresa#${data.token}`
-    } catch {
+    } catch (err) {
       win?.close()
-      alert('No se pudo abrir la vista de empresa')
+      alert(err.response?.data?.error || 'No se pudo abrir la vista de empresa')
     }
   }
 
