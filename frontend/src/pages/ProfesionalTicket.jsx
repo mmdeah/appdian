@@ -105,7 +105,12 @@ export default function ProfesionalTicket() {
 
   return (
     <div className="pro-ticket-page">
-      <button className="btn-back" onClick={() => navigate('/panel')}>← Volver al panel</button>
+      <button className="btn-back" onClick={() => navigate('/panel')}>
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Volver al panel
+      </button>
 
       <div className="pro-ticket-layout">
 
