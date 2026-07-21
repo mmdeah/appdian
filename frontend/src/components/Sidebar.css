@@ -71,8 +71,8 @@
 }
 
 .empresa-info { flex: 1; min-width: 0; }
-.empresa-nombre { color: #ffffff; font-size: 13px; font-weight: 700; }
-.empresa-nit { color: rgba(255,255,255,0.75); font-size: 11px; margin-top: 2px; font-weight: 500; }
+.empresa-nombre { color: #ffffff !important; font-size: 13px; font-weight: 700; opacity: 1 !important; }
+.empresa-nit { color: rgba(255,255,255,0.8) !important; font-size: 11px; margin-top: 2px; font-weight: 500; opacity: 1 !important; }
 
 .sidebar-divider {
   border: none;
