@@ -1,5 +1,61 @@
 .invoices-page { display: flex; flex-direction: column; gap: var(--s-4); }
 
+/* ── Buscador ───────────────────────────────────────────────────────────── */
+.inv-search-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.inv-search-wrap {
+  position: relative;
+  flex: 1;
+  max-width: 420px;
+}
+
+.inv-search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.inv-search-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 32px 0 34px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 13.5px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .15s;
+  box-sizing: border-box;
+}
+.inv-search-input:focus { border-color: var(--accent); }
+.inv-search-input::placeholder { color: var(--text-tertiary); }
+
+.inv-search-clear {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: 3px;
+  transition: color .15s;
+}
+.inv-search-clear:hover { color: var(--text-primary); }
+
 /* ── Tabs ───────────────────────────────────────────────────────────────── */
 .inv-tabs {
   display: flex;
@@ -16,7 +72,7 @@
   margin-bottom: -2px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: color var(--dur-fast), border-color var(--dur-fast);
 }
@@ -49,7 +105,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .inv-summary-value {

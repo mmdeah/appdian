@@ -247,10 +247,11 @@ const listar = async (req, res) => {
     .order('created_at', { ascending: false })
     .limit(Number(limit) || 500)
 
-  if (tipo) query = query.eq('tipo', tipo)
+  if (tipo)  query = query.eq('tipo', tipo)
   if (estado) query = query.eq('estado', estado)
-  if (desde) query = query.gte('created_at', desde)
-  if (hasta) query = query.lte('created_at', hasta)
+  if (desde) query = query.gte('created_at', `${desde}T00:00:00`)
+  if (hasta) query = query.lte('created_at', `${hasta}T23:59:59.999`)
+  if (req.query.q) query = query.ilike('numero_documento::text', `%${req.query.q}%`)
 
   const { data, count, error } = await query
   if (error) return res.status(500).json({ error: error.message })

@@ -144,6 +144,7 @@ export default function Invoices() {
   const [loading,  setLoading]  = useState(true)
   const [loadErr,  setLoadErr]  = useState(null)
   const [filters,  setFilters]  = useState({ tipo: '', estado: '', desde: '', hasta: '' })
+  const [busqueda, setBusqueda] = useState('')
   const [expanded, setExpanded] = useState(null)
   const [printing, setPrinting] = useState(null)
 
@@ -186,13 +187,23 @@ export default function Invoices() {
   function limpiar() {
     const empty = { tipo: '', estado: '', desde: '', hasta: '' }
     setFilters(empty)
+    setBusqueda('')
     load(empty)
   }
 
-  // Totales calculados del listado actual
-  const totalFacturado = invoices.reduce((s, f) => s + (f.total    || 0), 0)
-  const totalIVA       = invoices.reduce((s, f) => s + (f.iva      || 0), 0)
-  const totalSinIVA    = invoices.reduce((s, f) => s + (f.subtotal || 0), 0)
+  // Filtro client-side por número de factura o nombre cliente
+  const displayed = busqueda.trim()
+    ? invoices.filter(f =>
+        String(f.numero_documento).includes(busqueda.trim()) ||
+        (f.cliente_nombre || '').toLowerCase().includes(busqueda.trim().toLowerCase()) ||
+        (f.cliente_nit    || '').includes(busqueda.trim())
+      )
+    : invoices
+
+  // Totales calculados del listado visible
+  const totalFacturado = displayed.reduce((s, f) => s + (f.total    || 0), 0)
+  const totalIVA       = displayed.reduce((s, f) => s + (f.iva      || 0), 0)
+  const totalSinIVA    = displayed.reduce((s, f) => s + (f.subtotal || 0), 0)
 
   return (
     <div className="invoices-page">
@@ -210,6 +221,44 @@ export default function Invoices() {
       {tab === 'cobrar' && <PorCobrarTab />}
 
       {tab === 'todas' && <>
+      {/* ── Buscador ────────────────────────────────────────────────────────── */}
+      <div className="inv-search-row">
+        <div className="inv-search-wrap">
+          <svg className="inv-search-icon" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <input
+            className="inv-search-input"
+            type="text"
+            placeholder="Buscar por N°, cliente o NIT..."
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+          />
+          {busqueda && (
+            <button className="inv-search-clear" onClick={() => setBusqueda('')}>
+              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          )}
+        </div>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+          <Button variant="ghost" size="sm" onClick={() => load()} title="Recargar lista">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2" style={{marginRight:4}}>
+              <path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
+            </svg>
+            Actualizar
+          </Button>
+          <Button
+            variant="secondary" size="sm"
+            onClick={() => exportarExcel(displayed)}
+            disabled={displayed.length === 0}
+          >
+            ↓ Exportar
+          </Button>
+        </div>
+      </div>
+
       {/* ── Filtros ─────────────────────────────────────────────────────────── */}
       <div className="inv-filters card">
         <div className="filter-group">
@@ -227,7 +276,6 @@ export default function Invoices() {
           <select className="filter-select" value={filters.estado} onChange={setFilter('estado')}>
             <option value="">Todos</option>
             <option value="APROBADA">Aprobada (DIAN)</option>
-            <option value="EMITIDA_LOCAL">Emitida local</option>
             <option value="PENDIENTE">Pendiente</option>
             <option value="RECHAZADA">Rechazada</option>
             <option value="ERROR">Error</option>
@@ -241,30 +289,15 @@ export default function Invoices() {
           <label className="filter-label caps muted">Hasta</label>
           <input className="filter-date" type="date" value={filters.hasta} onChange={setFilter('hasta')} />
         </div>
-        <Button variant="ghost" size="sm" onClick={limpiar}>Limpiar</Button>
-        <Button variant="ghost" size="sm" onClick={() => load()} title="Recargar lista">
-          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2" style={{marginRight:4}}>
-            <path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
-          </svg>
-          Actualizar
-        </Button>
-        <div style={{ marginLeft: 'auto' }}>
-          <Button
-            variant="secondary" size="sm"
-            onClick={() => exportarExcel(invoices)}
-            disabled={invoices.length === 0}
-          >
-            ↓ Exportar Excel
-          </Button>
-        </div>
+        <Button variant="ghost" size="sm" onClick={limpiar}>Limpiar todo</Button>
       </div>
 
       {/* ── Tarjetas resumen ────────────────────────────────────────────────── */}
-      {!loading && invoices.length > 0 && (
+      {!loading && displayed.length > 0 && (
         <div className="inv-summary">
           <div className="inv-summary-card">
-            <span className="inv-summary-label">Facturas</span>
-            <span className="inv-summary-value">{total ?? invoices.length}</span>
+            <span className="inv-summary-label">{busqueda ? 'Resultados' : 'Total facturas'}</span>
+            <span className="inv-summary-value">{busqueda ? displayed.length : (total ?? invoices.length)}</span>
           </div>
           <div className="inv-summary-card">
             <span className="inv-summary-label">Total facturado</span>
@@ -290,12 +323,12 @@ export default function Invoices() {
           </div>
         ) : loading ? (
           <div className="table-loading"><div className="spinner" /></div>
-        ) : invoices.length === 0 ? (
+        ) : displayed.length === 0 ? (
           <div className="empty-state">
             <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.2">
               <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <p>Sin facturas para los filtros seleccionados</p>
+            <p>{busqueda ? `Sin resultados para "${busqueda}"` : 'Sin facturas para los filtros seleccionados'}</p>
           </div>
         ) : (
           <table className="data-table">
@@ -313,7 +346,7 @@ export default function Invoices() {
               </tr>
             </thead>
             <tbody>
-              {invoices.map(f => (
+              {displayed.map(f => (
                 <>
                   <tr key={f.id} className={expanded === f.id ? 'row-expanded' : ''}>
                     <td><span className="inv-num">#{f.numero_documento}</span></td>
