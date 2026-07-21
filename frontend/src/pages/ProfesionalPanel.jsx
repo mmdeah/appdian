@@ -5,10 +5,12 @@ import './ProfesionalPanel.css'
 
 async function abrirVistaEmpresa(empresaId, e) {
   e.stopPropagation()
+  const win = window.open('', '_blank')
   try {
     const { data } = await profesionalApi.accesoEmpresa(empresaId)
-    window.open(`/vista-empresa#${data.token}`, '_blank')
+    win.location.href = `/vista-empresa#${data.token}`
   } catch {
+    win?.close()
     alert('No se pudo abrir la vista de empresa')
   }
 }

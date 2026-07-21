@@ -86,10 +86,12 @@ export default function ProfesionalTicket() {
 
   async function abrirVistaEmpresa() {
     if (!empresa?.empresa?.id) return
+    const win = window.open('', '_blank') // abrir dentro del gesto del usuario para evitar bloqueador
     try {
       const { data } = await profesionalApi.accesoEmpresa(empresa.empresa.id)
-      window.open(`/vista-empresa#${data.token}`, '_blank')
+      win.location.href = `/vista-empresa#${data.token}`
     } catch {
+      win?.close()
       alert('No se pudo abrir la vista de empresa')
     }
   }
