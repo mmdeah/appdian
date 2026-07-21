@@ -49,7 +49,8 @@
   gap: var(--s-3);
   padding: var(--s-3) var(--s-4);
   margin: 0 var(--s-3) var(--s-2);
-  background: rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: var(--r-md);
 }
 
@@ -68,8 +69,8 @@
 }
 
 .empresa-info { flex: 1; min-width: 0; }
-.empresa-nombre { color: rgba(255,255,255,0.9); font-size: 13px; font-weight: 500; }
-.empresa-nit { color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 1px; }
+.empresa-nombre { color: #fff; font-size: 13px; font-weight: 600; }
+.empresa-nit { color: rgba(255,255,255,0.65); font-size: 11px; margin-top: 1px; }
 
 .sidebar-divider {
   border: none;
