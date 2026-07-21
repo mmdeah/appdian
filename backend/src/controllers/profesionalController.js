@@ -182,11 +182,29 @@ const listarEmpresas = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('empresas')
-      .select('id, nombre, nit, email')
-      .eq('activo', true)
-      .order('nombre')
+      .select('id, nombre, nit, email, plan, activo, plan_pagado, plan_vence_en, plan_notas, created_at')
+      .order('created_at', { ascending: false })
     if (error) throw error
     res.json(data)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+// ── PATCH /api/profesional/empresas/:id — Actualizar suscripción ─────────────
+const actualizarEmpresa = async (req, res) => {
+  const { id } = req.params
+  const { plan, activo, plan_pagado, plan_vence_en, plan_notas } = req.body
+  const campos = {}
+  if (plan          !== undefined) campos.plan           = plan
+  if (activo        !== undefined) campos.activo         = activo
+  if (plan_pagado   !== undefined) campos.plan_pagado    = plan_pagado
+  if (plan_vence_en !== undefined) campos.plan_vence_en  = plan_vence_en
+  if (plan_notas    !== undefined) campos.plan_notas     = plan_notas
+  try {
+    const { error } = await supabase.from('empresas').update(campos).eq('id', id)
+    if (error) throw error
+    res.json({ ok: true })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
@@ -249,4 +267,4 @@ const accesoEmpresa = async (req, res) => {
   }
 }
 
-module.exports = { listarTickets, obtenerTicket, actualizarTicket, enviarMensaje, resumenEmpresa, listarProfesionales, verPasswordEmpresa, listarAudit, listarEmpresas, accesoEmpresa }
+module.exports = { listarTickets, obtenerTicket, actualizarTicket, enviarMensaje, resumenEmpresa, listarProfesionales, verPasswordEmpresa, listarAudit, listarEmpresas, actualizarEmpresa, accesoEmpresa }

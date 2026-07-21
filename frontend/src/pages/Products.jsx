@@ -79,10 +79,15 @@ function ProductModal({ product, allProducts, onSave, onClose }) {
     setSaving(true)
     setError('')
     try {
+      const payload = {
+        ...form,
+        stock_actual: Math.round(parseFloat(form.stock_actual) || 0),
+        stock_minimo: Math.round(parseFloat(form.stock_minimo) || 0),
+      }
       if (product?.id) {
-        await productsApi.update(product.id, form)
+        await productsApi.update(product.id, payload)
       } else {
-        await productsApi.create(form)
+        await productsApi.create(payload)
       }
       onSave()
     } catch (err) {
@@ -185,10 +190,16 @@ function ProductModal({ product, allProducts, onSave, onClose }) {
           {/* Stock — solo para productos físicos */}
           {!isServ && (
             <div className="form-row">
-              {!product?.id && (
-                <Input label="Stock inicial" type="number" value={form.stock_actual} onChange={set('stock_actual')} min="0" step="0.001" placeholder="0" />
-              )}
-              <Input label="Stock mínimo" type="number" value={form.stock_minimo} onChange={set('stock_minimo')} min="0" step="0.001" placeholder="0" />
+              <Input
+                label={product?.id ? 'Stock actual (ajuste)' : 'Stock inicial'}
+                type="number"
+                value={form.stock_actual}
+                onChange={set('stock_actual')}
+                min="0"
+                step="1"
+                placeholder="0"
+              />
+              <Input label="Stock mínimo" type="number" value={form.stock_minimo} onChange={set('stock_minimo')} min="0" step="1" placeholder="0" />
             </div>
           )}
 

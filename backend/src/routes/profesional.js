@@ -34,6 +34,7 @@ router.get('/empresa/:id/ver-password',         ctrl.verPasswordEmpresa)
 router.get('/empresa/:id/acceso',               ctrl.accesoEmpresa)
 router.get('/profesionales',                    ctrl.listarProfesionales)
 router.get('/empresas',                         ctrl.listarEmpresas)
+router.patch('/empresas/:id',                   ctrl.actualizarEmpresa)
 router.get('/audit',                            ctrl.listarAudit)
 
 module.exports = router

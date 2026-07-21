@@ -24,6 +24,7 @@ import VistaEmpresaPro from './pages/VistaEmpresaPro'
 import CajaDiaria from './pages/CajaDiaria'
 import Inventario from './pages/Inventario'
 import Cotizaciones from './pages/Cotizaciones'
+import AdminEmpresas from './pages/AdminEmpresas'
 
 function Spinner() {
   return (
@@ -86,6 +87,7 @@ export default function App() {
             <Route index element={<ProfesionalPanel />} />
             <Route path="ticket/:id"  element={<ProfesionalTicket />} />
             <Route path="auditoria"   element={<ProfesionalAudit />} />
+            <Route path="empresas"    element={<AdminEmpresas />} />
           </Route>
         </Routes>
       </BrowserRouter>
