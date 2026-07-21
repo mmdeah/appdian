@@ -108,7 +108,9 @@ function CajeroSelector({ cajero, onChange }) {
             {cajeros.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
           <button className="cajero-manage-btn" onClick={() => setModal(true)} title="Gestionar cajeros">
-            ⚙️
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+            </svg>
           </button>
         </div>
       </div>
@@ -145,25 +147,14 @@ function CajeroSelector({ cajero, onChange }) {
   )
 }
 
-/* ── ClientePanel ─────────────────────────────────────────── */
-function ClientePanel({ cliente, onChange }) {
-  const [modo, setModo] = useState('final')       // 'final' | 'identificado'
-  const [busqueda, setBusqueda] = useState('')
+/* ── ClienteForm (form solo, sin toggle) ──────────────────── */
+function ClienteForm({ cliente, onChange }) {
+  const [busqueda, setBusqueda] = useState(
+    cliente?.nombre ? `${cliente.nombre}${cliente.nit ? ` — ${cliente.nit}` : ''}` : ''
+  )
   const [sugerencias, setSugerencias] = useState([])
   const [buscando, setBuscando] = useState(false)
   const timerRef = useRef(null)
-
-  function setModoFinal() {
-    setModo('final')
-    setBusqueda('')
-    setSugerencias([])
-    onChange(null)
-  }
-
-  function setModoIdentificado() {
-    setModo('identificado')
-    onChange({ nombre: '', nit: '', email: '', tipo_doc_id: 3, direccion: '' })
-  }
 
   const buscar = useCallback(async (q) => {
     if (!q || q.length < 2) { setSugerencias([]); return }
@@ -199,87 +190,137 @@ function ClientePanel({ cliente, onChange }) {
   }
 
   return (
-    <div className="cliente-panel">
-      {/* Toggle */}
-      <div className="cliente-toggle">
-        <button
-          className={`toggle-btn ${modo === 'final' ? 'toggle-btn--active' : ''}`}
-          onClick={setModoFinal}
-        >
-          Consumidor Final
-        </button>
-        <button
-          className={`toggle-btn ${modo === 'identificado' ? 'toggle-btn--active' : ''}`}
-          onClick={setModoIdentificado}
-        >
-          Identificar cliente
-        </button>
+    <div className="cliente-form">
+      {/* Búsqueda */}
+      <div className="cliente-search-wrap">
+        <svg className="cliente-search-icon" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+        </svg>
+        <input
+          className="cliente-search-input"
+          placeholder="Buscar cliente por nombre o NIT…"
+          value={busqueda}
+          onChange={onBusquedaChange}
+        />
+        {buscando && <span className="cliente-search-spin" />}
+        {sugerencias.length > 0 && (
+          <div className="cliente-dropdown">
+            {sugerencias.map(c => (
+              <button key={c.id} className="cliente-dropdown-item" onClick={() => seleccionarCliente(c)}>
+                <span className="cdi-nombre">{c.nombre}</span>
+                <span className="cdi-nit muted">{c.nit}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {modo === 'identificado' && (
-        <div className="cliente-form">
-          {/* Búsqueda */}
-          <div className="cliente-search-wrap">
+      {/* Campos manuales */}
+      <div className="cliente-fields">
+        <div className="cf-row">
+          <label>Tipo doc.
+            <select value={cliente?.tipo_doc_id || 3} onChange={e => updateField('tipo_doc_id', parseInt(e.target.value))}>
+              {TIPOS_DOC.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+            </select>
+          </label>
+          <label>NIT / Identificación *
             <input
-              className="cliente-search-input"
-              placeholder="Buscar cliente por nombre o NIT…"
-              value={busqueda}
-              onChange={onBusquedaChange}
+              placeholder="123456789"
+              value={cliente?.nit || ''}
+              onChange={e => updateField('nit', e.target.value)}
             />
-            {buscando && <span className="cliente-search-spin" />}
-            {sugerencias.length > 0 && (
-              <div className="cliente-dropdown">
-                {sugerencias.map(c => (
-                  <button key={c.id} className="cliente-dropdown-item" onClick={() => seleccionarCliente(c)}>
-                    <span className="cdi-nombre">{c.nombre}</span>
-                    <span className="cdi-nit muted">{c.nit}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Campos manuales */}
-          <div className="cliente-fields">
-            <div className="cf-row">
-              <label>Tipo doc.
-                <select value={cliente?.tipo_doc_id || 3} onChange={e => updateField('tipo_doc_id', parseInt(e.target.value))}>
-                  {TIPOS_DOC.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-                </select>
-              </label>
-              <label>NIT / Identificación *
-                <input
-                  placeholder="123456789"
-                  value={cliente?.nit || ''}
-                  onChange={e => updateField('nit', e.target.value)}
-                />
-              </label>
-            </div>
-            <label>Nombre / Razón social *
-              <input
-                placeholder="Empresa S.A.S."
-                value={cliente?.nombre || ''}
-                onChange={e => updateField('nombre', e.target.value)}
-              />
-            </label>
-            <label>Email (para envío PDF)
-              <input
-                type="email"
-                placeholder="correo@empresa.com"
-                value={cliente?.email || ''}
-                onChange={e => updateField('email', e.target.value)}
-              />
-            </label>
-            <label>Dirección
-              <input
-                placeholder="Calle 123 # 45-67"
-                value={cliente?.direccion || ''}
-                onChange={e => updateField('direccion', e.target.value)}
-              />
-            </label>
-          </div>
+          </label>
         </div>
-      )}
+        <label>Nombre / Razón social *
+          <input
+            placeholder="Empresa S.A.S."
+            value={cliente?.nombre || ''}
+            onChange={e => updateField('nombre', e.target.value)}
+          />
+        </label>
+        <label>Email (para envío PDF)
+          <input
+            type="email"
+            placeholder="correo@empresa.com"
+            value={cliente?.email || ''}
+            onChange={e => updateField('email', e.target.value)}
+          />
+        </label>
+        <label>Dirección
+          <input
+            placeholder="Calle 123 # 45-67"
+            value={cliente?.direccion || ''}
+            onChange={e => updateField('direccion', e.target.value)}
+          />
+        </label>
+      </div>
+    </div>
+  )
+}
+
+/* ── ClienteModal ─────────────────────────────────────────── */
+function ClienteModal({ cliente, onChange, onClose }) {
+  const [modo, setModo] = useState(cliente?.nombre ? 'identificado' : 'final')
+  const [localCliente, setLocalCliente] = useState(cliente)
+
+  function handleConfirm() {
+    if (modo === 'final') {
+      onChange(null)
+    } else {
+      onChange(localCliente)
+    }
+    onClose()
+  }
+
+  return (
+    <div className="pos-modal-overlay" onClick={onClose}>
+      <div className="pos-modal" onClick={e => e.stopPropagation()}>
+        <div className="pos-modal-header">
+          <h3 className="pos-modal-title">Datos del cliente</h3>
+          <button className="pos-modal-close-btn" onClick={onClose}>
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+              <path d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Toggle dentro del modal */}
+        <div className="cliente-toggle">
+          <button
+            className={`toggle-btn ${modo === 'final' ? 'toggle-btn--active' : ''}`}
+            onClick={() => setModo('final')}
+          >
+            Consumidor Final
+          </button>
+          <button
+            className={`toggle-btn ${modo === 'identificado' ? 'toggle-btn--active' : ''}`}
+            onClick={() => {
+              setModo('identificado')
+              if (!localCliente) setLocalCliente({ nombre: '', nit: '', email: '', tipo_doc_id: 3, direccion: '' })
+            }}
+          >
+            Identificar cliente
+          </button>
+        </div>
+
+        {modo === 'identificado' && (
+          <ClienteForm
+            cliente={localCliente}
+            onChange={setLocalCliente}
+          />
+        )}
+
+        {modo === 'final' && (
+          <p className="pos-modal-final-msg">
+            Se emitirá a nombre de <strong>Consumidor Final</strong> con NIT 222222222.
+          </p>
+        )}
+
+        <div className="pos-modal-footer">
+          <button className="pos-modal-cancel" onClick={onClose}>Cancelar</button>
+          <button className="pos-modal-ok" onClick={handleConfirm}>Confirmar</button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -297,6 +338,7 @@ export default function POS() {
   const [medioPago, setMedioPago] = useState(10)
   const [cliente, setCliente] = useState(null)   // null = Consumidor Final
   const [tipoDoc, setTipoDoc] = useState('POS')  // 'POS' | 'FE'
+  const [clienteModalOpen, setClienteModalOpen] = useState(false)
   const searchRef = useRef()
 
   useEffect(() => {
@@ -395,7 +437,6 @@ export default function POS() {
       setResult({ ok: true, data: resp })
       setCart([])
 
-      // Imprimir — obtener factura completa (con items) y renderizar en ventana ya abierta
       const facturaId = resp.factura_id || resp.factura?.id || resp.id
       if (facturaId && printWin) {
         try {
@@ -415,6 +456,13 @@ export default function POS() {
       setEmitting(false)
     }
   }
+
+  // Label del cliente trigger
+  const clienteLabel = cliente?.nombre
+    ? cliente.nombre + (cliente.nit ? ` · ${cliente.nit}` : '')
+    : 'Consumidor Final'
+  const clienteIdentificado = !!(cliente?.nombre)
+  const clienteRequerido = tipoDoc === 'FE' && !clienteIdentificado
 
   return (
     <div className="pos-layout">
@@ -458,59 +506,40 @@ export default function POS() {
 
       {/* ── Panel de carrito ── */}
       <div className="pos-cart">
-        <div className="cart-header">
-          <h3 className="cart-title">Carrito</h3>
-          {cart.length > 0 && (
-            <button className="cart-clear-btn" onClick={clearCart}>Vaciar</button>
-          )}
+
+        {/* Cabecera: tipo doc (compacto) + título + vaciar */}
+        <div className="cart-top">
+          <div className="tipodoc-compact">
+            <button
+              className={`tipodoc-pill ${tipoDoc === 'POS' ? 'tipodoc-pill--active' : ''}`}
+              onClick={() => setTipoDoc('POS')}
+            >
+              🧾 Documento POS
+            </button>
+            <button
+              className={`tipodoc-pill ${tipoDoc === 'FE' ? 'tipodoc-pill--active' : ''}`}
+              onClick={() => setTipoDoc('FE')}
+            >
+              📄 Factura Electrónica
+            </button>
+          </div>
+          <div className="cart-header">
+            <h3 className="cart-title">Carrito
+              {cart.length > 0 && <span className="cart-count">{cart.length}</span>}
+            </h3>
+            {cart.length > 0 && (
+              <button className="cart-clear-btn" onClick={clearCart}>Vaciar</button>
+            )}
+          </div>
         </div>
 
-        {/* Tipo de documento */}
-        <div className="tipodoc-toggle">
-          <button
-            className={`tipodoc-btn ${tipoDoc === 'POS' ? 'tipodoc-btn--active' : ''}`}
-            onClick={() => setTipoDoc('POS')}
-          >
-            <span className="tipodoc-icon">🧾</span>
-            <span className="tipodoc-label">Documento POS</span>
-            <span className="tipodoc-sub">Ticket de caja</span>
-          </button>
-          <button
-            className={`tipodoc-btn ${tipoDoc === 'FE' ? 'tipodoc-btn--active' : ''}`}
-            onClick={() => setTipoDoc('FE')}
-          >
-            <span className="tipodoc-icon">📄</span>
-            <span className="tipodoc-label">Factura Electrónica</span>
-            <span className="tipodoc-sub">Requiere datos cliente</span>
-          </button>
-        </div>
-
-        {/* Cajero (solo POS) */}
-        {tipoDoc === 'POS' && (
-          <CajeroSelector cajero={cajero} onChange={setCajero} />
-        )}
-
-        {/* Medio de pago */}
-        <div className="cajero-wrap">
-          <label className="cajero-label caps muted">Medio de pago</label>
-          <select
-            className="cajero-input"
-            value={medioPago}
-            onChange={e => setMedioPago(parseInt(e.target.value))}
-          >
-            {MEDIOS_PAGO.map(m => (
-              <option key={m.id} value={m.id}>{m.label}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Panel de cliente */}
-        <ClientePanel cliente={cliente} onChange={setCliente} />
-
-        {/* Items */}
+        {/* ── Items — siempre visibles, flex:1 ── */}
         <div className="cart-items">
           {cart.length === 0 ? (
             <div className="cart-empty">
+              <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.2" style={{ opacity: 0.25 }}>
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+              </svg>
               <p className="muted t-sm">Agrega productos al carrito</p>
             </div>
           ) : (
@@ -520,73 +549,122 @@ export default function POS() {
           )}
         </div>
 
-        {/* Totales */}
-        <div className="cart-totals">
-          <div className="total-row">
-            <span className="muted t-sm">Subtotal</span>
-            <span className="t-sm">{COP(subtotal)}</span>
+        {/* ── Footer: config + totales + emitir ── */}
+        <div className="cart-footer">
+
+          {/* Config: cajero + medio pago + cliente */}
+          <div className="cart-config">
+            <div className="cart-config-row">
+              {tipoDoc === 'POS' && (
+                <CajeroSelector cajero={cajero} onChange={setCajero} />
+              )}
+              <div className={`cajero-wrap ${tipoDoc === 'FE' ? 'cajero-wrap--full' : ''}`}>
+                <label className="cajero-label caps muted">Medio de pago</label>
+                <select
+                  className="cajero-input"
+                  value={medioPago}
+                  onChange={e => setMedioPago(parseInt(e.target.value))}
+                >
+                  {MEDIOS_PAGO.map(m => (
+                    <option key={m.id} value={m.id}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Cliente trigger */}
+            <button
+              className={`cliente-trigger${clienteRequerido ? ' cliente-trigger--warn' : clienteIdentificado ? ' cliente-trigger--ok' : ''}`}
+              onClick={() => setClienteModalOpen(true)}
+            >
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+              <span className="cliente-trigger-text">{clienteLabel}</span>
+              {clienteRequerido && <span className="cliente-trigger-badge">Requerido</span>}
+              <svg className="cliente-trigger-edit" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+            </button>
           </div>
-          <div className="total-row">
-            <span className="muted t-sm">IVA</span>
-            <span className="t-sm">{COP(iva)}</span>
+
+          {/* Totales */}
+          <div className="cart-totals">
+            <div className="total-row">
+              <span className="muted t-sm">Subtotal</span>
+              <span className="t-sm">{COP(subtotal)}</span>
+            </div>
+            <div className="total-row">
+              <span className="muted t-sm">IVA</span>
+              <span className="t-sm">{COP(iva)}</span>
+            </div>
+            <div className="divider" />
+            <div className="total-row total-row--main">
+              <span>Total</span>
+              <span className="total-value">{COP(total)}</span>
+            </div>
           </div>
-          <div className="divider" />
-          <div className="total-row total-row--main">
-            <span>Total</span>
-            <span className="total-value">{COP(total)}</span>
-          </div>
+
+          {/* Resultado */}
+          {result && (
+            <div className={`pos-result ${result.ok ? 'pos-result--ok' : 'pos-result--err'}`}>
+              {result.ok ? (
+                <>
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p className="result-title">¡Documento emitido!</p>
+                    <p className="t-xs" style={{ opacity: 0.8 }}>
+                      N° {result.data?.factura?.numero_documento ?? result.data?.numero_documento}
+                      {' — '}
+                      {result.data?.factura?.estado ?? result.data?.estado ?? 'OK'}
+                    </p>
+                    {result.data?.mensaje && (
+                      <p className="t-xs result-warning">{result.data.mensaje}</p>
+                    )}
+                    {result.data?.pdf_url && (
+                      <a href={result.data.pdf_url} target="_blank" rel="noreferrer" className="result-link">
+                        Ver PDF
+                      </a>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+                    <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <div>
+                    <p className="result-title">Error</p>
+                    <p className="t-xs" style={{ opacity: 0.8 }}>{result.error}</p>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          <Button
+            variant="success"
+            size="lg"
+            fullWidth
+            loading={emitting}
+            disabled={cart.length === 0}
+            onClick={emitir}
+          >
+            {tipoDoc === 'FE' ? '📄 Emitir Factura FE' : '🧾 Emitir Documento POS'}
+          </Button>
         </div>
-
-        {/* Resultado */}
-        {result && (
-          <div className={`pos-result ${result.ok ? 'pos-result--ok' : 'pos-result--err'}`}>
-            {result.ok ? (
-              <>
-                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                  <p className="result-title">¡Documento emitido!</p>
-                  <p className="t-xs" style={{ opacity: 0.8 }}>
-                    N° {result.data?.factura?.numero_documento ?? result.data?.numero_documento}
-                    {' — '}
-                    {result.data?.factura?.estado ?? result.data?.estado ?? 'OK'}
-                  </p>
-                  {result.data?.mensaje && (
-                    <p className="t-xs result-warning">{result.data.mensaje}</p>
-                  )}
-                  {result.data?.pdf_url && (
-                    <a href={result.data.pdf_url} target="_blank" rel="noreferrer" className="result-link">
-                      Ver PDF
-                    </a>
-                  )}
-                </div>
-              </>
-            ) : (
-              <>
-                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
-                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                <div>
-                  <p className="result-title">Error</p>
-                  <p className="t-xs" style={{ opacity: 0.8 }}>{result.error}</p>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        <Button
-          variant="success"
-          size="lg"
-          fullWidth
-          loading={emitting}
-          disabled={cart.length === 0}
-          onClick={emitir}
-        >
-          {tipoDoc === 'FE' ? '📄 Emitir Factura FE' : '🧾 Emitir Documento POS'}
-        </Button>
       </div>
+
+      {/* ── Modal de cliente ── */}
+      {clienteModalOpen && (
+        <ClienteModal
+          cliente={cliente}
+          onChange={setCliente}
+          onClose={() => setClienteModalOpen(false)}
+        />
+      )}
     </div>
   )
 }
