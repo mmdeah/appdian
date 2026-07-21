@@ -56,6 +56,15 @@
 }
 .inv-search-clear:hover { color: var(--text-primary); }
 
+/* ── Columnas ordenables ────────────────────────────────────────────────── */
+.th-sort {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.th-sort:hover { color: var(--accent); }
+.th-sort-hint { opacity: .3; font-size: 10px; }
+
 /* ── Tabs ───────────────────────────────────────────────────────────────── */
 .inv-tabs {
   display: flex;

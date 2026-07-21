@@ -145,6 +145,7 @@ export default function Invoices() {
   const [loadErr,  setLoadErr]  = useState(null)
   const [filters,  setFilters]  = useState({ tipo: '', estado: '', desde: '', hasta: '' })
   const [busqueda, setBusqueda] = useState('')
+  const [sort,     setSort]     = useState({ col: 'created_at', asc: false })
   const [expanded, setExpanded] = useState(null)
   const [printing, setPrinting] = useState(null)
 
@@ -191,14 +192,29 @@ export default function Invoices() {
     load(empty)
   }
 
+  function toggleSort(col) {
+    setSort(prev => prev.col === col ? { col, asc: !prev.asc } : { col, asc: false })
+  }
+
   // Filtro client-side por número de factura o nombre cliente
-  const displayed = busqueda.trim()
+  const filtered = busqueda.trim()
     ? invoices.filter(f =>
         String(f.numero_documento).includes(busqueda.trim()) ||
         (f.cliente_nombre || '').toLowerCase().includes(busqueda.trim().toLowerCase()) ||
         (f.cliente_nit    || '').includes(busqueda.trim())
       )
     : invoices
+
+  // Ordenamiento client-side
+  const displayed = [...filtered].sort((a, b) => {
+    let va, vb
+    if (sort.col === 'numero_documento') { va = a.numero_documento; vb = b.numero_documento }
+    else if (sort.col === 'total')       { va = a.total;            vb = b.total }
+    else                                 { va = a.created_at;       vb = b.created_at }
+    if (va < vb) return sort.asc ? -1 : 1
+    if (va > vb) return sort.asc ?  1 : -1
+    return 0
+  })
 
   // Totales calculados del listado visible
   const totalFacturado = displayed.reduce((s, f) => s + (f.total    || 0), 0)
@@ -334,14 +350,20 @@ export default function Invoices() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>N°</th>
+                <th className="th-sort" onClick={() => toggleSort('numero_documento')}>
+                  N° {sort.col === 'numero_documento' ? (sort.asc ? '↑' : '↓') : <span className="th-sort-hint">↕</span>}
+                </th>
                 <th>Tipo</th>
                 <th>Cliente</th>
                 <th className="td-right">Subtotal</th>
                 <th className="td-right">IVA</th>
-                <th className="td-right">Total</th>
+                <th className="td-right th-sort" onClick={() => toggleSort('total')}>
+                  Total {sort.col === 'total' ? (sort.asc ? '↑' : '↓') : <span className="th-sort-hint">↕</span>}
+                </th>
                 <th>Estado</th>
-                <th>Fecha</th>
+                <th className="th-sort" onClick={() => toggleSort('created_at')}>
+                  Fecha {sort.col === 'created_at' ? (sort.asc ? '↑' : '↓') : <span className="th-sort-hint">↕</span>}
+                </th>
                 <th>Acciones</th>
               </tr>
             </thead>
