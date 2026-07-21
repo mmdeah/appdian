@@ -12,6 +12,13 @@ const app = express()
 app.use(express.json())
 app.use(morgan('dev'))
 
+// ── Deshabilitar caché del navegador para todas las rutas de la API ──────────
+app.use('/api', (_, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
+  res.setHeader('Pragma', 'no-cache')
+  next()
+})
+
 // ── API routes ───────────────────────────────────────────────────────────────
 app.use('/api/auth',        require('./routes/auth'))
 app.use('/api/products',    require('./routes/products'))
