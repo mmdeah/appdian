@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { productsApi, invoicesApi, customersApi } from '../api/client'
+import { useAuth } from '../context/AuthContext'
+import { printFactura } from '../utils/printFactura'
 import Button from '../components/ui/Button'
 import './POS.css'
 
@@ -284,6 +286,7 @@ function ClientePanel({ cliente, onChange }) {
 
 /* ── Página principal POS ─────────────────────────────────── */
 export default function POS() {
+  const { empresa } = useAuth()
   const [products, setProducts] = useState([])
   const [search, setSearch] = useState('')
   const [cart, setCart] = useState([])
@@ -352,12 +355,17 @@ export default function POS() {
 
   async function emitir() {
     if (cart.length === 0) return
+
+    // Abrir ventana de impresión ANTES del await para evitar popup blocker
+    const printWin = window.open('', '_blank', 'width=900,height=750,scrollbars=yes')
+
     setEmitting(true)
     setResult(null)
     try {
       let resp
       if (tipoDoc === 'FE') {
         if (!cliente?.nit || !cliente?.nombre) {
+          printWin?.close()
           setResult({ ok: false, error: 'Para Factura FE debes identificar al cliente (NIT y nombre requeridos).' })
           setEmitting(false)
           return
@@ -371,7 +379,7 @@ export default function POS() {
       } else {
         const { data } = await invoicesApi.emitirPOS({
           items,
-          cajero_nombre: cajero,
+          cajero_nombre:   cajero,
           terminal_numero: 'CJ001',
           medio_pago_id:   medioPago,
           cliente: cliente ? {
@@ -383,9 +391,25 @@ export default function POS() {
         })
         resp = data
       }
+
       setResult({ ok: true, data: resp })
       setCart([])
+
+      // Imprimir — obtener factura completa (con items) y renderizar en ventana ya abierta
+      const facturaId = resp.factura_id || resp.factura?.id || resp.id
+      if (facturaId && printWin) {
+        try {
+          const { data: fullInvoice } = await invoicesApi.get(facturaId)
+          printFactura(fullInvoice, empresa || {}, printWin)
+        } catch {
+          printWin.close()
+        }
+      } else {
+        printWin?.close()
+      }
+
     } catch (err) {
+      printWin?.close()
       setResult({ ok: false, error: err.response?.data?.error || 'Error al emitir documento' })
     } finally {
       setEmitting(false)

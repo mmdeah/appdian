@@ -7,7 +7,7 @@
  * `factura` debe tener los campos del backend + items_factura: [...]
  * `empresa` viene del AuthContext (empresa.nombre, empresa.nit, …)
  */
-export function printFactura(factura, empresa = {}) {
+export function printFactura(factura, empresa = {}, targetWin = null) {
   const COP = (n) =>
     new Intl.NumberFormat('es-CO', {
       style: 'currency', currency: 'COP', maximumFractionDigits: 0,
@@ -362,7 +362,7 @@ export function printFactura(factura, empresa = {}) {
 </body>
 </html>`
 
-  const win = window.open('', '_blank', 'width=900,height=750,scrollbars=yes')
+  const win = targetWin || window.open('', '_blank', 'width=900,height=750,scrollbars=yes')
   if (!win) {
     alert('El navegador bloqueó la ventana emergente. Permite pop-ups para este sitio e intenta de nuevo.')
     return
