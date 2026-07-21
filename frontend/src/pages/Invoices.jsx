@@ -140,6 +140,7 @@ export default function Invoices() {
   const { empresa } = useAuth()
   const [tab,      setTab]      = useState('todas')
   const [invoices, setInvoices] = useState([])
+  const [total,    setTotal]    = useState(null)
   const [loading,  setLoading]  = useState(true)
   const [loadErr,  setLoadErr]  = useState(null)
   const [filters,  setFilters]  = useState({ tipo: '', estado: '', desde: '', hasta: '' })
@@ -164,8 +165,8 @@ export default function Invoices() {
     const params = Object.fromEntries(Object.entries(f).filter(([, v]) => v))
     invoicesApi.list(params)
       .then(({ data }) => {
-        console.log('[Facturas] respuesta API:', data)
         setInvoices(data.facturas || [])
+        setTotal(data.total ?? data.facturas?.length ?? 0)
       })
       .catch((err) => {
         console.error('[Facturas] error API:', err.response?.data || err.message)
@@ -263,7 +264,7 @@ export default function Invoices() {
         <div className="inv-summary">
           <div className="inv-summary-card">
             <span className="inv-summary-label">Facturas</span>
-            <span className="inv-summary-value">{invoices.length}</span>
+            <span className="inv-summary-value">{total ?? invoices.length}</span>
           </div>
           <div className="inv-summary-card">
             <span className="inv-summary-label">Total facturado</span>

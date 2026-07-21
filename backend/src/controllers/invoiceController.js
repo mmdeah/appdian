@@ -238,23 +238,23 @@ const emitirFacturaElectronica = async (req, res) => {
 
 // GET /api/invoices — Historial de facturas
 const listar = async (req, res) => {
-  const { tipo, estado, desde, hasta, limit = 50 } = req.query
+  const { tipo, estado, desde, hasta, limit = 500 } = req.query
 
   let query = supabase
     .from('facturas')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('empresa_id', req.user.empresa_id)
     .order('created_at', { ascending: false })
-    .limit(Number(limit) || 50)
+    .limit(Number(limit) || 500)
 
   if (tipo) query = query.eq('tipo', tipo)
   if (estado) query = query.eq('estado', estado)
   if (desde) query = query.gte('created_at', desde)
   if (hasta) query = query.lte('created_at', hasta)
 
-  const { data, error } = await query
+  const { data, count, error } = await query
   if (error) return res.status(500).json({ error: error.message })
-  res.json({ facturas: data })
+  res.json({ facturas: data, total: count })
 }
 
 // GET /api/invoices/:id
