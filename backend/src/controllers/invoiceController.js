@@ -247,10 +247,10 @@ const listar = async (req, res) => {
 
   let query = supabase
     .from('facturas')
-    .select('*, items_factura(*)')
+    .select('*')
     .eq('empresa_id', req.user.empresa_id)
     .order('created_at', { ascending: false })
-    .limit(limit)
+    .limit(Number(limit) || 50)
 
   if (tipo) query = query.eq('tipo', tipo)
   if (estado) query = query.eq('estado', estado)

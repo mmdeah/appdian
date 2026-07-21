@@ -141,6 +141,7 @@ export default function Invoices() {
   const [tab,      setTab]      = useState('todas')
   const [invoices, setInvoices] = useState([])
   const [loading,  setLoading]  = useState(true)
+  const [loadErr,  setLoadErr]  = useState(null)
   const [filters,  setFilters]  = useState({ tipo: '', estado: '', desde: '', hasta: '' })
   const [expanded, setExpanded] = useState(null)
   const [printing, setPrinting] = useState(null)
@@ -159,10 +160,11 @@ export default function Invoices() {
 
   function load(f = filters) {
     setLoading(true)
+    setLoadErr(null)
     const params = Object.fromEntries(Object.entries(f).filter(([, v]) => v))
     invoicesApi.list(params)
       .then(({ data }) => setInvoices(data.facturas || []))
-      .catch(() => {})
+      .catch((err) => setLoadErr(err.response?.data?.error || 'Error al cargar facturas'))
       .finally(() => setLoading(false))
   }
 
@@ -268,7 +270,12 @@ export default function Invoices() {
 
       {/* ── Tabla ───────────────────────────────────────────────────────────── */}
       <div className="card table-card">
-        {loading ? (
+        {loadErr ? (
+          <div className="empty-state" style={{ color: 'var(--danger)' }}>
+            <p>⚠️ {loadErr}</p>
+            <button onClick={() => load()} style={{ marginTop: 8, fontSize: 13, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Reintentar</button>
+          </div>
+        ) : loading ? (
           <div className="table-loading"><div className="spinner" /></div>
         ) : invoices.length === 0 ? (
           <div className="empty-state">
