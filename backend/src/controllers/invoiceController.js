@@ -68,15 +68,13 @@ const emitirPOS = async (req, res) => {
     const tieneMatias = !!(empresa.matias_email && empresa.matias_password && process.env.MATIAS_URL)
 
     if (!tieneMatias) {
-      // Modo prueba / sandbox — guardamos como EMITIDA_LOCAL sin llamar a DIAN
-      await supabase
-        .from('facturas')
-        .update({ estado: 'EMITIDA_LOCAL', modo_prueba: true })
-        .eq('id', factura.id)
-
+      // Modo prueba / sandbox — la factura ya quedó en PENDIENTE (válido en el schema)
+      // No actualizamos a EMITIDA_LOCAL porque ese valor no está en el CHECK constraint
       return res.status(201).json({
         ok: true,
-        factura: { ...factura, estado: 'EMITIDA_LOCAL', modo_prueba: true, numero_documento },
+        factura_id: factura.id,
+        numero_documento,
+        modo_prueba: true,
         mensaje: '⚠️ Factura guardada en modo prueba. No fue enviada a la DIAN (credenciales MATIAS no configuradas).',
       })
     }
@@ -183,14 +181,11 @@ const emitirFacturaElectronica = async (req, res) => {
     const tieneMatiasFE = !!(empresa.matias_email && empresa.matias_password && process.env.MATIAS_URL)
 
     if (!tieneMatiasFE) {
-      await supabase
-        .from('facturas')
-        .update({ estado: 'EMITIDA_LOCAL', modo_prueba: true })
-        .eq('id', factura.id)
-
       return res.status(201).json({
         ok: true,
-        factura: { ...factura, estado: 'EMITIDA_LOCAL', modo_prueba: true, numero_documento },
+        factura_id: factura.id,
+        numero_documento,
+        modo_prueba: true,
         mensaje: '⚠️ Factura guardada en modo prueba. No fue enviada a la DIAN (credenciales MATIAS no configuradas).',
       })
     }

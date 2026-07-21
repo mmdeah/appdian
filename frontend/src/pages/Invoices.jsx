@@ -163,8 +163,14 @@ export default function Invoices() {
     setLoadErr(null)
     const params = Object.fromEntries(Object.entries(f).filter(([, v]) => v))
     invoicesApi.list(params)
-      .then(({ data }) => setInvoices(data.facturas || []))
-      .catch((err) => setLoadErr(err.response?.data?.error || 'Error al cargar facturas'))
+      .then(({ data }) => {
+        console.log('[Facturas] respuesta API:', data)
+        setInvoices(data.facturas || [])
+      })
+      .catch((err) => {
+        console.error('[Facturas] error API:', err.response?.data || err.message)
+        setLoadErr(err.response?.data?.error || 'Error al cargar facturas')
+      })
       .finally(() => setLoading(false))
   }
 
@@ -235,6 +241,12 @@ export default function Invoices() {
           <input className="filter-date" type="date" value={filters.hasta} onChange={setFilter('hasta')} />
         </div>
         <Button variant="ghost" size="sm" onClick={limpiar}>Limpiar</Button>
+        <Button variant="ghost" size="sm" onClick={() => load()} title="Recargar lista">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2" style={{marginRight:4}}>
+            <path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
+          </svg>
+          Actualizar
+        </Button>
         <div style={{ marginLeft: 'auto' }}>
           <Button
             variant="secondary" size="sm"
