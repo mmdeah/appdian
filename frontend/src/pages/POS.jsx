@@ -339,6 +339,8 @@ export default function POS() {
   const [cliente, setCliente] = useState(null)   // null = Consumidor Final
   const [tipoDoc, setTipoDoc] = useState('POS')  // 'POS' | 'FE'
   const [clienteModalOpen, setClienteModalOpen] = useState(false)
+  const [esCredito, setEsCredito] = useState(false)
+  const [fechaVencimiento, setFechaVencimiento] = useState('')
   const searchRef = useRef()
 
   useEffect(() => {
@@ -416,6 +418,8 @@ export default function POS() {
           items,
           cliente,
           medio_pago_id: medioPago,
+          metodo_pago_id: esCredito ? 2 : 1,
+          fecha_vencimiento: esCredito && fechaVencimiento ? fechaVencimiento : null,
         })
         resp = data
       } else {
@@ -512,7 +516,7 @@ export default function POS() {
           <div className="tipodoc-compact">
             <button
               className={`tipodoc-pill ${tipoDoc === 'POS' ? 'tipodoc-pill--active' : ''}`}
-              onClick={() => setTipoDoc('POS')}
+              onClick={() => { setTipoDoc('POS'); setEsCredito(false); setFechaVencimiento('') }}
             >
               🧾 Documento POS
             </button>
@@ -571,6 +575,30 @@ export default function POS() {
                 </select>
               </div>
             </div>
+
+            {/* Crédito (solo FE) */}
+            {tipoDoc === 'FE' && (
+              <div className="credito-row">
+                <label className="credito-toggle" onClick={() => setEsCredito(v => !v)}>
+                  <div className={`credito-switch ${esCredito ? 'credito-switch--on' : ''}`}>
+                    <div className="credito-switch-thumb" />
+                  </div>
+                  <span className="credito-label">Factura a crédito</span>
+                </label>
+                {esCredito && (
+                  <div className="credito-fecha">
+                    <label className="cajero-label caps muted">Fecha vencimiento</label>
+                    <input
+                      type="date"
+                      className="cajero-input"
+                      value={fechaVencimiento}
+                      min={new Date().toISOString().split('T')[0]}
+                      onChange={e => setFechaVencimiento(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Cliente trigger */}
             <button

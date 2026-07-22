@@ -353,6 +353,66 @@
 }
 .cajero-input:focus { border-color: var(--accent); }
 
+/* ── Crédito toggle ──────────────────────────────────────── */
+.credito-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.credito-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  cursor: pointer;
+  padding: 7px 10px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--border-mid);
+  background: var(--bg);
+  transition: border-color var(--dur-fast), background var(--dur-fast);
+}
+.credito-toggle:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+.credito-switch {
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--border-mid);
+  position: relative;
+  flex-shrink: 0;
+  transition: background var(--dur-fast);
+}
+.credito-switch--on { background: var(--accent); }
+
+.credito-switch-thumb {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left var(--dur-fast);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.credito-switch--on .credito-switch-thumb { left: 16px; }
+
+.credito-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.credito-fecha {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: fadeSlideIn .15s ease;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+
 /* Cliente trigger */
 .cliente-trigger {
   display: flex;
