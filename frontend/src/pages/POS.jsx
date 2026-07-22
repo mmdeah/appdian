@@ -328,6 +328,7 @@ function ClienteModal({ cliente, onChange, onClose }) {
 /* ── Página principal POS ─────────────────────────────────── */
 export default function POS() {
   const { empresa } = useAuth()
+  const tieneDian = empresa?.plan === 'dian'
   const [products, setProducts] = useState([])
   const [search, setSearch] = useState('')
   const [cart, setCart] = useState([])
@@ -521,10 +522,12 @@ export default function POS() {
               🧾 Documento POS
             </button>
             <button
-              className={`tipodoc-pill ${tipoDoc === 'FE' ? 'tipodoc-pill--active' : ''}`}
-              onClick={() => setTipoDoc('FE')}
+              className={`tipodoc-pill ${tipoDoc === 'FE' ? 'tipodoc-pill--active' : ''} ${!tieneDian ? 'tipodoc-pill--locked' : ''}`}
+              onClick={() => tieneDian && setTipoDoc('FE')}
+              title={!tieneDian ? 'Tu plan Básico no incluye Factura Electrónica DIAN' : ''}
             >
               📄 Factura Electrónica
+              {!tieneDian && <span className="tipodoc-lock">🔒</span>}
             </button>
           </div>
           <div className="cart-header">

@@ -167,6 +167,12 @@
   color: var(--accent);
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
+.tipodoc-pill--locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.tipodoc-pill--locked:hover { background: transparent; color: var(--text-secondary); }
+.tipodoc-lock { margin-left: 5px; font-size: 11px; }
 
 .cart-header {
   display: flex;

@@ -92,6 +92,21 @@ export default function Configuracion() {
         </div>
       )}
 
+      {/* ── Plan activo ── */}
+      <div className={`cfg-plan-banner cfg-plan-banner--${empresa?.plan === 'dian' ? 'dian' : 'basico'}`}>
+        <div className="cfg-plan-info">
+          <span className="cfg-plan-badge">{empresa?.plan === 'dian' ? '⚡ Plan DIAN' : '📦 Plan Básico'}</span>
+          <p className="cfg-plan-desc">
+            {empresa?.plan === 'dian'
+              ? 'Incluye Factura Electrónica, resolución DIAN y conexión con MATIAS.'
+              : 'Incluye Documentos POS, gestión de clientes, nómina, gastos e inventario. No emite Facturas Electrónicas DIAN.'}
+          </p>
+        </div>
+        {empresa?.plan !== 'dian' && (
+          <p className="cfg-plan-upgrade">Para habilitar Factura Electrónica, pide al administrador que actualice tu plan a <strong>DIAN</strong>.</p>
+        )}
+      </div>
+
       {/* ── Información de la empresa ── */}
       <Section
         title="Información de la empresa"
@@ -125,8 +140,8 @@ export default function Configuracion() {
         </div>
       </Section>
 
-      {/* ── Configuración DIAN ── */}
-      <Section
+      {/* ── Configuración DIAN (solo plan DIAN) ── */}
+      {empresa?.plan === 'dian' && <Section
         title="Resolución de facturación DIAN"
         subtitle="Datos de la resolución que te asignó la DIAN para emitir Facturas Electrónicas."
       >
@@ -166,10 +181,10 @@ export default function Configuracion() {
             {saving === 'dian' ? 'Guardando…' : saved === 'dian' ? '✓ Guardado' : 'Guardar resolución'}
           </button>
         </div>
-      </Section>
+      </Section>}
 
-      {/* ── Integración MATIAS ── */}
-      <Section
+      {/* ── Integración MATIAS (solo plan DIAN) ── */}
+      {empresa?.plan === 'dian' && <Section
         title="Integración MATIAS (API DIAN)"
         subtitle="Credenciales para conectar Konta con el proveedor de facturación electrónica."
       >
@@ -215,7 +230,7 @@ export default function Configuracion() {
             {saving === 'matias' ? 'Guardando…' : saved === 'matias' ? '✓ Guardado' : 'Guardar credenciales'}
           </button>
         </div>
-      </Section>
+      </Section>}
     </div>
   )
 }

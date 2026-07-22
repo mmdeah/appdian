@@ -201,6 +201,36 @@
   cursor: not-allowed;
 }
 
+/* ── Plan banner ────────────────────────────────────────────────────────── */
+.cfg-plan-banner {
+  border-radius: var(--r-lg);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1.5px solid;
+}
+.cfg-plan-banner--dian {
+  background: rgba(99,102,241,0.07);
+  border-color: rgba(99,102,241,0.25);
+}
+.cfg-plan-banner--basico {
+  background: rgba(100,116,139,0.07);
+  border-color: rgba(100,116,139,0.2);
+}
+.cfg-plan-info { display: flex; flex-direction: column; gap: 4px; }
+.cfg-plan-badge { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.cfg-plan-desc { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.5; }
+.cfg-plan-upgrade {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin: 4px 0 0;
+  padding: 8px 12px;
+  background: rgba(100,116,139,0.08);
+  border-radius: var(--r-md);
+  border-left: 3px solid var(--border-mid);
+}
+
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 560px) {
   .cfg-grid-2 { grid-template-columns: 1fr; }

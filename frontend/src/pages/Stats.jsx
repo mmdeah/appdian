@@ -351,70 +351,116 @@ export default function Stats() {
           {/* ── PyG — Estado de Pérdidas y Ganancias ── */}
           {pyg && (
             <>
-              <p className="stats-section-label">
-                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                Estado de Pérdidas y Ganancias · {desde} → {hasta}
-              </p>
-              <div className="pyg-card card">
+              {/* Header resumen */}
+              <div className="pyg-header-card">
+                <div className="pyg-header-left">
+                  <p className="pyg-header-label">Estado de Pérdidas y Ganancias</p>
+                  <p className="pyg-header-period">{desde} → {hasta}</p>
+                </div>
+                <div className="pyg-header-kpis">
+                  <div className="pyg-kpi">
+                    <p className="pyg-kpi-label">Ingresos netos</p>
+                    <p className="pyg-kpi-val pyg-kpi-val--green">{fmt(pyg.ingresos.netos)}</p>
+                  </div>
+                  <div className="pyg-kpi-sep"/>
+                  <div className="pyg-kpi">
+                    <p className="pyg-kpi-label">Total egresos</p>
+                    <p className="pyg-kpi-val pyg-kpi-val--red">-{fmt(pyg.resultado.total_egresos)}</p>
+                  </div>
+                  <div className="pyg-kpi-sep"/>
+                  <div className="pyg-kpi">
+                    <p className="pyg-kpi-label">Utilidad neta</p>
+                    <p className={`pyg-kpi-val ${pyg.resultado.utilidad_neta >= 0 ? 'pyg-kpi-val--accent' : 'pyg-kpi-val--red'}`}>
+                      {pyg.resultado.utilidad_neta >= 0 ? '' : '-'}{fmt(Math.abs(pyg.resultado.utilidad_neta))}
+                    </p>
+                  </div>
+                  <div className="pyg-kpi-sep"/>
+                  <div className="pyg-kpi">
+                    <p className="pyg-kpi-label">Margen neto</p>
+                    <p className={`pyg-kpi-val ${pyg.resultado.margen_pct >= 0 ? 'pyg-kpi-val--accent' : 'pyg-kpi-val--red'}`}>{pyg.resultado.margen_pct}%</p>
+                  </div>
+                </div>
+              </div>
 
-                {/* Ingresos */}
-                <div className="pyg-group">
-                  <p className="pyg-group-title">+ INGRESOS OPERACIONALES</p>
-                  <div className="pyg-row"><span>Ventas brutas (con IVA)</span><span>{fmt(pyg.ingresos.brutos)}</span></div>
-                  <div className="pyg-row pyg-row--sub"><span>(-) IVA recaudado</span><span className="pyg-neg">-{fmt(pyg.ingresos.iva)}</span></div>
-                  <div className="pyg-row pyg-row--total"><span>= Ingresos netos</span><span>{fmt(pyg.ingresos.netos)}</span></div>
+              <div className="pyg-body">
+                {/* Columna ingresos */}
+                <div className="pyg-section pyg-section--green">
+                  <div className="pyg-section-head">
+                    <span className="pyg-section-icon">↑</span>
+                    <span className="pyg-section-title">INGRESOS OPERACIONALES</span>
+                  </div>
+                  <div className="pyg-line"><span>Ventas brutas (con IVA)</span><span>{fmt(pyg.ingresos.brutos)}</span></div>
+                  <div className="pyg-line pyg-line--sub"><span>(-) IVA recaudado</span><span className="c-red">-{fmt(pyg.ingresos.iva)}</span></div>
+                  <div className="pyg-line pyg-line--total"><span>Ingresos netos</span><span className="c-green">{fmt(pyg.ingresos.netos)}</span></div>
                 </div>
 
-                {/* Egresos gastos */}
-                <div className="pyg-group">
-                  <p className="pyg-group-title">- GASTOS OPERACIONALES</p>
-                  {Object.entries(pyg.gastos.por_categoria).sort(([,a],[,b])=>b-a).map(([cat, monto]) => (
-                    <div key={cat} className="pyg-row pyg-row--sub">
-                      <span>{CAT_LABELS[cat] || cat}</span>
-                      <span className="pyg-neg">-{fmt(monto)}</span>
-                    </div>
-                  ))}
-                  {pyg.gastos.total === 0 && <div className="pyg-row pyg-row--sub pyg-empty">Sin gastos registrados en el período</div>}
+                {/* Columna egresos */}
+                <div className="pyg-section pyg-section--red">
+                  <div className="pyg-section-head">
+                    <span className="pyg-section-icon">↓</span>
+                    <span className="pyg-section-title">EGRESOS OPERACIONALES</span>
+                  </div>
+
+                  {/* Gastos */}
+                  {pyg.gastos.total > 0 && (
+                    <>
+                      <p className="pyg-sub-label">Gastos registrados</p>
+                      {Object.entries(pyg.gastos.por_categoria).sort(([,a],[,b])=>b-a).map(([cat, monto]) => (
+                        <div key={cat} className="pyg-line pyg-line--sub">
+                          <span>{CAT_LABELS[cat] || cat}</span>
+                          <span className="c-red">-{fmt(monto)}</span>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                  {pyg.gastos.total === 0 && <p className="pyg-empty">Sin gastos en el período</p>}
+
+                  {/* Nómina */}
+                  {pyg.nomina.periodos > 0 && (
+                    <>
+                      <p className="pyg-sub-label" style={{marginTop:'10px'}}>Nómina liquidada ({pyg.nomina.periodos} período{pyg.nomina.periodos !== 1 ? 's' : ''})</p>
+                      <div className="pyg-line pyg-line--sub"><span>Salarios devengados</span><span className="c-red">-{fmt(pyg.nomina.devengado)}</span></div>
+                      <div className="pyg-line pyg-line--sub"><span>Aportes empleador</span><span className="c-red">-{fmt(pyg.nomina.aportes)}</span></div>
+                    </>
+                  )}
+
+                  <div className="pyg-line pyg-line--total"><span>Total egresos</span><span className="c-red">-{fmt(pyg.resultado.total_egresos)}</span></div>
                 </div>
 
-                {/* Nómina */}
-                {pyg.nomina.periodos > 0 && (
-                  <div className="pyg-group">
-                    <p className="pyg-group-title">- COSTO DE NÓMINA ({pyg.nomina.periodos} período{pyg.nomina.periodos !== 1 ? 's' : ''})</p>
-                    <div className="pyg-row pyg-row--sub"><span>Salarios devengados</span><span className="pyg-neg">-{fmt(pyg.nomina.devengado)}</span></div>
-                    <div className="pyg-row pyg-row--sub"><span>Aportes empleador (salud, pensión, ARL...)</span><span className="pyg-neg">-{fmt(pyg.nomina.aportes)}</span></div>
-                    <div className="pyg-row pyg-row--total"><span>= Costo total nómina</span><span className="pyg-neg">-{fmt(pyg.nomina.costo_total)}</span></div>
+                {/* Columna resultado */}
+                <div className="pyg-section pyg-section--accent">
+                  <div className="pyg-section-head">
+                    <span className="pyg-section-icon">=</span>
+                    <span className="pyg-section-title">RESULTADO</span>
                   </div>
-                )}
-
-                {/* Resultado */}
-                <div className="pyg-group pyg-group--resultado">
-                  <div className="pyg-row pyg-row--total">
-                    <span>Total egresos</span>
-                    <span className="pyg-neg">-{fmt(pyg.resultado.total_egresos)}</span>
-                  </div>
-                  <div className={`pyg-row pyg-row--utilidad ${pyg.resultado.utilidad_operacional >= 0 ? 'pyg-positivo' : 'pyg-negativo'}`}>
-                    <span>Utilidad operacional</span>
-                    <span>{pyg.resultado.utilidad_operacional >= 0 ? '' : '-'}{fmt(Math.abs(pyg.resultado.utilidad_operacional))}</span>
+                  <div className="pyg-line"><span>Utilidad operacional</span>
+                    <span className={pyg.resultado.utilidad_operacional >= 0 ? 'c-green' : 'c-red'}>
+                      {pyg.resultado.utilidad_operacional >= 0 ? '' : '-'}{fmt(Math.abs(pyg.resultado.utilidad_operacional))}
+                    </span>
                   </div>
                   {pyg.resultado.impuesto_estimado > 0 && (
-                    <div className="pyg-row pyg-row--sub">
-                      <span>Impuesto renta estimado (35%)</span>
-                      <span className="pyg-neg">-{fmt(pyg.resultado.impuesto_estimado)}</span>
+                    <div className="pyg-line pyg-line--sub">
+                      <span>Impuesto renta est. 35%</span>
+                      <span className="c-red">-{fmt(pyg.resultado.impuesto_estimado)}</span>
                     </div>
                   )}
-                  <div className={`pyg-row pyg-row--neta ${pyg.resultado.utilidad_neta >= 0 ? 'pyg-positivo' : 'pyg-negativo'}`}>
-                    <span>= UTILIDAD / PÉRDIDA NETA</span>
-                    <span>{pyg.resultado.utilidad_neta >= 0 ? '' : '-'}{fmt(Math.abs(pyg.resultado.utilidad_neta))}</span>
+                  <div className="pyg-line pyg-line--neta">
+                    <span>UTILIDAD / PÉRDIDA NETA</span>
+                    <span className={pyg.resultado.utilidad_neta >= 0 ? 'c-green' : 'c-red'}>
+                      {pyg.resultado.utilidad_neta >= 0 ? '' : '-'}{fmt(Math.abs(pyg.resultado.utilidad_neta))}
+                    </span>
                   </div>
-                  <div className="pyg-margen">
-                    Margen neto: <strong>{pyg.resultado.margen_pct}%</strong>
-                    {pyg.nomina.periodos === 0 && pyg.gastos.total === 0 && (
-                      <span className="pyg-hint"> · Registra gastos o nómina para un resultado real</span>
-                    )}
+                  {/* Barra de margen */}
+                  <div className="pyg-margen-bar-wrap">
+                    <div className="pyg-margen-bar-bg">
+                      <div className="pyg-margen-bar-fill" style={{width:`${Math.min(Math.abs(pyg.resultado.margen_pct),100)}%`, background: pyg.resultado.margen_pct >= 0 ? 'var(--success)' : 'var(--danger)'}}/>
+                    </div>
+                    <span className="pyg-margen-label">Margen neto <strong>{pyg.resultado.margen_pct}%</strong></span>
                   </div>
+                  {pyg.nomina.periodos === 0 && pyg.gastos.total === 0 && (
+                    <p className="pyg-empty" style={{marginTop:'8px'}}>Registra gastos o nómina para un resultado real</p>
+                  )}
                 </div>
-
               </div>
             </>
           )}

@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { profesionalApi } from '../api/client'
 import './AdminEmpresas.css'
 
-const PLANES = ['esencial', 'inicio', 'avanzado']
-const PLAN_COLOR = { esencial: '#6366f1', inicio: '#10b981', avanzado: '#f59e0b' }
+const PLANES = ['basico', 'dian']
+const PLAN_COLOR = { basico: '#64748b', dian: '#6366f1' }
+const PLAN_LABEL = { basico: 'Básico — sin DIAN', dian: 'DIAN — Facturación electrónica' }
 
 const fmt = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
 
@@ -55,7 +56,7 @@ function DetallePanel({ empresa, onClose, onSave, saving }) {
         <div className="ae-field">
           <label className="ae-field-label">Plan</label>
           <select className="ae-select" value={form.plan} onChange={e => campo('plan', e.target.value)}>
-            {PLANES.map(p => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
+            {PLANES.map(p => <option key={p} value={p}>{PLAN_LABEL[p]}</option>)}
           </select>
         </div>
 

@@ -394,69 +394,168 @@
 .minibot-ver-mas:hover { color: var(--accent); }
 
 /* ── PyG ──────────────────────────────────────────────── */
-.pyg-card {
+
+/* Header resumen */
+.pyg-header-card {
   background: var(--bg-card);
   border: 1.5px solid var(--border);
   border-radius: var(--r-lg);
-  padding: 0;
-  overflow: hidden;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
 }
-.pyg-group {
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--border);
-}
-.pyg-group:last-child { border-bottom: none; }
-.pyg-group-title {
-  font-size: 11px;
+.pyg-header-left { flex: 0 0 auto; }
+.pyg-header-label {
+  font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-secondary);
-  margin: 0 0 10px;
+  color: var(--text-primary);
+  margin: 0 0 2px;
 }
-.pyg-row {
+.pyg-header-period {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+.pyg-header-kpis {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.pyg-kpi { padding: 0 20px; text-align: right; }
+.pyg-kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-tertiary); margin: 0 0 3px; font-weight: 600; }
+.pyg-kpi-val { font-size: 16px; font-weight: 800; margin: 0; }
+.pyg-kpi-val--green  { color: var(--success); }
+.pyg-kpi-val--red    { color: var(--danger); }
+.pyg-kpi-val--accent { color: var(--accent); }
+.pyg-kpi-sep { width: 1px; height: 36px; background: var(--border); flex-shrink: 0; }
+
+/* Body — 3 columnas */
+.pyg-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+.pyg-section {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 3px solid transparent;
+}
+.pyg-section--green  { border-top-color: var(--success); }
+.pyg-section--red    { border-top-color: var(--danger); }
+.pyg-section--accent { border-top-color: var(--accent); }
+
+.pyg-section-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+.pyg-section-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.pyg-section--green  .pyg-section-icon { background: var(--success-soft);  color: var(--success); }
+.pyg-section--red    .pyg-section-icon { background: var(--danger-soft);   color: var(--danger); }
+.pyg-section--accent .pyg-section-icon { background: var(--accent-soft);   color: var(--accent); }
+.pyg-section-title {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text-secondary);
+}
+
+.pyg-line {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 5px 0;
-  font-size: 14px;
-  color: var(--text-primary);
-}
-.pyg-row--sub {
   font-size: 13px;
-  color: var(--text-secondary);
-  padding-left: 12px;
+  color: var(--text-primary);
+  gap: 8px;
 }
-.pyg-row--total {
-  font-weight: 600;
+.pyg-line span:first-child { color: var(--text-secondary); }
+.pyg-line span:last-child  { font-weight: 600; white-space: nowrap; }
+.pyg-line--sub { font-size: 12px; padding-left: 8px; }
+.pyg-line--sub span:first-child { color: var(--text-tertiary); font-weight: 400; }
+.pyg-line--total {
   border-top: 1px solid var(--border);
-  margin-top: 6px;
+  margin-top: 8px;
   padding-top: 10px;
-}
-.pyg-row--utilidad {
-  font-size: 15px;
   font-weight: 700;
-  padding: 10px 0;
 }
-.pyg-row--neta {
-  font-size: 17px;
-  font-weight: 800;
-  padding: 12px 0 8px;
+.pyg-line--total span:first-child { color: var(--text-primary); font-weight: 700; }
+.pyg-line--neta {
   border-top: 2px solid var(--border);
-  margin-top: 4px;
+  margin-top: 10px;
+  padding-top: 12px;
+  font-size: 14px;
+  font-weight: 800;
 }
-.pyg-neg  { color: var(--danger); }
-.pyg-positivo span:last-child { color: var(--success); }
-.pyg-negativo span:last-child { color: var(--danger); }
-.pyg-empty { font-style: italic; color: var(--text-tertiary); }
-.pyg-group--resultado {
-  background: rgba(99,102,241,0.03);
+.pyg-line--neta span:first-child { color: var(--text-primary); font-weight: 800; }
+
+.pyg-sub-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-tertiary);
+  margin: 8px 0 4px;
 }
-.pyg-margen {
+
+.c-green { color: var(--success) !important; }
+.c-red   { color: var(--danger)  !important; }
+
+/* Barra margen */
+.pyg-margen-bar-wrap {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pyg-margen-bar-bg {
+  height: 6px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.pyg-margen-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width .4s ease;
+}
+.pyg-margen-label {
   font-size: 12px;
   color: var(--text-secondary);
-  padding-top: 6px;
-  border-top: 1px solid var(--border);
-  margin-top: 6px;
 }
-.pyg-hint { color: var(--text-tertiary); font-style: italic; }
+
+.pyg-empty {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-tertiary);
+  padding: 4px 0;
+}
+
+@media (max-width: 900px) {
+  .pyg-body { grid-template-columns: 1fr; }
+  .pyg-header-kpis { justify-content: flex-start; }
+  .pyg-kpi:first-child { padding-left: 0; }
+}
