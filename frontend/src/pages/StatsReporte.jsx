@@ -185,7 +185,7 @@ export default function StatsReporte() {
                 {modo === 'ia' ? 'REPORTE FINANCIERO' : 'INFORME DE GESTIÓN'}
               </h2>
               <p className="rep-periodo">{periodo ? periodoLabel(periodo.desde, periodo.hasta) : ''}</p>
-              <p className="rep-generado">Generado por AppDian · {new Date().toLocaleDateString('es-CO')}</p>
+              <p className="rep-generado">Generado por Konta · {new Date().toLocaleDateString('es-CO')}</p>
             </div>
           </div>
 
@@ -310,7 +310,7 @@ export default function StatsReporte() {
               )}
 
               <blockquote className="rep-disclaimer">
-                Este informe fue generado automáticamente por AppDian. Para efectos fiscales, consulte con su contador.
+                Este informe fue generado automáticamente por Konta. Para efectos fiscales, consulte con su contador.
               </blockquote>
             </>
           ) : (

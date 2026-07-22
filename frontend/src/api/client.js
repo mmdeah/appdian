@@ -64,6 +64,7 @@ export const statsApi = {
   ai:           (data) => api.post('/stats/ai',           data, { timeout: 90_000 }),
   chatGeneral:  (data) => api.post('/stats/chat-general', data, { timeout: 90_000 }),
   reporteIA:    (data) => api.post('/stats/reporte-ia',   data, { timeout: 90_000 }),
+  pyg:          (params) => api.get('/stats/pyg', { params }),
 }
 
 // ---- Invoices ----

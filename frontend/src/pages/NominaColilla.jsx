@@ -157,7 +157,7 @@ export default function NominaColilla() {
           </div>
         </div>
 
-        <p className="col-generado">Generado por AppDian · {new Date().toLocaleDateString('es-CO')}</p>
+        <p className="col-generado">Generado por Konta · {new Date().toLocaleDateString('es-CO')}</p>
       </div>
     </div>
   )

@@ -141,7 +141,7 @@ function imprimir({ empresa, consumidorFinal, cliente, items, nota, validez }) {
   </div>
   ${nota ? `<div class="nota-block"><div class="nota-label">Notas / Condiciones</div>${nota}</div>` : ''}
   <div class="footer">
-    <strong>Documento generado por AppDian</strong> · ${new Date().toLocaleString('es-CO')}<br>
+    <strong>Documento generado por Konta</strong> · ${new Date().toLocaleString('es-CO')}<br>
     Esta cotización no constituye una factura de venta · Válida por ${validez || 30} días
   </div>
   <script>window.addEventListener('load', () => window.print())</script>

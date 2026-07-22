@@ -56,7 +56,7 @@ export default function Register() {
       <div className="login-brand">
         <div className="login-brand-inner">
           <div className="brand-logo-mark">A</div>
-          <h2 className="brand-title">AppDian</h2>
+          <h2 className="brand-title">Konta</h2>
           <p className="brand-tagline">Facturación electrónica<br />para Colombia — DIAN</p>
           <div className="brand-features">
             {['Gratis hasta tu primer cliente real', 'POS + Factura electrónica DIAN', 'Desplegado en la nube, siempre activo'].map((f) => (

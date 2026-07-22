@@ -21,7 +21,7 @@ export default function ProfesionalLayout() {
         <div className="pro-logo">
           <div className="logo-mark">A</div>
           <div>
-            <span className="logo-text">AppDian</span>
+            <span className="logo-text">Konta</span>
             <span className="pro-tag">Panel Profesional</span>
           </div>
         </div>

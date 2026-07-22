@@ -21,7 +21,7 @@ const TITLES = {
 export default function Layout() {
   const { pathname } = useLocation()
   const { user } = useAuth()
-  const title = TITLES[pathname] || 'AppDian'
+  const title = TITLES[pathname] || 'Konta'
   const esVisor = !!sessionStorage.getItem('visor_token')
 
   return (

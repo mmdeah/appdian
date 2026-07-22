@@ -19,6 +19,7 @@ const PRESETS = [
 ]
 
 const CAT_COLORS = ['#6366f1','#0ea5e9','#f59e0b','#10b981','#3b82f6','#8b5cf6','#f43f5e','#64748b','#06b6d4','#dc2626','#84cc16','#a855f7']
+const CAT_LABELS = { NOMINA:'Nómina', ARRENDAMIENTO:'Arrendamiento', SERVICIOS_PUBLICOS:'Servicios públicos', MATERIA_PRIMA:'Materia prima', MERCANCIA:'Mercancía', SERVICIOS_PROF:'Servicios profesionales', PUBLICIDAD:'Publicidad', MANTENIMIENTO:'Mantenimiento', VIATICOS:'Viáticos', IMPUESTOS:'Impuestos', PAPELERIA:'Papelería', TECNOLOGIA:'Tecnología', FINANCIERO:'Financiero', OTROS:'Otros' }
 const GRID_COLOR = '#e2e8f0'
 const TICK_COLOR = '#94a3b8'
 const AXIS_COLOR = '#cbd5e1'
@@ -86,6 +87,7 @@ export default function Stats() {
   const [invResumen, setInvResumen] = useState(null)
   const [cajaCierres,setCajaCierres]= useState([])
   const [porCobrar,  setPorCobrar]  = useState([])
+  const [pyg,        setPyg]        = useState(null)
   const [loading,    setLoading]    = useState(true)
   const [error,      setError]      = useState(null)
 
@@ -137,6 +139,11 @@ export default function Stats() {
       const pc = await invoicesApi.porCobrar()
       setPorCobrar(pc.data.facturas || [])
     } catch { /* sin por cobrar */ }
+
+    try {
+      const p = await statsApi.pyg({ desde, hasta })
+      setPyg(p.data)
+    } catch { /* sin pyg */ }
   }, [desde, hasta, agrup])
 
   useEffect(() => { cargar() }, [cargar])
@@ -339,6 +346,77 @@ export default function Stats() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* ── PyG — Estado de Pérdidas y Ganancias ── */}
+          {pyg && (
+            <>
+              <p className="stats-section-label">
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Estado de Pérdidas y Ganancias · {desde} → {hasta}
+              </p>
+              <div className="pyg-card card">
+
+                {/* Ingresos */}
+                <div className="pyg-group">
+                  <p className="pyg-group-title">+ INGRESOS OPERACIONALES</p>
+                  <div className="pyg-row"><span>Ventas brutas (con IVA)</span><span>{fmt(pyg.ingresos.brutos)}</span></div>
+                  <div className="pyg-row pyg-row--sub"><span>(-) IVA recaudado</span><span className="pyg-neg">-{fmt(pyg.ingresos.iva)}</span></div>
+                  <div className="pyg-row pyg-row--total"><span>= Ingresos netos</span><span>{fmt(pyg.ingresos.netos)}</span></div>
+                </div>
+
+                {/* Egresos gastos */}
+                <div className="pyg-group">
+                  <p className="pyg-group-title">- GASTOS OPERACIONALES</p>
+                  {Object.entries(pyg.gastos.por_categoria).sort(([,a],[,b])=>b-a).map(([cat, monto]) => (
+                    <div key={cat} className="pyg-row pyg-row--sub">
+                      <span>{CAT_LABELS[cat] || cat}</span>
+                      <span className="pyg-neg">-{fmt(monto)}</span>
+                    </div>
+                  ))}
+                  {pyg.gastos.total === 0 && <div className="pyg-row pyg-row--sub pyg-empty">Sin gastos registrados en el período</div>}
+                </div>
+
+                {/* Nómina */}
+                {pyg.nomina.periodos > 0 && (
+                  <div className="pyg-group">
+                    <p className="pyg-group-title">- COSTO DE NÓMINA ({pyg.nomina.periodos} período{pyg.nomina.periodos !== 1 ? 's' : ''})</p>
+                    <div className="pyg-row pyg-row--sub"><span>Salarios devengados</span><span className="pyg-neg">-{fmt(pyg.nomina.devengado)}</span></div>
+                    <div className="pyg-row pyg-row--sub"><span>Aportes empleador (salud, pensión, ARL...)</span><span className="pyg-neg">-{fmt(pyg.nomina.aportes)}</span></div>
+                    <div className="pyg-row pyg-row--total"><span>= Costo total nómina</span><span className="pyg-neg">-{fmt(pyg.nomina.costo_total)}</span></div>
+                  </div>
+                )}
+
+                {/* Resultado */}
+                <div className="pyg-group pyg-group--resultado">
+                  <div className="pyg-row pyg-row--total">
+                    <span>Total egresos</span>
+                    <span className="pyg-neg">-{fmt(pyg.resultado.total_egresos)}</span>
+                  </div>
+                  <div className={`pyg-row pyg-row--utilidad ${pyg.resultado.utilidad_operacional >= 0 ? 'pyg-positivo' : 'pyg-negativo'}`}>
+                    <span>Utilidad operacional</span>
+                    <span>{pyg.resultado.utilidad_operacional >= 0 ? '' : '-'}{fmt(Math.abs(pyg.resultado.utilidad_operacional))}</span>
+                  </div>
+                  {pyg.resultado.impuesto_estimado > 0 && (
+                    <div className="pyg-row pyg-row--sub">
+                      <span>Impuesto renta estimado (35%)</span>
+                      <span className="pyg-neg">-{fmt(pyg.resultado.impuesto_estimado)}</span>
+                    </div>
+                  )}
+                  <div className={`pyg-row pyg-row--neta ${pyg.resultado.utilidad_neta >= 0 ? 'pyg-positivo' : 'pyg-negativo'}`}>
+                    <span>= UTILIDAD / PÉRDIDA NETA</span>
+                    <span>{pyg.resultado.utilidad_neta >= 0 ? '' : '-'}{fmt(Math.abs(pyg.resultado.utilidad_neta))}</span>
+                  </div>
+                  <div className="pyg-margen">
+                    Margen neto: <strong>{pyg.resultado.margen_pct}%</strong>
+                    {pyg.nomina.periodos === 0 && pyg.gastos.total === 0 && (
+                      <span className="pyg-hint"> · Registra gastos o nómina para un resultado real</span>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+            </>
           )}
 
           {/* ── Agente IA ── */}

@@ -80,7 +80,7 @@ export default function Configuracion() {
     <div className="cfg-page">
       <div className="cfg-header">
         <h1 className="cfg-title">Configuración</h1>
-        <p className="cfg-subtitle">Ajusta la información de tu empresa en AppDian</p>
+        <p className="cfg-subtitle">Ajusta la información de tu empresa en Konta</p>
       </div>
 
       {error && (
@@ -171,7 +171,7 @@ export default function Configuracion() {
       {/* ── Integración MATIAS ── */}
       <Section
         title="Integración MATIAS (API DIAN)"
-        subtitle="Credenciales para conectar AppDian con el proveedor de facturación electrónica."
+        subtitle="Credenciales para conectar Konta con el proveedor de facturación electrónica."
       >
         <div className="cfg-matias-estado">
           <div className={`cfg-matias-dot ${empresa?.matias_email ? 'cfg-matias-dot--on' : ''}`} />

@@ -149,7 +149,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="logo-mark">A</div>
-        <span className="logo-text">AppDian</span>
+        <span className="logo-text">Konta</span>
       </div>
 
       {/* Empresa pill */}

@@ -350,7 +350,7 @@ export function printFactura(factura, empresa = {}, targetWin = null) {
 
   <!-- ── FOOTER ── -->
   <div class="footer">
-    <strong>Documento generado por AppDian</strong> · ${new Date().toLocaleString('es-CO')}<br>
+    <strong>Documento generado por Konta</strong> · ${new Date().toLocaleString('es-CO')}<br>
     ${factura.tipo === 'FE'
       ? 'Factura Electrónica válida · Representación gráfica del documento electrónico enviado a la DIAN'
       : 'Documento Equivalente POS · No requiere validación previa de la DIAN'}

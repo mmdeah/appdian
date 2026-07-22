@@ -54,7 +54,7 @@ export default function Login() {
       <div className="login-brand">
         <div className="login-brand-inner">
           <div className="brand-logo-mark">A</div>
-          <h2 className="brand-title">AppDian</h2>
+          <h2 className="brand-title">Konta</h2>
           <p className="brand-tagline">Facturación electrónica<br />para Colombia — DIAN</p>
           <div className="brand-features">
             {['Documentos POS y FE en segundos', 'Sincronización directa con la DIAN', 'PDF + XML listos para enviar'].map((f) => (

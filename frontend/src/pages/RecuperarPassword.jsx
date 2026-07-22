@@ -32,7 +32,7 @@ export default function RecuperarPassword() {
       <div className="login-brand">
         <div className="login-brand-inner">
           <div className="brand-logo-mark">A</div>
-          <h2 className="brand-title">AppDian</h2>
+          <h2 className="brand-title">Konta</h2>
           <p className="brand-tagline">Facturación electrónica<br />para Colombia — DIAN</p>
         </div>
         <div className="brand-geo" aria-hidden="true">

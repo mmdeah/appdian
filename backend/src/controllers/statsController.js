@@ -359,4 +359,71 @@ ${JSON.stringify({ periodo, ingresos: ven, gastos, utilidad_bruta, margen_pct, t
   }
 }
 
-module.exports = { resumen, tendencia, topClientes, topProductos, aiAnalisis, chatGeneral, reporteIA }
+// ── GET /api/stats/pyg ─────────────────────────────────────────────────────────
+const pyg = async (req, res) => {
+  try {
+    const { desde, hasta } = req.query
+    const empresa_id = req.user.empresa_id
+
+    // 1. Ingresos — facturas
+    let qf = supabase.from('facturas')
+      .select('total, iva, subtotal')
+      .eq('empresa_id', empresa_id)
+      .in('estado', ['APROBADA', 'EMITIDA_LOCAL', 'PENDIENTE'])
+    if (desde) qf = qf.gte('created_at', `${desde}T00:00:00`)
+    if (hasta) qf = qf.lte('created_at', `${hasta}T23:59:59`)
+    const { data: facturas = [] } = await qf
+
+    const ingresos_brutos = facturas.reduce((s, f) => s + (f.total    || 0), 0)
+    const iva_recaudado   = facturas.reduce((s, f) => s + (f.iva      || 0), 0)
+    const ingresos_netos  = facturas.reduce((s, f) => s + (f.subtotal || 0), 0)
+
+    // 2. Gastos — por categoría
+    let qg = supabase.from('gastos')
+      .select('categoria, monto, iva')
+      .eq('empresa_id', empresa_id)
+    if (desde) qg = qg.gte('fecha', desde)
+    if (hasta) qg = qg.lte('fecha', hasta)
+    const { data: gastos = [] } = await qg
+
+    const gastos_por_cat = {}
+    for (const g of gastos) {
+      const cat = g.categoria || 'OTROS'
+      if (!gastos_por_cat[cat]) gastos_por_cat[cat] = 0
+      gastos_por_cat[cat] += (g.monto || 0)
+    }
+    const total_gastos = gastos.reduce((s, g) => s + (g.monto || 0), 0)
+    const iva_pagado   = gastos.reduce((s, g) => s + (g.iva   || 0), 0)
+
+    // 3. Nómina — liquidaciones cuyo período cae en el rango
+    const periodoDesde = desde ? desde.substring(0, 7) : null  // YYYY-MM
+    const periodoHasta = hasta ? hasta.substring(0, 7) : null
+    let qn = supabase.from('nomina_liquidaciones')
+      .select('periodo, total_devengado, total_aportes_empresa, total_neto, num_empleados')
+      .eq('empresa_id', empresa_id)
+      .neq('estado', 'ANULADA')
+    if (periodoDesde) qn = qn.gte('periodo', periodoDesde)
+    if (periodoHasta) qn = qn.lte('periodo', periodoHasta)
+    const { data: nominas = [] } = await qn
+
+    const nomina_devengado = nominas.reduce((s, n) => s + (n.total_devengado       || 0), 0)
+    const nomina_aportes   = nominas.reduce((s, n) => s + (n.total_aportes_empresa || 0), 0)
+    const costo_nomina     = nomina_devengado + nomina_aportes
+
+    // 4. Resultado
+    const total_egresos     = total_gastos + costo_nomina
+    const utilidad_operac   = ingresos_netos - total_egresos
+    const impuesto_est      = utilidad_operac > 0 ? utilidad_operac * 0.35 : 0
+    const utilidad_neta     = utilidad_operac - impuesto_est
+    const margen_neto_pct   = ingresos_netos > 0 ? +((utilidad_neta / ingresos_netos) * 100).toFixed(1) : 0
+
+    res.json({
+      ingresos: { brutos: Math.round(ingresos_brutos), iva: Math.round(iva_recaudado), netos: Math.round(ingresos_netos) },
+      gastos:   { por_categoria: gastos_por_cat, total: Math.round(total_gastos), iva_pagado: Math.round(iva_pagado) },
+      nomina:   { devengado: Math.round(nomina_devengado), aportes: Math.round(nomina_aportes), costo_total: Math.round(costo_nomina), periodos: nominas.length },
+      resultado:{ total_egresos: Math.round(total_egresos), utilidad_operacional: Math.round(utilidad_operac), impuesto_estimado: Math.round(impuesto_est), utilidad_neta: Math.round(utilidad_neta), margen_pct: margen_neto_pct },
+    })
+  } catch (err) { res.status(500).json({ error: err.message }) }
+}
+
+module.exports = { resumen, tendencia, topClientes, topProductos, aiAnalisis, chatGeneral, reporteIA, pyg }

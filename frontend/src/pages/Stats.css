@@ -392,3 +392,71 @@
   text-underline-offset: 2px;
 }
 .minibot-ver-mas:hover { color: var(--accent); }
+
+/* ── PyG ──────────────────────────────────────────────── */
+.pyg-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 0;
+  overflow: hidden;
+}
+.pyg-group {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.pyg-group:last-child { border-bottom: none; }
+.pyg-group-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  margin: 0 0 10px;
+}
+.pyg-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+.pyg-row--sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding-left: 12px;
+}
+.pyg-row--total {
+  font-weight: 600;
+  border-top: 1px solid var(--border);
+  margin-top: 6px;
+  padding-top: 10px;
+}
+.pyg-row--utilidad {
+  font-size: 15px;
+  font-weight: 700;
+  padding: 10px 0;
+}
+.pyg-row--neta {
+  font-size: 17px;
+  font-weight: 800;
+  padding: 12px 0 8px;
+  border-top: 2px solid var(--border);
+  margin-top: 4px;
+}
+.pyg-neg  { color: var(--danger); }
+.pyg-positivo span:last-child { color: var(--success); }
+.pyg-negativo span:last-child { color: var(--danger); }
+.pyg-empty { font-style: italic; color: var(--text-tertiary); }
+.pyg-group--resultado {
+  background: rgba(99,102,241,0.03);
+}
+.pyg-margen {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+  margin-top: 6px;
+}
+.pyg-hint { color: var(--text-tertiary); font-style: italic; }
