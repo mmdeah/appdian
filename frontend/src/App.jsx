@@ -25,6 +25,7 @@ import CajaDiaria from './pages/CajaDiaria'
 import Inventario from './pages/Inventario'
 import Cotizaciones from './pages/Cotizaciones'
 import AdminEmpresas from './pages/AdminEmpresas'
+import Configuracion from './pages/Configuracion'
 
 function Spinner() {
   return (
@@ -80,6 +81,7 @@ export default function App() {
             <Route path="inventario"                 element={<Inventario />} />
             <Route path="cotizaciones"               element={<Cotizaciones />} />
             <Route path="estadisticas/reporte"       element={<StatsReporte />} />
+            <Route path="configuracion"              element={<Configuracion />} />
           </Route>
 
           {/* Rutas de profesionales (contadores/abogados) */}

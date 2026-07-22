@@ -1,0 +1,208 @@
+/* ── Configuracion page ───────────────────────────────────────────────────── */
+
+.cfg-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cfg-header {
+  margin-bottom: 4px;
+}
+.cfg-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+.cfg-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ── Alert ──────────────────────────────────────────────────────────────── */
+.cfg-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  font-size: 13px;
+  font-weight: 500;
+}
+.cfg-alert--error {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid rgba(var(--danger-rgb, 220,38,38), 0.2);
+}
+
+/* ── Section card ───────────────────────────────────────────────────────── */
+.cfg-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.cfg-section-head {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.cfg-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 2px;
+}
+.cfg-section-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+.cfg-section-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Grid ───────────────────────────────────────────────────────────────── */
+.cfg-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ── Field ──────────────────────────────────────────────────────────────── */
+.cfg-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cfg-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.cfg-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin: 0 0 2px;
+}
+
+/* ── Input ──────────────────────────────────────────────────────────────── */
+.cfg-input {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.cfg-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 99,102,241), 0.1);
+}
+.cfg-input--readonly {
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.cfg-input--pass {
+  padding-right: 40px;
+}
+
+/* ── Password wrapper ───────────────────────────────────────────────────── */
+.cfg-pass-wrap {
+  position: relative;
+}
+.cfg-pass-eye {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+.cfg-pass-eye:hover { color: var(--text-primary); }
+
+/* ── DIAN info banner ───────────────────────────────────────────────────── */
+.cfg-dian-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--info-soft);
+  border-radius: var(--r-md);
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.cfg-dian-info svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--accent);
+}
+
+/* ── MATIAS estado ──────────────────────────────────────────────────────── */
+.cfg-matias-estado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.cfg-matias-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--danger);
+  flex-shrink: 0;
+}
+.cfg-matias-dot--on {
+  background: var(--success);
+}
+
+/* ── Actions row ────────────────────────────────────────────────────────── */
+.cfg-actions {
+  padding-top: 4px;
+  display: flex;
+  justify-content: flex-end;
+}
+.cfg-btn-save {
+  padding: 9px 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+.cfg-btn-save:hover { background: var(--accent-hover); }
+.cfg-btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 560px) {
+  .cfg-grid-2 { grid-template-columns: 1fr; }
+  .cfg-page { padding: 20px 16px 48px; }
+}

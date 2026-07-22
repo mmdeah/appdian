@@ -106,4 +106,43 @@ const me = async (req, res) => {
   }
 }
 
-module.exports = { register, login, me }
+// ── PATCH /api/auth/empresa ───────────────────────────────────────────────────
+const actualizarEmpresa = async (req, res) => {
+  const {
+    nombre, email, direccion, telefono,
+    resolucion_numero, resolucion_prefijo,
+    resolucion_desde, resolucion_hasta,
+    resolucion_fecha_desde, resolucion_fecha_hasta,
+    matias_email, matias_password,
+  } = req.body
+
+  const campos = {}
+  if (nombre               !== undefined) campos.nombre                = nombre
+  if (email                !== undefined) campos.email                 = email
+  if (direccion            !== undefined) campos.direccion             = direccion
+  if (telefono             !== undefined) campos.telefono              = telefono
+  if (resolucion_numero    !== undefined) campos.resolucion_numero     = resolucion_numero
+  if (resolucion_prefijo   !== undefined) campos.resolucion_prefijo    = resolucion_prefijo
+  if (resolucion_desde     !== undefined) campos.resolucion_desde      = resolucion_desde     ? Number(resolucion_desde)     : null
+  if (resolucion_hasta     !== undefined) campos.resolucion_hasta      = resolucion_hasta     ? Number(resolucion_hasta)     : null
+  if (resolucion_fecha_desde !== undefined) campos.resolucion_fecha_desde = resolucion_fecha_desde || null
+  if (resolucion_fecha_hasta !== undefined) campos.resolucion_fecha_hasta = resolucion_fecha_hasta || null
+  if (matias_email         !== undefined) campos.matias_email          = matias_email
+  if (matias_password      !== undefined) campos.matias_password       = matias_password
+
+  try {
+    const { data: empresa, error } = await supabase
+      .from('empresas')
+      .update(campos)
+      .eq('id', req.user.empresa_id)
+      .select()
+      .single()
+
+    if (error) throw error
+    res.json({ empresa: sanitizarEmpresa(empresa) })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+module.exports = { register, login, me, actualizarEmpresa }
