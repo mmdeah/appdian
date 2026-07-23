@@ -46,14 +46,14 @@ const register = async (req, res) => {
     const hash = await bcrypt.hash(password, 10)
     const { data: empresa, error } = await supabase
       .from('empresas')
-      .insert({ nombre: nombre_empresa, nit, email, password: hash, direccion, telefono })
+      .insert({ nombre: nombre_empresa, nit, email, password: hash, direccion, telefono, activo: false })
       .select().single()
 
     if (error) throw error
 
-    audit.log({ tipo: 'REGISTRO_EMPRESA', descripcion: `Nueva empresa registrada: ${nombre_empresa} (NIT ${nit})`, empresa_id: empresa.id })
-    const token = generarTokenEmpresa(empresa)
-    res.status(201).json({ token, empresa: sanitizarEmpresa(empresa), rol: 'EMPRESA' })
+    audit.log({ tipo: 'REGISTRO_EMPRESA', descripcion: `Nueva empresa registrada (pendiente activación): ${nombre_empresa} (NIT ${nit})`, empresa_id: empresa.id })
+    // No generamos token — la cuenta debe ser activada por el administrador
+    res.status(201).json({ pendiente: true, mensaje: 'Cuenta creada. El administrador debe activarla antes de que puedas iniciar sesión.' })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
@@ -68,7 +68,7 @@ const login = async (req, res) => {
     if (empresa) {
       const valido = await bcrypt.compare(password, empresa.password)
       if (!valido) return res.status(401).json({ error: 'Credenciales inválidas' })
-      if (!empresa.activo) return res.status(403).json({ error: 'Cuenta desactivada' })
+      if (!empresa.activo) return res.status(403).json({ error: 'Cuenta pendiente de activación. Contacta al administrador de Konta.' })
       audit.log({ tipo: 'LOGIN_EMPRESA', descripcion: `Inicio de sesión: ${empresa.nombre} (${empresa.email})`, empresa_id: empresa.id })
       const token = generarTokenEmpresa(empresa)
       return res.json({ token, empresa: sanitizarEmpresa(empresa), rol: 'EMPRESA' })

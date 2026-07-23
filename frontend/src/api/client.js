@@ -161,6 +161,7 @@ export const profesionalApi = {
   listarProfesionales: ()        => api.get('/profesional/profesionales'),
   listarEmpresas:     ()        => api.get('/profesional/empresas'),
   actualizarEmpresa:  (id, data) => api.patch(`/profesional/empresas/${id}`, data),
+  eliminarEmpresa:    (id)       => api.delete(`/profesional/empresas/${id}`),
   listarAudit:    (params)  => api.get('/profesional/audit', { params }),
   subirArchivo: (ticket_id, file) => {
     const form = new FormData()

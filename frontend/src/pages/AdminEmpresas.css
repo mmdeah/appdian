@@ -87,7 +87,20 @@
 .ae-stat--red .ae-stat-n { color: var(--danger); }
 
 /* ── Search ──────────────────────────────────────────────── */
-.ae-search-row { display: flex; }
+.ae-search-row { display: flex; gap: var(--s-3); align-items: center; }
+
+.ae-sort-select {
+  height: 40px;
+  padding: 0 var(--s-3);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-md);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
 
 .ae-search-wrap {
   position: relative;
@@ -439,9 +452,53 @@
 /* Footer */
 .ae-detalle-footer {
   display: flex;
+  flex-direction: column;
   gap: var(--s-3);
   padding: var(--s-4) var(--s-5);
   border-top: 1px solid var(--border);
+}
+
+.ae-footer-right {
+  display: flex;
+  gap: var(--s-3);
+}
+
+.ae-btn-delete {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--danger);
+  border-radius: var(--r-md);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--dur-fast);
+}
+.ae-btn-delete:hover { background: var(--danger); color: #fff; }
+.ae-btn-delete--confirm { background: var(--danger); color: #fff; width: auto; padding: 0 14px; }
+
+.ae-delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: 12px;
+  color: var(--danger);
+  font-weight: 600;
+}
+.ae-delete-confirm span { flex: 1; }
+
+.ae-btn-cancel-sm {
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-md);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .ae-btn-cancel {

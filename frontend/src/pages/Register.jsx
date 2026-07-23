@@ -20,6 +20,7 @@ export default function Register() {
   const [form, setForm] = useState(EMPTY)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [pendiente, setPendiente] = useState(false)
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
 
@@ -32,7 +33,7 @@ export default function Register() {
 
     setLoading(true)
     try {
-      const { data } = await authApi.register({
+      await authApi.register({
         nombre_empresa: form.nombre_empresa,
         nit:       form.nit,
         email:     form.email,
@@ -40,9 +41,7 @@ export default function Register() {
         telefono:  form.telefono,
         direccion: form.direccion,
       })
-      localStorage.setItem('appdian_token', data.token)
-      localStorage.setItem('appdian_user', JSON.stringify({ ...data.empresa, rol: 'EMPRESA' }))
-      navigate('/dashboard')
+      setPendiente(true)
     } catch (err) {
       setError(err.response?.data?.error || 'Error al crear la cuenta')
     } finally {
@@ -78,6 +77,25 @@ export default function Register() {
 
       <div className="register-form-panel">
         <div className="register-form-card fade-up">
+          {pendiente ? (
+            <div style={{ textAlign: 'center', padding: '16px 0' }}>
+              <div style={{ fontSize: '52px', marginBottom: '16px' }}>🎉</div>
+              <h1 className="login-heading">¡Cuenta creada!</h1>
+              <p className="muted" style={{ marginBottom: '20px', lineHeight: 1.6 }}>
+                Tu cuenta está <strong>pendiente de activación</strong>.<br />
+                El administrador de Konta la habilitará pronto y te avisará.
+              </p>
+              <div style={{ background: 'var(--accent-soft)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px 16px', marginBottom: '20px', textAlign: 'left' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>
+                  📧 <strong>Empresa:</strong> {form.nombre_empresa}<br />
+                  🪪 <strong>NIT:</strong> {form.nit}<br />
+                  📬 <strong>Email:</strong> {form.email}
+                </p>
+              </div>
+              <Link to="/login" className="login-link" style={{ fontSize: '14px' }}>Ir al login</Link>
+            </div>
+          ) : (
+          <>
           <h1 className="login-heading">Crear cuenta</h1>
           <p className="login-sub muted">Registra tu empresa para comenzar</p>
 
@@ -114,6 +132,8 @@ export default function Register() {
             ¿Ya tienes cuenta?&nbsp;
             <Link to="/login" className="login-link">Iniciar sesión</Link>
           </p>
+          </>
+          )}
         </div>
       </div>
     </div>

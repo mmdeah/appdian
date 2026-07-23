@@ -6,6 +6,12 @@ const PLANES = ['basico', 'dian']
 const PLAN_COLOR = { basico: '#64748b', dian: '#6366f1' }
 const PLAN_LABEL = { basico: 'Básico — sin DIAN', dian: 'DIAN — Facturación electrónica' }
 
+const SORT_OPTS = [
+  { value: 'created_at_desc', label: 'Más recientes' },
+  { value: 'vence_asc',       label: 'Próximos a vencer' },
+  { value: 'nombre_asc',      label: 'Nombre A→Z' },
+]
+
 const fmt = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
 
 function diasRestantes(fechaStr) {
@@ -24,17 +30,18 @@ function DiasBadge({ dias }) {
 }
 
 /* ── Panel lateral de detalle ─────────────────────────────── */
-function DetallePanel({ empresa, onClose, onSave, saving }) {
+function DetallePanel({ empresa, onClose, onSave, onDelete, saving }) {
   const [form, setForm] = useState({
-    plan:         empresa.plan || 'esencial',
-    plan_pagado:  empresa.plan_pagado || false,
+    plan:          empresa.plan || 'basico',
+    plan_pagado:   empresa.plan_pagado || false,
     plan_vence_en: empresa.plan_vence_en || '',
-    activo:       empresa.activo !== false,
-    plan_notas:   empresa.plan_notas || '',
+    activo:        empresa.activo !== false,
+    plan_notas:    empresa.plan_notas || '',
+    ultimo_pago:   empresa.ultimo_pago || '',
   })
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   function campo(key, val) { setForm(f => ({ ...f, [key]: val })) }
-
   function guardar() { onSave(form) }
 
   return (
@@ -43,6 +50,7 @@ function DetallePanel({ empresa, onClose, onSave, saving }) {
         <div>
           <h3 className="ae-detalle-nombre">{empresa.nombre}</h3>
           <p className="ae-detalle-sub">NIT {empresa.nit} · {empresa.email}</p>
+          {empresa.telefono && <p className="ae-detalle-sub">📞 {empresa.telefono}</p>}
         </div>
         <button className="ae-detalle-close" onClick={onClose}>
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -63,16 +71,9 @@ function DetallePanel({ empresa, onClose, onSave, saving }) {
         {/* Fecha vencimiento */}
         <div className="ae-field">
           <label className="ae-field-label">Vencimiento del plan</label>
-          <input
-            type="date"
-            className="ae-input"
-            value={form.plan_vence_en}
-            onChange={e => campo('plan_vence_en', e.target.value)}
-          />
+          <input type="date" className="ae-input" value={form.plan_vence_en} onChange={e => campo('plan_vence_en', e.target.value)} />
           {form.plan_vence_en && (
-            <span className="ae-field-hint">
-              <DiasBadge dias={diasRestantes(form.plan_vence_en)} /> restantes
-            </span>
+            <span className="ae-field-hint"><DiasBadge dias={diasRestantes(form.plan_vence_en)} /> restantes</span>
           )}
         </div>
 
@@ -99,16 +100,17 @@ function DetallePanel({ empresa, onClose, onSave, saving }) {
           </label>
         </div>
 
+        {/* Último pago */}
+        <div className="ae-field">
+          <label className="ae-field-label">Último pago recibido</label>
+          <input type="date" className="ae-input" value={form.ultimo_pago} onChange={e => campo('ultimo_pago', e.target.value)} />
+          <span className="ae-field-hint" style={{fontSize:'11px',color:'var(--text-tertiary)'}}>Se actualiza automáticamente al marcar "Pagado"</span>
+        </div>
+
         {/* Notas */}
         <div className="ae-field">
           <label className="ae-field-label">Notas internas</label>
-          <textarea
-            className="ae-textarea"
-            placeholder="Ej: Pago mensual, próximo pago 01/08/2026…"
-            value={form.plan_notas}
-            onChange={e => campo('plan_notas', e.target.value)}
-            rows={3}
-          />
+          <textarea className="ae-textarea" placeholder="Ej: Pago mensual, próximo pago 01/08/2026…" value={form.plan_notas} onChange={e => campo('plan_notas', e.target.value)} rows={3} />
         </div>
 
         {/* Info */}
@@ -116,13 +118,32 @@ function DetallePanel({ empresa, onClose, onSave, saving }) {
           <span className="ae-info-label">Registrado</span>
           <span className="ae-info-val">{fmt(empresa.created_at?.split('T')[0])}</span>
         </div>
+        {empresa.ultimo_pago && (
+          <div className="ae-info-row">
+            <span className="ae-info-label">Último pago</span>
+            <span className="ae-info-val">{fmt(empresa.ultimo_pago)}</span>
+          </div>
+        )}
       </div>
 
       <div className="ae-detalle-footer">
-        <button className="ae-btn-cancel" onClick={onClose}>Cancelar</button>
-        <button className="ae-btn-save" onClick={guardar} disabled={saving}>
-          {saving ? 'Guardando…' : 'Guardar cambios'}
-        </button>
+        {!confirmDelete ? (
+          <button className="ae-btn-delete" onClick={() => setConfirmDelete(true)}>
+            Eliminar usuario
+          </button>
+        ) : (
+          <div className="ae-delete-confirm">
+            <span>¿Confirmar eliminación?</span>
+            <button className="ae-btn-delete ae-btn-delete--confirm" onClick={onDelete}>Sí, eliminar</button>
+            <button className="ae-btn-cancel-sm" onClick={() => setConfirmDelete(false)}>No</button>
+          </div>
+        )}
+        <div className="ae-footer-right">
+          <button className="ae-btn-cancel" onClick={onClose}>Cancelar</button>
+          <button className="ae-btn-save" onClick={guardar} disabled={saving}>
+            {saving ? 'Guardando…' : 'Guardar'}
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -135,6 +156,7 @@ export default function AdminEmpresas() {
   const [selected, setSelected] = useState(null)
   const [busqueda, setBusqueda] = useState('')
   const [saving, setSaving]     = useState(false)
+  const [sort, setSort]         = useState('vence_asc')
 
   useEffect(() => { cargar() }, [])
 
@@ -149,9 +171,10 @@ export default function AdminEmpresas() {
   async function toggleRapido(empresa, campo, val) {
     const body = { [campo]: val }
     try {
-      await profesionalApi.actualizarEmpresa(empresa.id, body)
-      setEmpresas(prev => prev.map(e => e.id === empresa.id ? { ...e, ...body } : e))
-      if (selected?.id === empresa.id) setSelected(s => ({ ...s, ...body }))
+      const { data } = await profesionalApi.actualizarEmpresa(empresa.id, body)
+      const updated = data?.empresa ? data.empresa : { ...empresa, ...body }
+      setEmpresas(prev => prev.map(e => e.id === empresa.id ? updated : e))
+      if (selected?.id === empresa.id) setSelected(updated)
     } catch {}
   }
 
@@ -159,24 +182,48 @@ export default function AdminEmpresas() {
     if (!selected) return
     setSaving(true)
     try {
-      await profesionalApi.actualizarEmpresa(selected.id, fields)
-      setEmpresas(prev => prev.map(e => e.id === selected.id ? { ...e, ...fields } : e))
-      setSelected(s => ({ ...s, ...fields }))
+      const { data } = await profesionalApi.actualizarEmpresa(selected.id, fields)
+      const updated = data?.empresa ? data.empresa : { ...selected, ...fields }
+      setEmpresas(prev => prev.map(e => e.id === selected.id ? updated : e))
+      setSelected(updated)
     } finally { setSaving(false) }
   }
 
-  const filtered = busqueda.trim()
+  async function eliminar() {
+    if (!selected) return
+    try {
+      await profesionalApi.eliminarEmpresa(selected.id)
+      setEmpresas(prev => prev.filter(e => e.id !== selected.id))
+      setSelected(null)
+    } catch (err) {
+      alert('Error al eliminar: ' + (err.response?.data?.error || err.message))
+    }
+  }
+
+  // Filtrar
+  const base = busqueda.trim()
     ? empresas.filter(e =>
         e.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
         e.nit?.includes(busqueda) ||
-        e.email?.toLowerCase().includes(busqueda.toLowerCase())
+        e.email?.toLowerCase().includes(busqueda.toLowerCase()) ||
+        e.telefono?.includes(busqueda)
       )
-    : empresas
+    : [...empresas]
 
-  const total     = empresas.length
-  const pagadas   = empresas.filter(e => e.plan_pagado && e.activo).length
-  const pendientes= empresas.filter(e => !e.plan_pagado && e.activo).length
-  const inactivas = empresas.filter(e => !e.activo).length
+  // Ordenar
+  const filtered = base.sort((a, b) => {
+    if (sort === 'nombre_asc') return (a.nombre || '').localeCompare(b.nombre || '')
+    if (sort === 'created_at_desc') return new Date(b.created_at) - new Date(a.created_at)
+    // vence_asc — primeros los que vencen antes (null al final)
+    const da = a.plan_vence_en ? new Date(a.plan_vence_en) : new Date('9999-12-31')
+    const db = b.plan_vence_en ? new Date(b.plan_vence_en) : new Date('9999-12-31')
+    return da - db
+  })
+
+  const total      = empresas.length
+  const pagadas    = empresas.filter(e => e.plan_pagado && e.activo).length
+  const pendientes = empresas.filter(e => !e.plan_pagado && e.activo).length
+  const porActivar = empresas.filter(e => !e.activo).length
 
   return (
     <div className={`ae-page ${selected ? 'ae-page--split' : ''}`}>
@@ -213,12 +260,12 @@ export default function AdminEmpresas() {
             <div className="ae-stat-l">Pendientes pago</div>
           </div>
           <div className="ae-stat ae-stat--red">
-            <div className="ae-stat-n">{inactivas}</div>
-            <div className="ae-stat-l">Inactivas</div>
+            <div className="ae-stat-n">{porActivar}</div>
+            <div className="ae-stat-l">Por activar</div>
           </div>
         </div>
 
-        {/* Search */}
+        {/* Search + Sort */}
         <div className="ae-search-row">
           <div className="ae-search-wrap">
             <svg className="ae-search-icon" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -226,7 +273,7 @@ export default function AdminEmpresas() {
             </svg>
             <input
               className="ae-search"
-              placeholder="Buscar por nombre, NIT o email…"
+              placeholder="Buscar por nombre, NIT, email o teléfono…"
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
             />
@@ -234,6 +281,9 @@ export default function AdminEmpresas() {
               <button className="ae-search-clear" onClick={() => setBusqueda('')}>×</button>
             )}
           </div>
+          <select className="ae-sort-select" value={sort} onChange={e => setSort(e.target.value)}>
+            {SORT_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
         </div>
 
         {/* Tabla */}
@@ -245,12 +295,12 @@ export default function AdminEmpresas() {
               <thead>
                 <tr>
                   <th>Empresa</th>
+                  <th>Teléfono</th>
                   <th>Plan</th>
                   <th>Pagado</th>
                   <th>Vence</th>
                   <th>Días</th>
                   <th>Estado</th>
-                  <th>Registro</th>
                 </tr>
               </thead>
               <tbody>
@@ -266,9 +316,10 @@ export default function AdminEmpresas() {
                       <div className="ae-nombre">{e.nombre}</div>
                       <div className="ae-nit">{e.nit} · {e.email}</div>
                     </td>
+                    <td className="ae-fecha-col">{e.telefono || '—'}</td>
                     <td>
                       <span className="ae-plan-badge" style={{ '--pc': PLAN_COLOR[e.plan] || '#6366f1' }}>
-                        {e.plan || 'esencial'}
+                        {e.plan || 'basico'}
                       </span>
                     </td>
                     <td onClick={ev => { ev.stopPropagation(); toggleRapido(e, 'plan_pagado', !e.plan_pagado) }}>
@@ -283,7 +334,6 @@ export default function AdminEmpresas() {
                         {e.activo ? 'Activa' : 'Inactiva'}
                       </button>
                     </td>
-                    <td className="ae-fecha-col">{fmt(e.created_at?.split('T')[0])}</td>
                   </tr>
                 ))}
               </tbody>
@@ -299,6 +349,7 @@ export default function AdminEmpresas() {
           empresa={selected}
           onClose={() => setSelected(null)}
           onSave={guardar}
+          onDelete={eliminar}
           saving={saving}
         />
       )}

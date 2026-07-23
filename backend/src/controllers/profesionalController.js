@@ -182,7 +182,7 @@ const listarEmpresas = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('empresas')
-      .select('id, nombre, nit, email, plan, activo, plan_pagado, plan_vence_en, plan_notas, created_at')
+      .select('id, nombre, nit, email, telefono, plan, activo, plan_pagado, plan_vence_en, plan_notas, ultimo_pago, created_at')
       .order('created_at', { ascending: false })
     if (error) throw error
     res.json(data)
@@ -194,16 +194,41 @@ const listarEmpresas = async (req, res) => {
 // ── PATCH /api/profesional/empresas/:id — Actualizar suscripción ─────────────
 const actualizarEmpresa = async (req, res) => {
   const { id } = req.params
-  const { plan, activo, plan_pagado, plan_vence_en, plan_notas } = req.body
+  const { plan, activo, plan_pagado, plan_vence_en, plan_notas, ultimo_pago } = req.body
   const campos = {}
   if (plan          !== undefined) campos.plan           = plan
   if (activo        !== undefined) campos.activo         = activo
-  if (plan_pagado   !== undefined) campos.plan_pagado    = plan_pagado
+  if (plan_pagado   !== undefined) {
+    campos.plan_pagado = plan_pagado
+    // Si se marca como pagado y no se provee ultimo_pago explícito, registrar hoy
+    if (plan_pagado && ultimo_pago === undefined) {
+      campos.ultimo_pago = new Date().toISOString().split('T')[0]
+    }
+  }
   if (plan_vence_en !== undefined) campos.plan_vence_en  = plan_vence_en
   if (plan_notas    !== undefined) campos.plan_notas     = plan_notas
+  if (ultimo_pago   !== undefined) campos.ultimo_pago    = ultimo_pago || null
   try {
-    const { error } = await supabase.from('empresas').update(campos).eq('id', id)
+    const { data, error } = await supabase.from('empresas').update(campos).eq('id', id).select('id, nombre, nit, email, telefono, plan, activo, plan_pagado, plan_vence_en, plan_notas, ultimo_pago, created_at').single()
     if (error) throw error
+    res.json({ ok: true, empresa: data })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+// ── DELETE /api/profesional/empresas/:id — Eliminar empresa ──────────────────
+const eliminarEmpresa = async (req, res) => {
+  const { id } = req.params
+  try {
+    const { data: empresa } = await supabase.from('empresas').select('nombre, nit').eq('id', id).single()
+    // Eliminar en cascada: facturas, gastos, etc. se eliminan por FK si hay CASCADE en el schema
+    const { error } = await supabase.from('empresas').delete().eq('id', id)
+    if (error) throw error
+    audit.log({
+      tipo: 'EMPRESA_ELIMINADA',
+      descripcion: `Empresa eliminada por profesional: ${empresa?.nombre} (NIT ${empresa?.nit})`,
+    })
     res.json({ ok: true })
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -267,4 +292,4 @@ const accesoEmpresa = async (req, res) => {
   }
 }
 
-module.exports = { listarTickets, obtenerTicket, actualizarTicket, enviarMensaje, resumenEmpresa, listarProfesionales, verPasswordEmpresa, listarAudit, listarEmpresas, actualizarEmpresa, accesoEmpresa }
+module.exports = { listarTickets, obtenerTicket, actualizarTicket, enviarMensaje, resumenEmpresa, listarProfesionales, verPasswordEmpresa, listarAudit, listarEmpresas, actualizarEmpresa, eliminarEmpresa, accesoEmpresa }
