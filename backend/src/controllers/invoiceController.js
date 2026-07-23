@@ -3,7 +3,7 @@ const { emitirDocumentoPOS, emitirFactura, consultarDocumento } = require('../se
 
 // POST /api/invoices/pos — Emitir documento POS electrónico
 const emitirPOS = async (req, res) => {
-  const { items, cliente, cajero_nombre, terminal_numero, medio_pago_id, enviar_email } = req.body
+  const { items, cliente, cajero_nombre, terminal_numero, medio_pago_id, enviar_email, metodo_pago_id, fecha_vencimiento } = req.body
 
   try {
     // 1. Obtener empresa con credenciales MATIAS
@@ -46,6 +46,8 @@ const emitirPOS = async (req, res) => {
         medio_pago_id: medio_pago_id || 10,
         cajero: cajero_nombre,
         terminal: terminal_numero,
+        metodo_pago_id: metodo_pago_id || 1,
+        fecha_vencimiento: fecha_vencimiento || null,
         estado: 'PENDIENTE'
       })
       .select()
@@ -68,14 +70,12 @@ const emitirPOS = async (req, res) => {
     const tieneMatias = !!(empresa.matias_email && empresa.matias_password && process.env.MATIAS_URL)
 
     if (!tieneMatias) {
-      // Modo prueba / sandbox — la factura ya quedó en PENDIENTE (válido en el schema)
-      // No actualizamos a EMITIDA_LOCAL porque ese valor no está en el CHECK constraint
+      // POS no requiere DIAN — aprobamos directamente
+      await supabase.from('facturas').update({ estado: 'APROBADA' }).eq('id', factura.id)
       return res.status(201).json({
         ok: true,
         factura_id: factura.id,
         numero_documento,
-        modo_prueba: true,
-        mensaje: '⚠️ Factura guardada en modo prueba. No fue enviada a la DIAN (credenciales MATIAS no configuradas).',
       })
     }
 

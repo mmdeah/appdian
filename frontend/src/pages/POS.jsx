@@ -426,9 +426,11 @@ export default function POS() {
       } else {
         const { data } = await invoicesApi.emitirPOS({
           items,
-          cajero_nombre:   cajero,
-          terminal_numero: 'CJ001',
-          medio_pago_id:   medioPago,
+          cajero_nombre:    cajero,
+          terminal_numero:  'CJ001',
+          medio_pago_id:    medioPago,
+          metodo_pago_id:   esCredito ? 2 : 1,
+          fecha_vencimiento: esCredito && fechaVencimiento ? fechaVencimiento : null,
           cliente: cliente ? {
             nombre:      cliente.nombre,
             nit:         cliente.nit,
@@ -517,7 +519,7 @@ export default function POS() {
           <div className="tipodoc-compact">
             <button
               className={`tipodoc-pill ${tipoDoc === 'POS' ? 'tipodoc-pill--active' : ''}`}
-              onClick={() => { setTipoDoc('POS'); setEsCredito(false); setFechaVencimiento('') }}
+              onClick={() => setTipoDoc('POS')}
             >
               🧾 Documento POS
             </button>
@@ -579,14 +581,14 @@ export default function POS() {
               </div>
             </div>
 
-            {/* Crédito (solo FE) */}
-            {tipoDoc === 'FE' && (
+            {/* Crédito (POS y FE) */}
+            {(tipoDoc === 'FE' || tipoDoc === 'POS') && (
               <div className="credito-row">
                 <label className="credito-toggle" onClick={() => setEsCredito(v => !v)}>
                   <div className={`credito-switch ${esCredito ? 'credito-switch--on' : ''}`}>
                     <div className="credito-switch-thumb" />
                   </div>
-                  <span className="credito-label">Factura a crédito</span>
+                  <span className="credito-label">{tipoDoc === 'FE' ? 'Factura' : 'Documento'} a crédito</span>
                 </label>
                 {esCredito && (
                   <div className="credito-fecha">

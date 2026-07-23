@@ -190,7 +190,7 @@ export default function Configuracion() {
       >
         <div className="cfg-matias-estado">
           <div className={`cfg-matias-dot ${empresa?.matias_email ? 'cfg-matias-dot--on' : ''}`} />
-          <span>{empresa?.matias_email ? 'Conectado' : 'Sin configurar — las facturas se guardan en modo prueba'}</span>
+          <span>{empresa?.matias_email ? 'Conectado' : 'Sin configurar — solo aplica para plan DIAN'}</span>
         </div>
 
         <div className="cfg-grid-2">
