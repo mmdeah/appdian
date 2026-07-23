@@ -222,13 +222,21 @@ const eliminarEmpresa = async (req, res) => {
   const { id } = req.params
   try {
     const { data: empresa } = await supabase.from('empresas').select('nombre, nit').eq('id', id).single()
-    // Eliminar en cascada: facturas, gastos, etc. se eliminan por FK si hay CASCADE en el schema
-    const { error } = await supabase.from('empresas').delete().eq('id', id)
-    if (error) throw error
-    audit.log({
+
+    // Registrar en audit ANTES de borrar (sin empresa_id para no violar FK al borrar)
+    await supabase.from('audit_log').insert({
       tipo: 'EMPRESA_ELIMINADA',
       descripcion: `Empresa eliminada por profesional: ${empresa?.nombre} (NIT ${empresa?.nit})`,
+      empresa_id: null,
     })
+
+    // Desvincula audit_log existente de esta empresa (SET NULL)
+    await supabase.from('audit_log').update({ empresa_id: null }).eq('empresa_id', id)
+
+    // Ahora sí se puede borrar
+    const { error } = await supabase.from('empresas').delete().eq('id', id)
+    if (error) throw error
+
     res.json({ ok: true })
   } catch (err) {
     res.status(500).json({ error: err.message })
