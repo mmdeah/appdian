@@ -297,8 +297,13 @@ body {
 
   .page-body { padding: var(--s-4) var(--s-3); }
 
+  /* Contenido nunca desplaza la página entera hacia los lados */
+  .page-body { overflow-x: hidden; }
+
   /* Tablas: scroll horizontal en vez de romper el layout */
-  .table-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table-card,
+  .cd-card,
+  .ae-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .table-card .data-table { min-width: 640px; }
   .page-body div:has(> table) { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .page-body table { min-width: 620px; }

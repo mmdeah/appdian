@@ -149,3 +149,9 @@
 @media (max-width: 1100px) {
   .stats-grid, .quick-actions { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* Móvil: montos largos necesitan la fila completa */
+@media screen and (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .stat-value { font-size: 20px; }
+}

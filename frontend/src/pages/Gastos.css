@@ -546,3 +546,10 @@
   .g-row > span:nth-child(6) { display: none; }
   .g-field-row { grid-template-columns: 1fr; }
 }
+
+/* Móvil: la lista se desplaza en horizontal en vez de aplastarse */
+@media screen and (max-width: 640px) {
+  .g-tabla { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .g-tabla-head,
+  .g-row { min-width: 540px; }
+}
