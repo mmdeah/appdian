@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Konta · La app que tu negocio necesitaba</title>
+<meta name="description" content="Konta: facturación, gastos, nómina y un contador a un clic. La app colombiana para emprendedores.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--green:#143A30;--forest:#1F5D4C;--coral:#E9704B;--amber:#E7B24C;--cream:#F6F1E7;--sand:#EFEADC;--ink:#17211C;--muted:#6B786F;}
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;font-family:'Onest',sans-serif;background:var(--cream);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Bricolage Grotesque',sans-serif;margin:0;letter-spacing:-.03em;}
+  p{margin:0;}
+  a{text-decoration:none;color:inherit;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.18em;text-transform:uppercase;}
+  [style*="cursor:pointer"]{transition:filter .15s,background-color .15s,border-color .15s,transform .15s;}
+  [style*="cursor:pointer"]:hover{filter:brightness(1.07);}
+  .fn-card:hover{border-color:var(--green);transform:translateY(-2px);}
+
+  .btn{display:inline-flex;align-items:center;gap:9px;font-weight:700;border-radius:100px;cursor:pointer;white-space:nowrap;border:none;font-family:'Onest';}
+  .btn-coral{background:var(--coral);color:#fff;padding:17px 34px;font-size:20px;}
+  .btn-amber{background:var(--amber);color:var(--green);padding:16px 32px;font-size:19px;}
+  .btn-dark{background:var(--green);color:#fff;padding:18px 36px;font-size:20px;}
+  .btn-ghost{background:transparent;border:1.5px solid #C9BFA9;color:var(--green);padding:15px 28px;font-size:19px;}
+
+  nav{position:sticky;top:0;z-index:50;background:rgba(246,241,231,.92);backdrop-filter:blur(10px);border-bottom:1px solid #E1D9C6;}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;max-width:1180px;margin:0 auto;}
+  .logo{display:flex;align-items:center;gap:12px;}
+  .logo-mark{width:44px;height:44px;border-radius:12px;background:var(--green);display:flex;align-items:center;justify-content:center;position:relative;flex:none;}
+  .logo-mark span{font-family:'Bricolage Grotesque';font-weight:800;font-size:28px;color:var(--cream);line-height:1;margin-top:-3px;}
+  .logo-mark i{position:absolute;right:9px;bottom:10px;width:6px;height:6px;border-radius:50%;background:var(--coral);}
+  .logo-name{font-family:'Bricolage Grotesque';font-weight:800;font-size:26px;color:var(--green);}
+  .nav-links{display:flex;align-items:center;gap:32px;font-size:17px;color:#3C4A43;font-weight:500;}
+  .nav-links a:hover{color:var(--coral);}
+
+  section{padding:80px 0;}
+  .center{text-align:center;}
+  .sec-head{max-width:760px;margin:0 auto 44px;display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .h2{font-size:clamp(32px,4.6vw,52px);line-height:1.03;}
+
+  /* hero */
+  .hero{padding:52px 0 70px;}
+  .hero-grid{display:flex;gap:44px;align-items:center;}
+  .hero-copy{flex:1.05;display:flex;flex-direction:column;gap:24px;}
+  .hero h1{font-size:clamp(36px,5vw,58px);line-height:1.03;color:var(--green);}
+  .lead{font-size:clamp(17px,2vw,22px);line-height:1.5;color:#4A5A52;max-width:540px;}
+  .pill{display:inline-flex;align-items:center;gap:10px;align-self:flex-start;background:#EDE6D5;border:1px solid #DED6C4;border-radius:100px;padding:9px 18px;font-size:15px;font-weight:600;color:var(--forest);}
+  .pill i{width:8px;height:8px;border-radius:50%;background:var(--coral);}
+  .cta-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .assur{display:flex;align-items:center;gap:22px;flex-wrap:wrap;color:var(--muted);font-size:15px;font-weight:500;}
+  .assur span{display:flex;align-items:center;gap:7px;}
+  .assur b{color:var(--forest);}
+
+  .hero-art{flex:.95;display:flex;justify-content:center;position:relative;}
+  .halo{position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(231,178,76,.35),transparent 68%);top:10px;}
+  .phone{width:320px;height:640px;background:var(--green);border-radius:44px;padding:11px;position:relative;box-shadow:0 44px 90px -40px rgba(20,58,48,.6);}
+  .phone-screen{width:100%;height:100%;background:#F1ECE0;border-radius:34px;overflow:hidden;display:flex;flex-direction:column;}
+
+  /* proof strip */
+  .proof{background:var(--sand);padding:32px 0;}
+  .proof-label{font-size:14px;color:var(--muted);margin-bottom:12px;}
+  .proof-list{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;font-size:16px;font-weight:600;color:var(--forest);}
+  .proof-list span:not(:last-child)::after{content:"·";margin-left:10px;color:#C9BFA9;font-weight:400;}
+
+  /* dark */
+  .dark{background:var(--green);color:var(--cream);position:relative;overflow:hidden;}
+  .dark .glow{position:absolute;inset:0;background:radial-gradient(1000px 500px at 88% -10%,rgba(231,178,76,.15),transparent 60%);}
+  .dark h2{color:var(--cream);}
+
+  /* chat mockups */
+  .chat-phone{width:290px;height:560px;background:var(--green);border-radius:42px;padding:10px;box-shadow:0 40px 80px -38px rgba(20,58,48,.55);flex:none;}
+  .chat-screen{width:100%;height:100%;background:#F1ECE0;border-radius:32px;overflow:hidden;display:flex;flex-direction:column;}
+  .row-feat{display:flex;align-items:center;gap:15px;background:#fff;border:1px solid #E4DCC9;border-radius:17px;padding:16px 20px;}
+  .row-feat .ic{width:46px;height:46px;border-radius:13px;background:#EEF6EF;display:flex;align-items:center;justify-content:center;flex:none;}
+  .row-feat h3{font-size:19px;color:var(--ink);}
+  .row-feat p{font-size:15px;color:var(--muted);}
+
+  .ai-card{flex:1;background:#0E2A23;border:1px solid rgba(246,241,231,.12);border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:14px;}
+  .chip-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .chip{background:rgba(246,241,231,.08);border:1px solid rgba(246,241,231,.18);border-radius:100px;padding:11px 18px;font-size:15px;color:var(--cream);}
+
+  /* funciones grid */
+  .fn-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
+  .fn-card{background:var(--cream);border:1px solid #E1D9C6;border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:11px;}
+  .fn-card .ic{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;}
+  .fn-card h3{font-size:17px;color:var(--ink);}
+  .fn-card p{font-size:14px;line-height:1.4;color:var(--muted);}
+
+  /* planes */
+  .plans{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;margin:0 auto;}
+  .plan{background:var(--cream);border:1px solid #E1D9C6;border-radius:24px;padding:36px;display:flex;flex-direction:column;gap:18px;position:relative;}
+  .plan.featured{background:var(--green);border-color:var(--green);}
+  .plan.featured h3,.plan.featured .price{color:var(--cream);}
+  .plan.featured .plan-desc{color:#9FB3AA;}
+  .badge{position:absolute;top:-14px;left:30px;background:var(--amber);color:var(--green);font-weight:700;font-size:13px;padding:6px 16px;border-radius:100px;}
+  .plan h3{font-size:24px;color:var(--green);}
+  .price{font-family:'Bricolage Grotesque';font-weight:800;font-size:36px;color:var(--green);}
+  .plan-desc{font-size:15px;color:var(--muted);}
+  .bullets{display:flex;flex-wrap:wrap;gap:8px;}
+  .bullet{font-size:14px;font-weight:600;background:rgba(20,58,48,.06);color:var(--ink);border-radius:100px;padding:7px 13px;}
+  .plan.featured .bullet{background:rgba(246,241,231,.1);color:var(--cream);}
+
+  /* why */
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+  .why-card{text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .why-ic{font-size:32px;}
+  .why-card h3{font-size:19px;color:var(--green);}
+  .why-card p{font-size:15px;color:var(--muted);max-width:260px;}
+
+  /* cta strip */
+  .cta-strip{background:var(--amber);border-radius:26px;padding:52px;display:flex;align-items:center;justify-content:space-between;gap:26px;flex-wrap:wrap;}
+  .cta-strip h2{color:var(--green);font-size:clamp(30px,4vw,44px);}
+  .cta-strip p{font-size:19px;color:#3C4A43;}
+
+  footer{background:var(--green);padding:56px 0 40px;color:#CBD6CE;}
+  .foot-top{display:flex;justify-content:space-between;gap:36px;flex-wrap:wrap;padding-bottom:36px;border-bottom:1px solid rgba(246,241,231,.14);}
+  .foot-col{display:flex;flex-direction:column;gap:11px;}
+  .foot-col h4{font-family:'Bricolage Grotesque';font-weight:700;font-size:18px;color:var(--cream);}
+  .foot-col span,.foot-col a{font-size:15px;}
+  .foot-col a:hover{color:var(--amber);}
+  .foot-bot{display:flex;justify-content:space-between;align-items:center;padding-top:24px;flex-wrap:wrap;gap:12px;font-size:14px;color:#7C9088;}
+
+  @media (max-width:960px){
+    .nav-links{display:none;}
+    .hero-grid{flex-direction:column;}
+    .hero-copy{align-items:flex-start;}
+    section[data-eq] .wrap > div{flex-direction:column;}
+    .fn-grid{grid-template-columns:repeat(3,1fr);}
+    .plans{grid-template-columns:1fr;}
+    .why-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width:640px){
+    .wrap{padding:0 20px;}
+    section{padding:52px 0;}
+    .nav-inner{padding:13px 20px;}
+    .phone{width:250px;height:500px;}
+    .chat-phone{width:230px;height:440px;}
+    .cta-row .btn{width:100%;justify-content:center;}
+    .fn-grid{grid-template-columns:repeat(2,1fr);}
+    .proof-list{font-size:14px;}
+    .cta-strip{flex-direction:column;text-align:center;padding:38px 26px;}
+    .foot-top{flex-direction:column;}
+  }
+
+  /* ── responsive móvil extra ── */
+  html,body{overflow-x:hidden;}
+  #funciones,#equipo,#planes{scroll-margin-top:130px;}
+  @media (max-width:960px){
+    .nav-inner{flex-wrap:wrap;row-gap:4px;}
+    .nav-links{display:flex;order:3;width:100%;justify-content:center;gap:24px;font-size:15px;padding-top:8px;}
+    section[data-eq] .wrap{flex-direction:column-reverse;gap:36px !important;}
+    section.dark .wrap{flex-direction:column;gap:36px !important;}
+    .ai-card{width:100%;}
+    .chat-phone{margin:0 auto;}
+    .halo{width:300px;height:300px;}
+  }
+  @media (max-width:640px){
+    section{padding:44px 0;}
+    .hero{padding:30px 0 50px;}
+    .sec-head{margin-bottom:30px;}
+    .assur{gap:12px;font-size:14px;}
+    .plan{padding:28px 22px;}
+    .plan .btn{width:100%;}
+    .row-feat{padding:14px 16px;}
+    .row-feat h3{font-size:17px;}
+    .row-feat p{font-size:14px;}
+    .chip{font-size:13px;padding:9px 14px;}
+    .halo{width:240px;height:240px;}
+    .foot-top{gap:24px;}
+  }
+  @media (max-width:430px){
+    .wrap{padding:0 16px;}
+    .nav-inner{padding:11px 14px;}
+    .nav-links{gap:16px;font-size:13.5px;}
+    .logo-mark{width:38px;height:38px;border-radius:10px;}
+    .logo-mark span{font-size:24px;}
+    .logo-name{font-size:22px;}
+    nav a.btn{padding:10px 16px !important;font-size:14px !important;}
+    .hero h1{font-size:33px;}
+    .h2{font-size:28px;}
+    .lead{font-size:16px;}
+    .eyebrow{font-size:12px;letter-spacing:.14em;}
+    .btn-coral,.btn-amber,.btn-dark,.btn-ghost{padding:14px 22px;font-size:16px;}
+    .pill{font-size:13px;padding:8px 14px;}
+    .phone{width:230px;height:465px;}
+    .chat-phone{width:220px;height:430px;}
+    .fn-grid{grid-template-columns:1fr;}
+    .fn-card .ic{width:40px;height:40px;}
+    .price{font-size:30px;}
+    .cta-strip{padding:30px 18px;}
+    .cta-strip p{font-size:16px;}
+    .proof-list{font-size:13px;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#top" class="logo"><div class="logo-mark"><span>k</span><i></i></div><div class="logo-name">konta<span style="color:var(--coral);">.</span></div></a>
+    <div class="nav-links"><a href="#funciones">Funciones</a><a href="#equipo">Equipo</a><a href="#planes">Planes</a></div>
+    <a class="btn btn-coral" style="padding:12px 24px;font-size:16px;" href="https://wa.me/573195229007?text=Hola%2C%20quiero%20crear%20mi%20cuenta%20en%20Konta" target="_blank" rel="noopener">Crear cuenta gratis</a>
+  </div>
+</nav>
+<span id="top"></span>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="pill"><i></i>Hecha por emprendedores colombianos</span>
+      <h1>La app que tu negocio necesitaba desde el primer día</h1>
+      <p class="lead">Factura, controla tus gastos, maneja tu nómina y ten un contador a un clic. Todo desde un solo lugar.</p>
+      <div class="cta-row">
+        <a class="btn btn-coral" href="https://wa.me/573195229007?text=Hola%2C%20quiero%20crear%20mi%20cuenta%20en%20Konta" target="_blank" rel="noopener">Crear cuenta gratis →</a>
+        <a class="btn btn-ghost" href="#funciones">Ver cómo funciona</a>
+      </div>
+      <div class="assur"><span><b>✓</b> Sin tarjeta de crédito</span><span><b>✓</b> Contador y abogado incluidos</span></div>
+    </div>
+    <div class="hero-art">
+      <div class="halo"></div>
+      <div class="phone">
+        <div class="phone-screen">
+          <div style="padding:22px 22px 12px;display:flex;align-items:center;justify-content:space-between;">
+            <div><div style="font-size:15px;color:#8A968E;">Hola, Andrea 👋</div><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:23px;color:#17211C;">Tu empresa hoy</div></div>
+            <span style="width:38px;height:38px;border-radius:50%;background:#E7B24C;color:#143A30;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex:none;">AO</span>
+          </div>
+          <div style="padding:6px 18px;display:flex;flex-direction:column;gap:11px;">
+            <div style="background:#143A30;color:#F6F1E7;border-radius:18px;padding:16px 18px;">
+              <div style="font-size:13px;color:#9FB3AA;">Ventas de hoy</div>
+              <div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:30px;">$4.280.000</div>
+              <div style="font-size:13px;color:#8ED0AE;">▲ 12% vs. ayer</div>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <div style="flex:1;background:#fff;border:1px solid #E4DCC9;border-radius:16px;padding:13px 14px;"><div style="font-size:12px;color:#8A968E;">Por pagar</div><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:19px;color:#E9704B;">$1.8M</div></div>
+              <div style="flex:1;background:#fff;border:1px solid #E4DCC9;border-radius:16px;padding:13px 14px;"><div style="font-size:12px;color:#8A968E;">IVA estimado</div><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:19px;color:#17211C;">$2.4M</div></div>
+            </div>
+            <div style="background:#fff;border:1px solid #E4DCC9;border-radius:16px;padding:14px;">
+              <div style="font-size:12px;color:#8A968E;margin-bottom:8px;">Últimos 7 días</div>
+              <div style="display:flex;align-items:flex-end;gap:6px;height:56px;">
+                <div style="flex:1;height:40%;background:#DCE7DF;border-radius:4px;"></div><div style="flex:1;height:62%;background:#DCE7DF;border-radius:4px;"></div><div style="flex:1;height:50%;background:#DCE7DF;border-radius:4px;"></div><div style="flex:1;height:78%;background:#1F5D4C;border-radius:4px;"></div><div style="flex:1;height:66%;background:#DCE7DF;border-radius:4px;"></div><div style="flex:1;height:88%;background:#E9704B;border-radius:4px;"></div><div style="flex:1;height:72%;background:#DCE7DF;border-radius:4px;"></div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:auto;background:#fff;border-top:1px solid #E4DCC9;padding:13px 26px;display:flex;justify-content:space-between;">
+            <span style="color:#143A30;">▦</span><span style="color:#B8AF9C;">◫</span><span style="color:#B8AF9C;">◑</span><span style="color:#B8AF9C;">☰</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRUEBA SOCIAL -->
+<section class="proof" style="padding:32px 0;">
+  <div class="wrap center">
+    <div class="proof-label">Usado por negocios en toda Colombia</div>
+    <div class="proof-list"><span>Restaurantes</span><span>Tiendas</span><span>Consultorios</span><span>Distribuidoras</span><span>Servicios profesionales</span></div>
+  </div>
+</section>
+
+<!-- EQUIPO HUMANO -->
+<section id="equipo" data-eq="" style="background:var(--cream);">
+  <div class="wrap" style="display:flex;gap:52px;align-items:center;">
+    <div class="chat-phone">
+      <div class="chat-screen">
+        <div style="background:#1F5D4C;color:#fff;padding:16px;display:flex;align-items:center;gap:11px;">
+          <span style="width:40px;height:40px;border-radius:50%;background:#E7B24C;color:#143A30;display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque';font-weight:700;font-size:16px;flex:none;">MC</span>
+          <div><div style="font-weight:700;font-size:17px;">María C.</div><div style="font-size:13px;color:#8ED0AE;display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:#6FD69B;"></span>Contadora · En línea</div></div>
+        </div>
+        <div style="flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:10px;">
+          <div style="align-self:flex-start;background:#fff;border-radius:15px 15px 15px 4px;padding:11px 14px;font-size:14px;color:#17211C;max-width:88%;box-shadow:0 8px 18px -14px rgba(0,0,0,.3);">Tu cliente no pagó la factura. Te ayudo con el cobro. ⚖️</div>
+          <div style="align-self:flex-end;background:#1F5D4C;color:#fff;border-radius:15px 15px 4px 15px;padding:11px 14px;font-size:14px;max-width:82%;">Gracias, no sabía por dónde empezar 🙌</div>
+          <div style="align-self:flex-start;background:#fff;border-radius:15px 15px 15px 4px;padding:11px 14px;font-size:14px;color:#17211C;max-width:88%;box-shadow:0 8px 18px -14px rgba(0,0,0,.3);">Listo, te dejé el modelo en tus documentos. 📄</div>
+        </div>
+        <div style="padding:11px 12px;border-top:1px solid #E1D9C6;display:flex;align-items:center;gap:8px;"><span style="flex:1;background:#fff;border:1px solid #E1D9C6;border-radius:100px;padding:10px 14px;font-size:13px;color:#8A968E;">Escribe tu duda…</span><span style="width:36px;height:36px;border-radius:50%;background:#E9704B;color:#fff;display:flex;align-items:center;justify-content:center;flex:none;">➤</span></div>
+      </div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:22px;">
+      <span class="eyebrow" style="color:var(--coral);">Tu equipo, no solo software</span>
+      <h2 class="h2" style="color:var(--green);">No estás solo. Tienes un equipo detrás.</h2>
+      <p class="lead">Abre un ticket desde la app y recibe ayuda de un contador o abogado real — sin llamadas perdidas.</p>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px;">
+        <div class="row-feat"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F5D4C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 20l1.4-4.2A8.5 8.5 0 1 1 21 11.5Z"></path></svg></span><div><h3>Contadores a un clic</h3><p>Dudas tributarias, resueltas en la plataforma.</p></div></div>
+        <div class="row-feat"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F5D4C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4" width="15" height="17" rx="2.2"></rect><path d="M8.5 11h7M8.5 15h5"></path></svg></span><div><h3>Asesoría legal</h3><p>Contratos y temas con la DIAN, cubiertos.</p></div></div>
+        <div class="row-feat"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F5D4C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5l3 2"></path><circle cx="12" cy="12" r="9"></circle></svg></span><div><h3>Respuesta rápida</h3><p>Todo queda registrado para hacer seguimiento.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IA -->
+<section class="dark">
+  <div class="glow"></div>
+  <div class="wrap" style="position:relative;display:flex;gap:52px;align-items:center;">
+    <div style="flex:1;display:flex;flex-direction:column;gap:22px;">
+      <span class="eyebrow" style="color:var(--amber);">Inteligencia artificial integrada</span>
+      <h2 class="h2">Tu negocio, analizado con IA.</h2>
+      <p class="lead" style="color:#CBD6CE;">Pregúntale a la IA sobre tus ventas, gastos o tendencias y obtén respuestas al instante.</p>
+      <div class="chip-row"><span class="chip">✓ Analiza tendencias</span><span class="chip">✓ Detecta tus mejores clientes</span><span class="chip">✓ Chat en lenguaje natural</span></div>
+    </div>
+    <div class="ai-card">
+      <div style="align-self:flex-end;background:#245546;color:#F6F1E7;border-radius:16px 16px 4px 16px;padding:14px 18px;font-size:17px;max-width:85%;">¿Cuánto IVA tendré que pagar este mes?</div>
+      <div style="align-self:flex-start;display:flex;gap:10px;align-items:flex-end;max-width:94%;"><span style="width:34px;height:34px;border-radius:50%;background:#E7B24C;color:#143A30;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px;flex:none;">IA</span><span style="background:#F6F1E7;color:#17211C;border-radius:16px 16px 16px 4px;padding:14px 18px;font-size:17px;line-height:1.4;">Vas a pagar <b>≈ $2.480.000</b>. Estás 12% arriba vs. junio ✅</span></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px;"><span style="flex:1;background:#0A211B;border:1px solid rgba(246,241,231,.14);border-radius:100px;padding:12px 16px;font-size:15px;color:#7C9088;">Escríbele a tu asistente…</span><span style="width:40px;height:40px;border-radius:50%;background:#E9704B;color:#fff;display:flex;align-items:center;justify-content:center;flex:none;">➤</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- FUNCIONES -->
+<section id="funciones" style="background:var(--sand);">
+  <div class="wrap">
+    <div class="sec-head center"><span class="eyebrow" style="color:var(--forest);">Todo en un solo lugar</span><h2 class="h2" style="color:var(--green);">Una sola app para tu negocio completo.</h2></div>
+    <div class="fn-grid">
+      <div class="fn-card"><span class="ic" style="background:var(--green);color:var(--amber);">🧾</span><h3>Facturación POS</h3><p>Documentos aprobados en segundos.</p></div>
+      <div class="fn-card"><span class="ic" style="background:var(--forest);color:#fff;">📑</span><h3>Factura DIAN</h3><p>Válida ante la DIAN, integración directa.</p></div>
+      <div class="fn-card"><span class="ic" style="background:var(--coral);color:#fff;">👥</span><h3>Clientes</h3><p>Historial y cartera en un solo lugar.</p></div>
+      <div class="fn-card"><span class="ic" style="background:var(--green);color:var(--amber);">📦</span><h3>Inventario</h3><p>Stock en tiempo real con alertas.</p></div>
+      <div class="fn-card"><span class="ic" style="background:var(--forest);color:#fff;">💸</span><h3>Gastos</h3><p>Categoriza en qué se va tu dinero.</p></div>
+      <div class="fn-card"><span class="ic" style="background:var(--coral);color:#fff;">🧑‍💼</span><h3>Nómina</h3><p>Devengados y deducciones automáticas.</p></div>
+      <div class="fn-card"><span class="ic" style="background:var(--green);color:var(--amber);">📊</span><h3>Estado PyG</h3><p>Utilidad neta por período.</p></div>
+      <div class="fn-card"><span class="ic" style="background:var(--forest);color:#fff;">🗄️</span><h3>Caja Diaria</h3><p>Cierre de caja y flujo diario.</p></div>
+      <div class="fn-card"><span class="ic" style="background:var(--coral);color:#fff;">📅</span><h3>Vencimientos</h3><p>Calendario de obligaciones fiscales.</p></div>
+      <div class="fn-card"><span class="ic" style="background:var(--green);color:var(--amber);">📈</span><h3>Proyecciones</h3><p>Estimado de IVA y renta al instante.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PLANES -->
+<section id="planes" class="dark">
+  <div class="glow"></div>
+  <div class="wrap" style="position:relative;">
+    <div class="sec-head center"><span class="eyebrow" style="color:var(--amber);">Planes</span><h2 class="h2">Elige lo que tu negocio necesita hoy.</h2></div>
+    <div class="plans">
+      <div class="plan">
+        <h3>Plan Básico</h3>
+        <div class="price">$30.000<span style="font-size:16px;color:var(--muted);font-weight:500;">/mes</span></div>
+        <p class="plan-desc">Para negocios que no necesitan factura electrónica</p>
+        <div class="bullets"><span class="bullet">POS</span><span class="bullet">Clientes</span><span class="bullet">Inventario</span><span class="bullet">Gastos</span><span class="bullet">Nómina</span><span class="bullet">PyG</span><span class="bullet">IA</span><span class="bullet">Soporte</span></div>
+        <a class="btn btn-ghost" style="justify-content:center;margin-top:6px;" href="https://wa.me/573195229007?text=Hola%2C%20quiero%20crear%20mi%20cuenta%20en%20el%20Plan%20B%C3%A1sico%20de%20Konta" target="_blank" rel="noopener">Crear cuenta gratis</a>
+      </div>
+      <div class="plan featured">
+        <span class="badge">⭐ Recomendado</span>
+        <h3>Plan DIAN</h3>
+        <div class="price">A cotizar</div>
+        <p class="plan-desc">Todo lo del Básico + Factura Electrónica</p>
+        <div class="bullets"><span class="bullet">Todo el Básico</span><span class="bullet">Factura DIAN</span><span class="bullet">Precio por volumen</span></div>
+        <a class="btn btn-amber" style="justify-content:center;margin-top:6px;" href="https://wa.me/573195229007?text=Hola%2C%20quiero%20cotizar%20el%20Plan%20DIAN%20de%20Konta" target="_blank" rel="noopener">Escríbenos y te cotizamos</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- POR QUÉ KONTA -->
+<section style="background:var(--cream);">
+  <div class="wrap">
+    <div class="sec-head center"><span class="eyebrow" style="color:var(--forest);">¿Por qué Konta?</span><h2 class="h2" style="color:var(--green);">Hecha por emprendedores, para emprendedores.</h2></div>
+    <div class="why-grid">
+      <div class="why-card"><span class="why-ic">🇨🇴</span><h3>Para Colombia</h3><p>Cumple con la DIAN, IVA y nómina local.</p></div>
+      <div class="why-card"><span class="why-ic">👋</span><h3>De emprendedor a emprendedor</h3><p>La construimos para nosotros — ahora es tuya.</p></div>
+      <div class="why-card"><span class="why-ic">⚡</span><h3>Lista en minutos</h3><p>Sin instalaciones. Regístrate y factura hoy.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section style="padding:20px 0 80px;">
+  <div class="wrap"><div class="cta-strip">
+    <div style="display:flex;flex-direction:column;gap:8px;"><h2>Empieza hoy. Tu negocio te lo va a agradecer.</h2><p>Crea tu cuenta gratis en menos de 2 minutos. Sin tarjeta de crédito.</p></div>
+    <a class="btn btn-dark" href="https://wa.me/573195229007?text=Hola%2C%20quiero%20crear%20mi%20cuenta%20en%20Konta" target="_blank" rel="noopener">Crear cuenta gratis →</a>
+  </div></div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-col" style="max-width:300px;">
+        <div class="logo"><div class="logo-mark" style="background:var(--coral);"><span style="color:#fff;">k</span><i style="background:var(--amber);"></i></div><div class="logo-name" style="color:var(--cream);">konta<span style="color:var(--coral);">.</span></div></div>
+        <p style="color:#9FB3AA;">Factura, contabiliza y crece — con un equipo real detrás.</p>
+      </div>
+      <div class="foot-col"><h4>Producto</h4><a href="#funciones">Facturación POS</a><a href="#funciones">Factura DIAN</a><a href="#funciones">Nómina</a><a href="#funciones">Inventario</a></div>
+      <div class="foot-col"><h4>Empresa</h4><a href="#top">Sobre Konta</a><a href="#planes">Planes</a><a href="#equipo">Soporte</a></div>
+      <div class="foot-col"><h4>Contacto</h4><span>hola@konta.co</span><a href="https://wa.me/573195229007" target="_blank" rel="noopener">WhatsApp: +57 319 522 9007</a><span>Bogotá, Colombia</span></div>
+    </div>
+    <div class="foot-bot"><span>© 2026 Konta · Colombia</span><span>Términos · Privacidad</span></div>
+  </div>
+</footer>
+
+</body></html>

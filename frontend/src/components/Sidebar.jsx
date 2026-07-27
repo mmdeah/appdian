@@ -131,7 +131,7 @@ const NAV = [
   },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ open = false, onClose = () => {} }) {
   const { empresa, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -145,11 +145,16 @@ export default function Sidebar() {
     : '?'
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${open ? 'sidebar--open' : ''}`}>
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="logo-mark">A</div>
         <span className="logo-text">Konta</span>
+        <button className="sidebar-close" onClick={onClose} aria-label="Cerrar menú">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       {/* Empresa pill */}

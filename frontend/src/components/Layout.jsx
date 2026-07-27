@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Sidebar from './Sidebar'
@@ -23,10 +24,15 @@ export default function Layout() {
   const { user } = useAuth()
   const title = TITLES[pathname] || 'Konta'
   const esVisor = !!sessionStorage.getItem('visor_token')
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  // Cerrar el menú móvil al navegar a otra vista
+  useEffect(() => { setMenuOpen(false) }, [pathname])
 
   return (
     <div className="app-shell">
-      <Sidebar />
+      <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
+      {menuOpen && <div className="sidebar-backdrop" onClick={() => setMenuOpen(false)} />}
       <div className="main-content">
         {esVisor && (
           <div className="visor-banner">
@@ -42,9 +48,14 @@ export default function Layout() {
           </div>
         )}
         <header className="topbar">
+          <button className="menu-btn" onClick={() => setMenuOpen(o => !o)} aria-label="Abrir menú">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
           <h1 className="topbar-title">{title}</h1>
           <div className="topbar-right">
-            <span className="t-xs muted caps">Colombia · DIAN</span>
+            <span className="t-xs muted caps topbar-tag">Colombia · DIAN</span>
             <div className="status-dot" title="Sistema operativo" />
           </div>
         </header>

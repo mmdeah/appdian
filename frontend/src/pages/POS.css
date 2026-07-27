@@ -866,3 +866,30 @@
 }
 .cliente-fields input:focus,
 .cliente-fields select:focus { border-color: var(--accent); }
+
+/* ── Móvil ─────────────────────────────────────────────────── */
+@media screen and (max-width: 900px) {
+  .pos-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+    max-height: none;
+  }
+
+  .pos-products { overflow: visible; }
+
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    flex: none;
+    max-height: 44vh;
+    overflow-y: auto;
+  }
+
+  .pos-cart { min-height: 300px; }
+
+  .cart-items { max-height: 38vh; }
+}
+
+@media screen and (max-width: 480px) {
+  .products-grid { grid-template-columns: repeat(2, 1fr); }
+  .cf-row { grid-template-columns: 1fr; }
+}

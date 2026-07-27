@@ -287,3 +287,39 @@ body {
 }
 .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .search-input::placeholder { color: var(--text-tertiary); }
+
+/* =============================================
+   Responsive móvil (≤900px) — solo aditivo
+   ============================================= */
+@media screen and (max-width: 900px) {
+  /* Shell: una sola columna, el sidebar pasa a drawer fijo */
+  .app-shell { grid-template-columns: 1fr; }
+
+  .page-body { padding: var(--s-4) var(--s-3); }
+
+  /* Tablas: scroll horizontal en vez de romper el layout */
+  .table-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table-card .data-table { min-width: 640px; }
+  .page-body div:has(> table) { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .page-body table { min-width: 620px; }
+
+  /* Toolbars: permitir que se acomoden en varias líneas */
+  .page-toolbar { flex-wrap: wrap; }
+  .page-toolbar .search-wrap { flex: 1 1 100%; order: -1; }
+
+  /* Formularios en modales: una columna */
+  .form-row { grid-template-columns: 1fr; }
+
+  /* Modales cómodos en pantalla pequeña */
+  .modal-overlay { padding: var(--s-3); align-items: flex-start; }
+  .modal-card { max-height: calc(100dvh - 24px); overflow-y: auto; margin-top: var(--s-4); }
+
+  /* Tipografía grande, un paso menos */
+  .t-3xl { font-size: 30px; }
+  .t-2xl { font-size: 24px; }
+}
+
+@media screen and (max-width: 480px) {
+  .page-body { padding: var(--s-3) var(--s-2); }
+  .t-3xl { font-size: 26px; }
+}

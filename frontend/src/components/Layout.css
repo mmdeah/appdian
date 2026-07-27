@@ -95,3 +95,61 @@
 .visor-close:hover {
   background: rgba(255,255,255,0.22);
 }
+
+/* ── Móvil: hamburguesa + backdrop ────────────────────────────────────────── */
+.menu-btn {
+  display: none;
+  background: none;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-md);
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 7px;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--s-3);
+  flex-shrink: 0;
+}
+.menu-btn:hover { background: var(--bg-input); }
+
+.sidebar-backdrop {
+  display: none;
+}
+
+@media screen and (max-width: 900px) {
+  .menu-btn { display: flex; }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 18, 25, 0.5);
+    z-index: 150;
+    animation: backdropIn 0.2s ease;
+  }
+
+  .topbar {
+    padding: 0 var(--s-4);
+  }
+
+  .topbar-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .topbar-tag { display: none; }
+
+  .visor-banner {
+    padding: 8px 12px;
+    font-size: 12px;
+    flex-wrap: wrap;
+  }
+}
+
+@keyframes backdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
