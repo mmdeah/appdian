@@ -1,9 +1,9 @@
 const supabase = require('../config/db')
 const audit   = require('../services/auditService')
 
-// ── Constantes 2025 ───────────────────────────────────────────────────────────
-const SMLV          = 1423500
-const AUX_TRANSPORTE = 200000
+// ── Constantes 2026 (Decreto 1469 del 29 dic 2025) ───────────────────────────
+const SMLV           = 1750905
+const AUX_TRANSPORTE = 249095
 const TASAS_ARL     = { 1: 0.00522, 2: 0.01044, 3: 0.02436, 4: 0.04350, 5: 0.06960 }
 
 function round2(n) { return Math.round((n || 0) * 100) / 100 }
@@ -12,17 +12,22 @@ function calcularDetalle(emp, ajustes = {}) {
   const s    = Number(emp.salario_base)
   const dias = Number(ajustes.dias_trabajados ?? 30)
 
+  // Prestación de servicios: el contratista asume su propia seguridad social.
+  // Sin aux. transporte, sin deducciones, sin aportes patronales ni prestaciones.
+  // ARL solo la paga la empresa en riesgo IV-V (Decreto 723 de 2013).
+  const esPrestacion = emp.tipo_contrato === 'PRESTACION'
+
   // Devengos
   const salario           = round2((s / 30) * dias)
-  const tieneAux          = s <= SMLV * 2
+  const tieneAux          = !esPrestacion && s <= SMLV * 2
   const auxTransporte     = tieneAux ? round2((AUX_TRANSPORTE / 30) * dias) : 0
   const horasExtras       = round2(ajustes.horas_extras    || 0)
   const bonificaciones    = round2(ajustes.bonificaciones  || 0)
   const totalDevengado    = round2(salario + auxTransporte + horasExtras + bonificaciones)
 
   // Deducciones empleado (sobre salario proporcional, NO sobre aux transporte)
-  const dedSalud      = round2(salario * 0.04)
-  const dedPension    = round2(salario * 0.04)
+  const dedSalud      = esPrestacion ? 0 : round2(salario * 0.04)
+  const dedPension    = esPrestacion ? 0 : round2(salario * 0.04)
   const dedRetencion  = round2(ajustes.ded_retencion || 0)
   const dedOtros      = round2(ajustes.ded_otros     || 0)
   const totalDeduc    = round2(dedSalud + dedPension + dedRetencion + dedOtros)
@@ -30,20 +35,20 @@ function calcularDetalle(emp, ajustes = {}) {
 
   // Aportes empleador
   const tArl    = TASAS_ARL[emp.riesgo_arl] || TASAS_ARL[1]
-  const apSalud = round2(salario * 0.085)
-  const apPens  = round2(salario * 0.12)
-  const apArl   = round2(salario * tArl)
-  const apSena  = round2(salario * 0.02)
-  const apIcbf  = round2(salario * 0.03)
-  const apCaja  = round2(salario * 0.04)
+  const apSalud = esPrestacion ? 0 : round2(salario * 0.085)
+  const apPens  = esPrestacion ? 0 : round2(salario * 0.12)
+  const apArl   = (esPrestacion && (emp.riesgo_arl || 1) < 4) ? 0 : round2(salario * tArl)
+  const apSena  = esPrestacion ? 0 : round2(salario * 0.02)
+  const apIcbf  = esPrestacion ? 0 : round2(salario * 0.03)
+  const apCaja  = esPrestacion ? 0 : round2(salario * 0.04)
   const totalAp = round2(apSalud + apPens + apArl + apSena + apIcbf + apCaja)
 
-  // Provisiones mensuales (base = salario + aux, el aux SÍ va en prima y cesantías)
-  const baseProv       = salario + auxTransporte
+  // Provisiones mensuales (no aplican a prestación de servicios)
+  const baseProv       = esPrestacion ? 0 : salario + auxTransporte
   const provPrima      = round2(baseProv / 12)
   const provCes        = round2(baseProv / 12)
   const provIntCes     = round2(provCes * 0.12 / 12)
-  const provVac        = round2(salario / 24)
+  const provVac        = esPrestacion ? 0 : round2(salario / 24)
 
   return {
     nombre_empleado:   `${emp.nombre} ${emp.apellido}`,

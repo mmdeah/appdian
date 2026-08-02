@@ -79,6 +79,14 @@ function ModalEmpleado({ emp, onSave, onClose }) {
               </select>
             </label>
           </div>
+          {form.tipo_contrato === 'PRESTACION' && (
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', background: 'var(--info-soft)', padding: '8px 12px', borderRadius: '8px', lineHeight: 1.5 }}>
+              ℹ️ <strong>Prestación de servicios:</strong> el contratista paga su propia salud y pensión
+              (Ley 100). No se liquidan deducciones, aportes patronales ni prestaciones sociales.
+              La ARL solo la asume tu empresa si el riesgo es <strong>IV o V</strong> (Decreto 723 de 2013);
+              en riesgo I–III la paga el contratista.
+            </p>
+          )}
           <div className="nom-form-row">
             <label>Fecha inicio<input required type="date" value={form.fecha_inicio} onChange={e => f('fecha_inicio', e.target.value)} /></label>
           </div>
@@ -212,7 +220,7 @@ export default function Nomina() {
                 <span className="nom-cell-sec">{e.cargo}</span>
                 <span className="nom-cell-bold">{COP(e.salario_base)}</span>
                 <span className="nom-cell-sec">{CONTRATOS[e.tipo_contrato]}</span>
-                <span className="nom-cell-pill">Clase {e.riesgo_arl}</span>
+                <span className="nom-cell-pill">{e.tipo_contrato === 'PRESTACION' && e.riesgo_arl < 4 ? 'La paga él' : `Clase ${e.riesgo_arl}`}</span>
                 <div className="nom-acciones">
                   <button className="nom-action-btn nom-action-btn--edit" onClick={() => setModalEmp(e)} title="Editar">
                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
